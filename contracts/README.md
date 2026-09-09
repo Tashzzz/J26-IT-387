@@ -7,7 +7,7 @@ against the sample file before the upstream component is finished.
 |---------|---------------------|--------|--------|--------|
 | Normalised, reliability-tagged keypoints per delivery | C1 → C2 | `c1_keypoints.schema.json` | `samples/c1_sample.json` | DRAFT – agree with C2 |
 | Feature row per delivery | C2 → C3 | `c2_features.schema.json` | `samples/c2_sample.json` | DRAFT – C2 to confirm |
-| Risk score + top SHAP factors | C3 → C4 | `c3_risk.schema.json` | `samples/c3_sample.json` | DRAFT – C3 to confirm |
+| Risk score + top SHAP factors | C3 → C4 | `c3_risk.schema.json` | `samples/c3_sample.json` | C3 confirmed 18 Oct: required fields unchanged; optional explanation fields added (`probability_28d`, `modality_attribution`, `all_factors` …); `risk_score` on C4's tier scale |
 | Recommendation plan shown in the app | C4 → app | `c4_plan.schema.json` | `samples/c4_sample.json` | DRAFT – C4 schema added 17 Oct; C4 also reads C2 rows directly |
 
 ## Shared conventions

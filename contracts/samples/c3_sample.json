@@ -1,13 +1,44 @@
 {
   "bowler_id": "B03",
   "session_id": "B03_2026-10-17",
-  "model": "xgboost_baseline_v0.1",
+  "model": "xgboost_fusion_v0.2.0_synthetic",
   "risk_score": 0.72,
   "risk_level": "high",
   "top_factors": [
-    { "feature": "shoulder_counter_rotation_deg", "modality": "kinematics", "value": 34.0, "shap": 0.21 },
-    { "feature": "acute_chronic_workload_ratio", "modality": "workload", "value": 1.6, "shap": 0.17 },
-    { "feature": "trunk_lateral_flexion_deg", "modality": "kinematics", "value": 41.0, "shap": 0.09 }
+    { "feature": "shoulder_counter_rotation_deg", "modality": "kinematics", "value": 34.0, "shap": 0.21,
+      "label": "Shoulder counter-rotation", "display_value": "peak 34°, average 33°", "direction": "increases_risk",
+      "strength": "strongly", "shap_logodds": 0.62, "reference": "Mixed-action limit 30° (Portus et al. 2004; Elliott et al. 2007)", "reliable": true },
+    { "feature": "acute_chronic_workload_ratio", "modality": "workload", "value": 1.6, "shap": 0.17,
+      "label": "Acute:chronic workload ratio", "display_value": "1.60", "direction": "increases_risk",
+      "strength": "strongly", "shap_logodds": 0.50, "reference": "0.8–1.3 safer range; above 1.5 is a spike (Gabbett 2016; Hulin et al. 2014)" },
+    { "feature": "trunk_lateral_flexion_deg", "modality": "kinematics", "value": 41.0, "shap": 0.09,
+      "label": "Trunk side-bend at release", "display_value": "peak 41°, average 40°", "direction": "increases_risk",
+      "strength": "clearly", "shap_logodds": 0.27, "reference": "Limit 40° (Alway et al. 2021 – to be confirmed by C2)", "reliable": true }
   ],
-  "explanation": "Risk is high mainly because shoulder counter-rotation is above the published limit and this week's bowling load is 60% higher than usual."
+  "explanation": "Risk is high mainly because shoulder counter-rotation reached 34°, above the 30° limit and this week's bowling load is 60% higher than the 4-week average.",
+  "risk_tier": "High",
+  "alert": true,
+  "probability_28d": 0.3,
+  "base_probability_28d": 0.08,
+  "relative_risk": 3.75,
+  "horizon_days": 28,
+  "base_score": 0.33,
+  "thresholds": {
+    "score": { "medium": 0.3, "high": 0.55, "critical": 0.75 },
+    "probability": { "medium": 0.054, "high": 0.162, "critical": 0.323 }
+  },
+  "modality_attribution": [
+    { "modality": "kinematics", "label": "Technique", "shap": 0.3, "shap_logodds": 0.89, "share_of_upward_push": 0.62 },
+    { "modality": "workload", "label": "Workload", "shap": 0.15, "shap_logodds": 0.44, "share_of_upward_push": 0.31 },
+    { "modality": "metadata", "label": "Athlete history", "shap": -0.06, "shap_logodds": -0.18, "share_of_upward_push": 0.07 }
+  ],
+  "factor_lines": [
+    "Shoulder counter-rotation: peak 34°, average 33° (squad typical peak 32°, average 29°; Mixed-action limit 30° (Portus et al. 2004; Elliott et al. 2007)). This strongly raised the risk.",
+    "Acute:chronic workload ratio: 1.60 (squad typical 1.03; 0.8–1.3 safer range; above 1.5 is a spike (Gabbett 2016; Hulin et al. 2014)). This strongly raised the risk.",
+    "Trunk side-bend at release: peak 41°, average 40° (squad typical peak 41°, average 38°; Limit 40° (Alway et al. 2021 – to be confirmed by C2)). This clearly raised the risk."
+  ],
+  "data_quality": [
+    "Development model trained on synthetic data - the score shows how the system works, not a validated clinical prediction."
+  ],
+  "synthetic_model": true
 }

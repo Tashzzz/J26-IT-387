@@ -1,16 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "C3 output - injury risk and explanation for one bowler session",
+  "description": "Required fields are what C4 reads. Optional fields (added 18 Oct 2026, backward compatible) carry the two-level SHAP explanation shown on the C3 screen.",
   "type": "object",
   "required": ["bowler_id", "session_id", "risk_score", "risk_level", "top_factors"],
   "properties": {
     "bowler_id": { "type": "string" },
     "session_id": { "type": "string" },
-    "model": { "type": "string", "examples": ["xgboost_baseline_v0.1"] },
-    "risk_score": { "type": "number", "minimum": 0, "maximum": 1 },
-    "risk_level": { "enum": ["low", "medium", "high"] },
+    "model": { "type": "string", "examples": ["xgboost_fusion_v0.2.0_synthetic"] },
+    "risk_score": {
+      "type": "number", "minimum": 0, "maximum": 1,
+      "description": "Risk score on the scale shared with C4's tiers (0.30 / 0.55 / 0.75). Monotone map of probability_28d: alert probability (recall >= 0.80) -> 0.30, 2 x squad base rate -> 0.55, 4 x squad base rate -> 0.75."
+    },
+    "risk_level": { "enum": ["low", "medium", "high"], "description": "low < 0.30 <= medium < 0.55 <= high" },
     "top_factors": {
       "type": "array",
+      "description": "The three factors used in the narrative (raising factors first when the alert is on). Factor names reuse C2 feature names and C4 rule names.",
       "items": {
         "type": "object",
         "required": ["feature", "shap"],
@@ -18,10 +23,45 @@
           "feature": { "type": "string" },
           "modality": { "enum": ["kinematics", "workload", "metadata"] },
           "value": { "type": ["number", "string", "null"] },
-          "shap": { "type": "number" }
+          "shap": { "type": "number", "minimum": -1, "maximum": 1, "description": "Contribution in risk-score units; the factors add up to risk_score - base_score" },
+          "label": { "type": "string" },
+          "display_value": { "type": "string" },
+          "direction": { "enum": ["increases_risk", "decreases_risk", "neutral"] },
+          "strength": { "type": "string" },
+          "shap_logodds": { "type": "number", "description": "Raw TreeSHAP value in calibrated log-odds" },
+          "reference": { "type": ["string", "null"] },
+          "reliable": { "type": "boolean", "description": "Kinematic factors: false if any C2 value came from a camera view C1/C2 mark as unreliable" }
         }
       }
     },
-    "explanation": { "type": "string" }
+    "explanation": { "type": "string", "description": "One plain-language sentence (+ reliability caveat if needed)" },
+    "risk_tier": { "enum": ["Low", "Moderate", "High", "Critical"], "description": "Same tiers and cut-offs as C4" },
+    "alert": { "type": "boolean", "description": "risk_score >= 0.30 (recall-weighted alert threshold)" },
+    "probability_28d": { "type": "number", "minimum": 0, "maximum": 1, "description": "Calibrated probability of a time-loss injury in the next horizon_days" },
+    "base_probability_28d": { "type": "number", "minimum": 0, "maximum": 1, "description": "Squad base rate" },
+    "relative_risk": { "type": ["number", "null"] },
+    "horizon_days": { "type": "integer" },
+    "base_score": { "type": "number" },
+    "thresholds": { "type": "object" },
+    "modality_attribution": {
+      "type": "array",
+      "description": "Level-1 SHAP: total contribution of each modality",
+      "items": {
+        "type": "object",
+        "required": ["modality", "shap"],
+        "properties": {
+          "modality": { "enum": ["kinematics", "workload", "metadata"] },
+          "label": { "type": "string" },
+          "shap": { "type": "number" },
+          "shap_logodds": { "type": "number" },
+          "share_of_upward_push": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "factor_lines": { "type": "array", "items": { "type": "string" } },
+    "all_factors": { "type": "array", "description": "Level-2 SHAP for every factor, with its model features as components" },
+    "data_quality": { "type": "array", "items": { "type": "string" } },
+    "inputs": { "type": "object" },
+    "synthetic_model": { "type": "boolean" }
   }
 }
