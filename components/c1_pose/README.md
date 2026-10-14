@@ -28,6 +28,7 @@ test–retest ICC across recording conditions, not on the model's own confidence
 
 ```
 src/c1_pose/
+  prepare_clips.py metadata.csv -> anonymised copies (B01_D01_front_5m.MOV)
   keypoints.py     33 keypoint names, body regions, skeleton connections
   extract.py       video -> keypoints CSV + summary JSON
   overlay.py       keypoints CSV -> skeleton overlay video
