@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "C3 output - injury risk and explanation for one bowler session",
+  "type": "object",
+  "required": ["bowler_id", "session_id", "risk_score", "risk_level", "top_factors"],
+  "properties": {
+    "bowler_id": { "type": "string" },
+    "session_id": { "type": "string" },
+    "model": { "type": "string", "examples": ["xgboost_baseline_v0.1"] },
+    "risk_score": { "type": "number", "minimum": 0, "maximum": 1 },
+    "risk_level": { "enum": ["low", "medium", "high"] },
+    "top_factors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["feature", "shap"],
+        "properties": {
+          "feature": { "type": "string" },
+          "modality": { "enum": ["kinematics", "workload", "metadata"] },
+          "value": { "type": ["number", "string", "null"] },
+          "shap": { "type": "number" }
+        }
+      }
+    },
+    "explanation": { "type": "string" }
+  }
+}

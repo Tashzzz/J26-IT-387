@@ -1,0 +1,11 @@
+{
+  "bowler_id": "B03",
+  "session_id": "B03_2026-10-17",
+  "risk_level": "high",
+  "plan": [
+    { "type": "workload", "action": "Reduce to 4 overs per session for 7 days", "reason": "acute_chronic_workload_ratio" },
+    { "type": "technique", "action": "Front-on alignment drills with coach, 3 sessions", "reason": "shoulder_counter_rotation_deg" },
+    { "type": "exercise", "action": "Side plank and Pallof press, 3 x 30 s daily", "reason": "trunk_lateral_flexion_deg" },
+    { "type": "referral", "action": "Physiotherapist review if lower-back pain is reported", "reason": "risk_level=high" }
+  ]
+}

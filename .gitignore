@@ -1,0 +1,52 @@
+# --- Data: never commit bowler footage or personal data (ethics) ---
+data/*
+!data/README.md
+!data/metadata_template.csv
+*.mov
+*.MOV
+*.mp4
+*.MP4
+*.avi
+*.mkv
+*.m4v
+*.heic
+*.HEIC
+*.jpg
+*.jpeg
+
+# --- Model weights: downloaded by scripts, not committed ---
+*.task
+*.pt
+*.onnx
+*.h5
+*.pkl
+*.joblib
+
+# --- Secrets ---
+.env
+*.env.local
+*firebase*adminsdk*.json
+serviceAccountKey*.json
+google-services.json
+GoogleService-Info.plist
+
+# --- Python ---
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+
+# --- Node / Expo ---
+node_modules/
+.expo/
+dist/
+web-build/
+
+# --- OS / editors ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

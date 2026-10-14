@@ -1,0 +1,13 @@
+{
+  "bowler_id": "B03",
+  "session_id": "B03_2026-10-17",
+  "model": "xgboost_baseline_v0.1",
+  "risk_score": 0.72,
+  "risk_level": "high",
+  "top_factors": [
+    { "feature": "shoulder_counter_rotation_deg", "modality": "kinematics", "value": 34.0, "shap": 0.21 },
+    { "feature": "acute_chronic_workload_ratio", "modality": "workload", "value": 1.6, "shap": 0.17 },
+    { "feature": "trunk_lateral_flexion_deg", "modality": "kinematics", "value": 41.0, "shap": 0.09 }
+  ],
+  "explanation": "Risk is high mainly because shoulder counter-rotation is above the published limit and this week's bowling load is 60% higher than usual."
+}

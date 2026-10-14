@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "C1 output - keypoints for one delivery",
+  "type": "object",
+  "required": ["video_id", "fps", "bowling_arm", "conditions", "window", "frames", "reliability"],
+  "properties": {
+    "video_id": { "type": "string", "examples": ["B03_D02_side_10m"] },
+    "fps": { "type": "number" },
+    "bowling_arm": { "enum": ["left", "right"] },
+    "model": { "type": "string", "examples": ["pose_landmarker_lite"] },
+    "conditions": {
+      "type": "object",
+      "description": "Recording conditions, used by the ICC study",
+      "properties": {
+        "distance_m": { "type": "number" },
+        "angle": { "enum": ["front", "semi_side", "side"] },
+        "lighting": { "enum": ["daylight", "overcast", "indoor"] },
+        "device": { "type": "string" }
+      }
+    },
+    "window": {
+      "type": "object",
+      "description": "Delivery window: back-foot contact to ball release",
+      "properties": {
+        "bfc_frame": { "type": "integer" },
+        "release_frame": { "type": "integer" }
+      }
+    },
+    "normalisation": {
+      "type": "object",
+      "properties": {
+        "origin": { "const": "hip_centre" },
+        "scale": { "const": "shoulder_width" },
+        "filter": { "type": "string", "examples": ["butterworth_4th_order_6Hz"] }
+      }
+    },
+    "frames": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["t", "landmarks"],
+        "properties": {
+          "t": { "type": "number" },
+          "landmarks": {
+            "description": "33 entries of [x, y, z, visibility] after normalisation; null when the keypoint is missing",
+            "type": "array",
+            "minItems": 33,
+            "maxItems": 33,
+            "items": {
+              "oneOf": [
+                { "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4 },
+                { "type": "null" }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "reliability": {
+      "type": "object",
+      "description": "Per keypoint name: ICC under this recording condition and whether it passes the 0.75 gate",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["icc", "usable"],
+        "properties": {
+          "icc": { "type": ["number", "null"] },
+          "band": { "enum": ["poor", "moderate", "good", "excellent"] },
+          "usable": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

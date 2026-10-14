@@ -1,0 +1,2 @@
+clip_id,bowler_id,delivery_no,angle,distance_m,lighting,device,fps,bowling_arm,date,notes
+B01_D01_side_10m,B01,1,side,10,daylight,iPhone_13,60,right,2026-10-15,example row - delete

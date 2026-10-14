@@ -1,0 +1,10 @@
+{
+  "video_id": "B03_D02_side_10m",
+  "bowler_id": "B03",
+  "events": { "bfc_frame": 112, "ffc_frame": 121, "release_frame": 131 },
+  "features": {
+    "shoulder_counter_rotation_deg": { "value": 34.0, "threshold": 30.0, "breach": true, "reliable": true, "source": "Elliott et al." },
+    "front_knee_flexion_ffc_deg": { "value": 22.5, "threshold": null, "breach": false, "reliable": true, "source": "Elliott et al." },
+    "trunk_lateral_flexion_deg": { "value": 41.0, "threshold": 40.0, "breach": true, "reliable": true, "source": "Alway et al." }
+  }
+}
