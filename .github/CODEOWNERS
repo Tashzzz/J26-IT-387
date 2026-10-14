@@ -1,7 +1,7 @@
-# Each folder is reviewed by its owner. Replace the usernames with real GitHub usernames.
+# Each folder is reviewed by its owner.
 *                          @nethmigune2
 /components/c1_pose/       @nethmigune2
-/components/c2_biomech/    @SAMARASINGHE_GITHUB_USERNAME
-/components/c3_risk/       @RIZMA_GITHUB_USERNAME
-/components/c4_recommend/  @RATHNAYAKA_GITHUB_USERNAME
-/contracts/                @nethmigune2 @SAMARASINGHE_GITHUB_USERNAME @RIZMA_GITHUB_USERNAME @RATHNAYAKA_GITHUB_USERNAME
+/components/c2_biomech/    @Tashzzz
+/components/c3_risk/       @fathimarizma
+/components/c4_recommend/  @rashmirathnayake
+/contracts/                @nethmigune2 @Tashzzz @fathimarizma @rashmirathnayake
