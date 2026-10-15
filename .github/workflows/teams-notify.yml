@@ -1,0 +1,86 @@
+# Posts a card in the CricShield Teams channel for every push (with the commit
+# messages) and every merged pull request, so commit evidence shows up in Teams.
+#
+# Needs the repository secret TEAMS_WEBHOOK_URL (Teams channel -> Workflows ->
+# "Send webhook alerts to a channel"). Never put that URL in a file.
+
+name: Notify Teams
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    types: [closed]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    # Only merged pull requests, not ones closed without merging.
+    if: github.event_name == 'push' || github.event.pull_request.merged == true
+    steps:
+      - name: Send card to Teams
+        env:
+          WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "TEAMS_WEBHOOK_URL is not set - skipping"
+            exit 0
+          fi
+
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            # Branch deletions and pushes with no new commits have nothing to report.
+            if [ "$(jq '.commits | length' "$GITHUB_EVENT_PATH")" = "0" ]; then
+              echo "No new commits - skipping"
+              exit 0
+            fi
+            jq '
+              (.ref | sub("refs/heads/"; "")) as $branch
+              | {
+                  title: ("New commits on " + $branch + " (" + (.commits | length | tostring) + ")"),
+                  facts: [
+                    {title: "Pushed by", value: .pusher.name},
+                    {title: "Branch", value: $branch}
+                  ],
+                  lines: [.commits[] | ((.id[0:7]) + "  " + (.message | split("\n")[0]) + "  (" + .author.name + ")")],
+                  url: .compare
+                }' "$GITHUB_EVENT_PATH" > summary.json
+          else
+            jq '
+              .pull_request as $pr
+              | {
+                  title: ("Pull request merged: #" + ($pr.number | tostring)),
+                  facts: [
+                    {title: "Title", value: $pr.title},
+                    {title: "Author", value: $pr.user.login},
+                    {title: "Merged by", value: ($pr.merged_by.login // "")},
+                    {title: "From -> To", value: ($pr.head.ref + " -> " + $pr.base.ref)}
+                  ],
+                  lines: [],
+                  url: $pr.html_url
+                }' "$GITHUB_EVENT_PATH" > summary.json
+          fi
+
+          # Wrap the summary in the Adaptive Card format that Teams Workflows expects.
+          jq '{
+            type: "message",
+            attachments: [{
+              contentType: "application/vnd.microsoft.card.adaptive",
+              contentUrl: null,
+              content: {
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                type: "AdaptiveCard",
+                version: "1.4",
+                body: (
+                  [
+                    {type: "TextBlock", text: .title, weight: "Bolder", size: "Medium", wrap: true},
+                    {type: "FactSet", facts: .facts}
+                  ]
+                  + [.lines[] | {type: "TextBlock", text: ("- " + .), wrap: true, spacing: "Small"}]
+                ),
+                actions: [{type: "Action.OpenUrl", title: "View on GitHub", url: .url}]
+              }
+            }]
+          }' summary.json > card.json
+
+          curl -sS --fail -H "Content-Type: application/json" -d @card.json "$WEBHOOK"
+          echo "Card sent"

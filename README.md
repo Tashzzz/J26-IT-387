@@ -1,7 +1,7 @@
 # CricShield
 
 AI-powered injury risk prediction for cricket fast bowlers from smartphone video.
-SLIIT IT4010 Research Project – **J26-IT-387**
+SLIIT IT4010 Research Project – **J26-IT-387** · Repository: https://github.com/Tashzzz/J26-IT-387
 
 Supervisor: Mrs. Lokesha Weerasinghe · Co-supervisor: Ms. Ishara Weerathunga
 
@@ -46,8 +46,8 @@ docs/          architecture, decision log, risk register, meeting minutes, test 
 ## Getting started
 
 ```bash
-git clone <repo-url>
-cd cricshield
+git clone https://github.com/Tashzzz/J26-IT-387.git
+cd J26-IT-387
 git checkout dev
 git checkout -b c1/my-task          # use your own component prefix
 

@@ -15,6 +15,8 @@ e.g. B01_D03_side_10m_60fps.MOV
 ```
 
 - `B01`, `B02` … are anonymised bowler codes. The code → name list is kept offline by the team leader only.
-- `angle`: `front`, `semi_side`, `side`
+- `angle`: `front`, `semi_side`, `side`, `rear`
+- `use`: `icc` (reliability study), `test_occlusion`, `test_multi_person`, `check`, `exclude`
+- `metadata.csv` links original file names to clip IDs, so it may contain real names: keep it on private storage only, never in git.
 
 Every clip must also have a row in `metadata.csv` (same columns as `metadata_template.csv`).
