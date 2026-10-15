@@ -31,7 +31,7 @@
       "properties": {
         "origin": { "const": "hip_centre" },
         "scale": { "const": "shoulder_width" },
-        "filter": { "type": "string", "examples": ["butterworth_4th_order_6Hz"] }
+        "filter": { "type": "string", "examples": ["butterworth_4th_order_8Hz"] }
       }
     },
     "frames": {
