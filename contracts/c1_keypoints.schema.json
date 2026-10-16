@@ -31,7 +31,7 @@
       "properties": {
         "origin": { "const": "hip_centre" },
         "scale": { "const": "shoulder_width" },
-        "filter": { "type": "string", "examples": ["butterworth_4th_order_8Hz"] }
+        "filter": { "type": "string", "description": "Smoothing applied by C1. C1 sends unsmoothed keypoints; C2 applies the Butterworth filter.", "examples": ["none"] }
       }
     },
     "frames": {
