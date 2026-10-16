@@ -1,5 +1,7 @@
 """Compute the C2 feature row for one delivery (key functions 1 + 2).
 
+Steps: Butterworth filter (filtering.py) -> events -> angles -> features -> thresholds.
+
 Features (degrees):
     shoulder_counter_rotation_deg   largest twist of the shoulder line away from its
                                     BFC alignment, between BFC and FFC
@@ -12,12 +14,15 @@ Output follows contracts/c2_features.schema.json. Extra fields per feature
 (rule, level, event, keypoints) are allowed by the schema and used by the app.
 """
 
+from dataclasses import replace
+
 import numpy as np
 import pandas as pd
 
 from . import keypoints as kp
 from .angles import angle_series, wrap180
 from .events import detect_events
+from .filtering import filter_delivery
 from .thresholds import THRESHOLDS, classify
 
 EVENT_TOLERANCE = 1  # if a keypoint is missing exactly at an event, look +/- this many frames
@@ -59,14 +64,20 @@ def keypoint_reliable(names, reliability):
     return len(unusable) == 0, unusable, unchecked
 
 
-def compute_features(delivery, overrides=None, thresholds=None):
+def compute_features(delivery, overrides=None, thresholds=None, filter_mode="auto", cutoff="auto"):
     """Run the whole C2 pipeline on one Delivery.
+
+    filter_mode / cutoff: see filtering.filter_delivery ("auto" = residual analysis).
 
     Returns:
         row        dict in the C2 contract format (for C3 and the app)
-        series     DataFrame of every angle per frame (for plots / the report)
+        series     DataFrame of every angle per frame, filtered and raw (for plots)
     """
     thresholds = thresholds or THRESHOLDS
+    filtered, raw_points, filter_info = filter_delivery(delivery, filter_mode, cutoff)
+    residual_curve = filter_info.pop("_residual_curve")
+    delivery = replace(delivery, points=filtered)
+
     events, method, warnings = detect_events(delivery, overrides)
     bfc, ffc, rel = events["bfc_frame"], events["ffc_frame"], events["release_frame"]
 
@@ -119,6 +130,7 @@ def compute_features(delivery, overrides=None, thresholds=None):
         "features": features,
         "event_method": method,
         "n_breaches": sum(f["breach"] for f in features.values()),
+        "filter": filter_info,
         "warnings": warnings,
         "c2_version": "0.1.0",
     }
@@ -131,4 +143,14 @@ def compute_features(delivery, overrides=None, thresholds=None):
     ref = value_at(ang["shoulder_alignment_deg"], bfc)
     series["shoulder_rotation_from_bfc_deg"] = (
         np.round(wrap180(ang["shoulder_alignment_deg"] - ref), 2) if ref is not None else np.nan)
+
+    # Same angles from the unfiltered keypoints, for the raw-vs-filtered evidence plot.
+    raw_ang = angle_series(raw_points, delivery.bowling_arm)
+    for name in ("front_knee_flexion_deg", "trunk_lateral_flexion_deg", "shoulder_alignment_deg"):
+        series[f"raw_{name}"] = np.round(raw_ang[name], 2)
+    # One keypoint trace (bowling wrist height) to show the filter on raw coordinates.
+    w = kp.sides(delivery.bowling_arm)["wrist"]
+    series["raw_wrist_y"] = np.round(raw_points[:, w, 1], 5)
+    series["wrist_y"] = np.round(filtered[:, w, 1], 5)
+    series.attrs["residual_curve"] = residual_curve  # plain lists: safe in attrs
     return row, series

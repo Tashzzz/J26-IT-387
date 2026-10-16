@@ -2,11 +2,15 @@
 
 Two input formats are accepted:
 
-1. The agreed C1 -> C2 contract JSON (contracts/c1_keypoints.schema.json):
-   keypoints already gap-filled, Butterworth-filtered and normalised by C1.
-2. C1's stabilised CSV (<clip>_stable.csv from stabilise.py), so C2 can run on
-   real clips before C1's JSON export is finished. The world coordinates
-   (wx, wy, wz: metres, hip-centred) are used by default.
+1. The agreed C1 -> C2 contract JSON (contracts/c1_keypoints.schema.json).
+   Whether C1 already filtered it is read from normalisation.filter.
+2. A C1 CSV, so C2 can run on real clips before C1's JSON export is finished:
+     <clip>_keypoints.csv  raw MediaPipe output from extract.py  (not filtered)
+     <clip>_stable.csv     C1 stabilise.py output                (already filtered)
+   The world coordinates (wx, wy, wz: metres, hip-centred) are used by default.
+
+The 'prefiltered' flag tells C2's Butterworth stage (filtering.py) whether to
+filter again.
 
 Both are turned into the same Delivery object. Missing keypoints become NaN,
 so every later step can tell "not measured" apart from a real value.
@@ -37,6 +41,7 @@ class Delivery:
     window: dict = field(default_factory=dict)       # bfc_frame / release_frame from C1
     reliability: dict = field(default_factory=dict)  # C1 ICC gate per keypoint name
     conditions: dict = field(default_factory=dict)   # camera angle, distance, ...
+    prefiltered: bool = False                        # True if C1 already low-pass filtered it
 
     @property
     def n_frames(self):
@@ -88,6 +93,7 @@ def from_c1_json(data):
     if not np.isfinite(points).any():
         raise ValueError("C1 input contains no measured keypoints (all null)")
 
+    filt = str((data.get("normalisation") or {}).get("filter") or "none").lower()
     return Delivery(
         video_id=data["video_id"],
         bowler_id=data.get("bowler_id") or bowler_from_video_id(data["video_id"]),
@@ -99,6 +105,7 @@ def from_c1_json(data):
         window=data.get("window") or {},
         reliability=data.get("reliability") or {},
         conditions=data.get("conditions") or {},
+        prefiltered=not filt.startswith("none"),
     )
 
 
@@ -134,6 +141,7 @@ def from_c1_csv(csv_path, fps, bowling_arm, use_world=True):
         visibility=vis,
         times=times,
         conditions={"coordinates": "world_m" if cols[0] == "wx" else "image_norm"},
+        prefiltered="filled" in df.columns,  # only stabilise.py writes the 'filled' column
     )
 
 

@@ -24,7 +24,7 @@ import numpy as np
 
 from . import keypoints as kp
 
-LANDING_FRACTION = 0.1
+LANDING_FRACTION = 0.5
 
 
 def _nan_argmin(x, start=0, stop=None):
