@@ -86,7 +86,9 @@ def load_existing(out_path):
     """Read an existing metadata.csv into {original_file: row} so hand-filled values survive."""
     if not out_path.exists():
         return {}
-    with open(out_path, newline="", encoding="utf-8") as f:
+    # utf-8-sig: Excel's "CSV UTF-8" adds an invisible BOM at the start of the
+    # file, which would otherwise turn the first column name into "﻿original_file".
+    with open(out_path, newline="", encoding="utf-8-sig") as f:
         return {row["original_file"]: row for row in csv.DictReader(f)}
 
 
