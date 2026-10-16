@@ -16,9 +16,9 @@ FEATURES = ["shoulder_counter_rotation_deg", "front_knee_flexion_ffc_deg",
             "hip_shoulder_separation_bfc_deg"]
 
 
-def run(**kw):
+def run(filter_mode="auto", **kw):
     data = make_delivery(**kw)
-    row, series = compute_features(from_c1_json(data))
+    row, series = compute_features(from_c1_json(data), filter_mode=filter_mode)
     return row, series, data["_truth"]
 
 
@@ -30,9 +30,23 @@ def test_events_detected_exactly_on_clean_delivery():
 
 
 def test_features_match_known_values():
-    row, _, truth = run()
+    """Angle maths only (filter off): every feature within 0.5 deg of the true value."""
+    row, _, truth = run(filter_mode="off")
     for name in FEATURES:
         assert row["features"][name]["value"] == pytest.approx(truth[name], abs=0.5), name
+
+
+def test_filter_keeps_peaks():
+    """With the 8 Hz Butterworth on, smooth motion keeps its peaks (within 2.5 deg)."""
+    row, _, truth = run()
+    assert row["filter"]["applied"] and row["filter"]["cutoff_hz"] == 8.0
+    for name in FEATURES:
+        assert row["features"][name]["value"] == pytest.approx(truth[name], abs=2.5), name
+
+
+def test_filter_reduces_jitter_on_noisy_input():
+    row, _, _ = run(noise=0.01, seed=2)
+    assert row["filter"]["jitter_reduction_pct"] > 40
 
 
 @pytest.mark.parametrize("scr,expect_breach", [(20.0, False), (35.0, True)])
@@ -78,7 +92,7 @@ def test_unreliable_keypoint_from_c1_is_flagged():
     knee = row["features"]["front_knee_flexion_ffc_deg"]
     assert knee["reliable"] is False
     assert knee["unusable_keypoints"] == ["left_knee"]
-    assert row["features"]["shoulder_counter_rotation_deg"]["reliable"] is True
+    assert row["features"]["trunk_lateral_flexion_deg"]["reliable"] is True
 
 
 def test_classify_levels():
@@ -104,3 +118,24 @@ def test_reads_c1_contract_sample_without_crashing():
     row, _ = compute_features(from_c1_json(data))
     assert row["warnings"]
     assert all(f["value"] is None for f in row["features"].values())
+
+
+def test_view_decides_2d_or_3d():
+    """Front view: trunk side-bend in 2-D (good), knee in 3-D (poor, not reliable)."""
+    row, _, _ = run()
+    f = row["features"]
+    assert (f["trunk_lateral_flexion_deg"]["method"], f["trunk_lateral_flexion_deg"]["view_suitability"]) == ("2d", "good")
+    assert f["front_knee_flexion_release_deg"]["view_suitability"] == "poor"
+    assert f["front_knee_flexion_release_deg"]["reliable"] is False
+    assert f["shoulder_counter_rotation_deg"]["reliable"] is False  # depth-based from one camera
+
+
+def test_without_image_position_contacts_are_not_guessed():
+    """No origin_px from C1: release is still automatic, BFC/FFC are left for manual entry."""
+    data = make_delivery(with_origin=False)
+    row, _ = compute_features(from_c1_json(data))
+    assert row["events"] == {"release_frame": 42}
+    assert row["event_method"]["ffc_frame"] == "not_detected"
+    assert any("origin_px" in w for w in row["warnings"])
+    row, _ = compute_features(from_c1_json(data), overrides={"bfc_frame": 15, "ffc_frame": 30})
+    assert row["features"]["shoulder_counter_rotation_deg"]["value"] is not None

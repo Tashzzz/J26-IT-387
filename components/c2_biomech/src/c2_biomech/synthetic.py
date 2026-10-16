@@ -28,7 +28,9 @@ def make_delivery(
     noise=0.0,              # std of Gaussian noise added to every coordinate
     missing=None,           # list of (frame, keypoint) to set to null
     seed=0,
-    video_id="SYN_D01_side_10m",
+    video_id="SYN_D01_front_10m",
+    view="front",           # the synthetic skeleton's image plane is the frontal plane
+    with_origin=True,       # include origin_px/scale_px so foot contacts can be auto-detected
 ):
     rng = np.random.default_rng(seed)
     side = kp.sides(bowling_arm)
@@ -39,10 +41,11 @@ def make_delivery(
     hip_align = np.full(n_frames, 0.0)
     shoulder = np.full(n_frames, separation_bfc)
     w = (t >= bfc) & (t <= ffc)
-    # Smooth hump: 0 at BFC, peaks at scr_deg halfway, back to 0 at FFC.
-    shoulder[w] += scr_deg * np.sin(np.pi * (t[w] - bfc) / (ffc - bfc))
+    # Smooth hump (zero slope at both ends, like real motion): 0 at BFC,
+    # scr_deg halfway, back to 0 at FFC.
+    shoulder[w] += scr_deg * np.sin(np.pi * (t[w] - bfc) / (ffc - bfc)) ** 2
     after = t > ffc
-    shoulder[after] = separation_bfc - 2.0 * (t[after] - ffc)  # rotates forward
+    shoulder[after] = separation_bfc - 0.15 * (t[after] - ffc) ** 2  # rotates forward, smooth start
 
     # Knee flexion and trunk side-bend over time.
     knee = np.interp(t, [0, ffc, release, n_frames - 1], [15.0, knee_ffc, knee_release, knee_release])
@@ -120,7 +123,10 @@ def make_delivery(
         if noise:
             lm = lm + rng.normal(0.0, noise, lm.shape)
         landmarks = [[round(float(v), 5) for v in p] + [0.95] for p in lm]
-        frames.append({"t": round(i / fps, 4), "landmarks": landmarks})
+        frame = {"t": round(i / fps, 4), "landmarks": landmarks}
+        if with_origin:
+            frame["origin_px"] = [0.0, 0.0]  # hips stay put, so image = hip-centred coords
+        frames.append(frame)
 
     for f, k in missing or []:
         frames[f]["landmarks"][k] = None
@@ -130,9 +136,10 @@ def make_delivery(
         "fps": fps,
         "bowling_arm": bowling_arm,
         "model": "synthetic",
-        "conditions": {"distance_m": 10, "angle": "side", "lighting": "daylight", "device": "synthetic"},
+        "conditions": {"distance_m": 10, "angle": view, "lighting": "daylight", "device": "synthetic"},
         "window": {},
-        "normalisation": {"origin": "hip_centre", "scale": "shoulder_width", "filter": "none (synthetic)"},
+        "normalisation": {"origin": "hip_centre", "scale": "shoulder_width", "filter": "none (synthetic)",
+                          **({"scale_px": 1.0} if with_origin else {})},
         "frames": frames,
         "reliability": {},
         "_truth": {

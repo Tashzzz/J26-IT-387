@@ -42,6 +42,16 @@ class Delivery:
     reliability: dict = field(default_factory=dict)  # C1 ICC gate per keypoint name
     conditions: dict = field(default_factory=dict)   # camera angle, distance, ...
     prefiltered: bool = False                        # True if C1 already low-pass filtered it
+    # Optional: hip-centre position in the image (pixels) per frame, and the clip's
+    # scale in pixels. With these C2 can rebuild where each foot is in the image,
+    # which is needed to see a foot stop on the ground (foot-contact detection).
+    origin_px: np.ndarray = None                     # (frames, 2) or None
+    scale_px: float = None
+
+    @property
+    def view(self):
+        """Camera position from the recording conditions: front / side / semi_side / rear."""
+        return str((self.conditions or {}).get("angle") or "unknown")
 
     @property
     def n_frames(self):
@@ -93,7 +103,18 @@ def from_c1_json(data):
     if not np.isfinite(points).any():
         raise ValueError("C1 input contains no measured keypoints (all null)")
 
-    filt = str((data.get("normalisation") or {}).get("filter") or "none").lower()
+    norm = data.get("normalisation") or {}
+    filt = str(norm.get("filter") or "none").lower()
+
+    # Optional image-position fields (see Delivery.origin_px).
+    origin = np.full((n, 2), np.nan)
+    for i, fr in enumerate(frames):
+        o = fr.get("origin_px")
+        if isinstance(o, (list, tuple)) and len(o) >= 2 and o[0] is not None and o[1] is not None:
+            origin[i] = o[:2]
+    scale_px = norm.get("scale_px")
+    has_origin = np.isfinite(origin).any() and isinstance(scale_px, (int, float)) and scale_px > 0
+
     return Delivery(
         video_id=data["video_id"],
         bowler_id=data.get("bowler_id") or bowler_from_video_id(data["video_id"]),
@@ -106,6 +127,8 @@ def from_c1_json(data):
         reliability=data.get("reliability") or {},
         conditions=data.get("conditions") or {},
         prefiltered=not filt.startswith("none"),
+        origin_px=origin if has_origin else None,
+        scale_px=float(scale_px) if has_origin else None,
     )
 
 

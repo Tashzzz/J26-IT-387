@@ -84,10 +84,31 @@ def trunk_lateral_flexion(left_hip, right_hip, left_shoulder, right_shoulder):
     return np.where(lat_len > 1e-9, out, np.nan)
 
 
+def _xy(p):
+    """Drop depth: keep image x, y and set z to 0 (2-D angle in the image plane)."""
+    p = np.array(p, dtype=float)
+    p[..., 2] = 0.0
+    return p
+
+
+def trunk_tilt_2d(left_hip, right_hip, left_shoulder, right_shoulder):
+    """Trunk angle from the image vertical, in the image plane (degrees, >= 0).
+
+    With a front-on (or rear) camera the image plane is the bowler's frontal
+    plane, so this is the trunk side-bend without using the noisy depth (z).
+    """
+    lh, rh, ls, rs = (np.asarray(a, float)[..., :2] for a in
+                      (left_hip, right_hip, left_shoulder, right_shoulder))
+    trunk = (ls + rs) / 2.0 - (lh + rh) / 2.0
+    return angle_between(np.pad(trunk, [(0, 0)] * (trunk.ndim - 1) + [(0, 1)]), UP)
+
+
 def angle_series(points, bowling_arm):
     """All C2 angle time series for one delivery.
 
     points: (frames, 33, 3). Returns a dict of name -> (frames,) arrays.
+    "_3d" uses x, y, z; "_2d" uses image x, y only (z is MediaPipe's weakest axis).
+    Which one a feature uses depends on the camera view (see features.VIEW_METHOD).
     """
     from . import keypoints as kp
 
@@ -95,12 +116,14 @@ def angle_series(points, bowling_arm):
     P = points
     shoulder_align = line_alignment(P[:, kp.LEFT_SHOULDER], P[:, kp.RIGHT_SHOULDER])
     hip_align = line_alignment(P[:, kp.LEFT_HIP], P[:, kp.RIGHT_HIP])
+    leg = (P[:, s["front_hip"]], P[:, s["front_knee"]], P[:, s["front_ankle"]])
+    trunk = (P[:, kp.LEFT_HIP], P[:, kp.RIGHT_HIP], P[:, kp.LEFT_SHOULDER], P[:, kp.RIGHT_SHOULDER])
     return {
         "shoulder_alignment_deg": shoulder_align,
         "hip_alignment_deg": hip_align,
         "hip_shoulder_separation_deg": np.abs(wrap180(shoulder_align - hip_align)),
-        "front_knee_flexion_deg": knee_flexion(P[:, s["front_hip"]], P[:, s["front_knee"]],
-                                               P[:, s["front_ankle"]]),
-        "trunk_lateral_flexion_deg": trunk_lateral_flexion(
-            P[:, kp.LEFT_HIP], P[:, kp.RIGHT_HIP], P[:, kp.LEFT_SHOULDER], P[:, kp.RIGHT_SHOULDER]),
+        "front_knee_flexion_3d_deg": knee_flexion(*leg),
+        "front_knee_flexion_2d_deg": knee_flexion(*(_xy(p) for p in leg)),
+        "trunk_lateral_flexion_3d_deg": trunk_lateral_flexion(*trunk),
+        "trunk_lateral_flexion_2d_deg": trunk_tilt_2d(*trunk),
     }
