@@ -1,34 +1,31 @@
-"""CricShield Component 1 - Step 2: temporal stabilisation.
+"""CricShield Component 1 - Step 2: occlusion handling and temporal stabilisation.
 
 Takes the raw keypoints CSV from extract.py and makes the keypoint tracks
-smoother and more continuous, in three steps:
+more continuous, in two steps:
 
   1. Mask      - a keypoint with visibility below MIN_VISIBILITY is treated as
-                 missing (MediaPipe is guessing when it cannot see the joint).
+                 missing (MediaPipe is guessing when it cannot see the joint,
+                 e.g. the far-side arm hidden behind the body at release).
   2. Gap fill  - short gaps (up to MAX_GAP frames) are filled by straight-line
                  interpolation between the frames either side. Longer gaps are
                  left missing: inventing a whole second of arm motion is not honest.
-  3. Filter    - a low-pass Butterworth filter removes frame-to-frame jitter.
-                 A 2nd-order filter is run forwards and then backwards
-                 (scipy filtfilt), which gives a 4th-order, zero-lag filter:
-                 the standard way of smoothing motion data in biomechanics,
-                 because it does not shift the timing of events like release.
 
-CUTOFF_HZ is the main setting. Movement faster than the cutoff is treated as
-noise and removed:
-  - lower cutoff  -> smoother tracks, but fast real motion (the bowling arm
-                     near release) gets flattened and peak values drop
-  - higher cutoff -> keeps fast motion, but lets more jitter through
-The cutoff must be below half the frame rate (15 Hz for 30 fps video).
+Signal smoothing (the Butterworth low-pass filter) is NOT done here. As
+presented at the proposal, smoothing belongs to Component 2 (biomechanical
+feature engineering), which filters the signals it computes angles from.
+C1 keeps the pose model's own output unsmoothed so that the reliability
+study (ICC) measures how reliable the pose model is under each recording
+condition, without a filter hiding the effect of the camera setup.
 
 Outputs (next to the input CSV unless --out is given):
   <clip>_stable.csv          same columns as the raw CSV, plus "filled"
                              (1 = this value was interpolated, not measured)
-  <clip>_stable_report.json  continuity and jitter, raw vs stabilised
+  <clip>_stable_report.json  continuity before/after, frames filled per keypoint,
+                             and raw jitter (for C2 to compare against after smoothing)
 
 Usage (run from components/c1_pose):
   python src/c1_pose/stabilise.py ../../data/processed/B01_D01_side_10m_keypoints.csv
-  python src/c1_pose/stabilise.py <csv> --cutoff 10
+  python src/c1_pose/stabilise.py <csv> --min-vis 0.6 --max-gap 3
 """
 
 import argparse
@@ -37,12 +34,9 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.signal import butter, filtfilt
 
 from keypoints import KEYPOINT_NAMES
 
-CUTOFF_HZ = 8.0        # low-pass cutoff frequency
-FILTER_ORDER = 2       # run forwards + backwards -> effective 4th order
 MIN_VISIBILITY = 0.5   # below this a keypoint is treated as missing
 MAX_GAP = 5            # longest gap (in frames) that is filled by interpolation
 
@@ -61,6 +55,13 @@ def load_tracks(csv_path):
     time_ms = df["time_ms"].to_numpy().reshape(n_frames, 33)[:, 0]
     detected = df["detected"].to_numpy().reshape(n_frames, 33)[:, 0]
     return clip_id, coords, visibility, time_ms, detected
+
+
+def mask_low_visibility(coords, visibility, min_visibility):
+    """Set coordinates to NaN where MediaPipe's visibility is below the threshold."""
+    masked = coords.copy()
+    masked[visibility < min_visibility] = np.nan
+    return masked
 
 
 def fill_short_gaps(track, max_gap):
@@ -95,37 +96,12 @@ def fill_short_gaps(track, max_gap):
     return filled, was_filled
 
 
-def lowpass(track, fps, cutoff_hz, order):
-    """Zero-lag Butterworth filter applied to each continuous run of data.
-
-    NaN gaps that were too long to fill split the track into separate runs;
-    each run is filtered on its own. Runs too short for filtfilt are left as
-    they are.
-    """
-    b, a = butter(order, cutoff_hz / (fps / 2.0), btype="low")
-    min_len = 3 * max(len(a), len(b)) + 1  # filtfilt's padding needs this many samples
-    out = track.copy()
-    valid = ~np.isnan(track)
-
-    i = 0
-    n = len(track)
-    while i < n:
-        if not valid[i]:
-            i += 1
-            continue
-        start = i
-        while i < n and valid[i]:
-            i += 1
-        if i - start >= min_len:
-            out[start:i] = filtfilt(b, a, track[start:i])
-    return out
-
-
 def jitter(coords):
     """Mean absolute frame-to-frame acceleration (second difference).
 
     Real motion changes smoothly, so large second differences are mostly
     tracking noise. Lower is steadier. Uses image x/y only (0-1 units).
+    Reported so C2 can show how much its smoothing reduces it.
     """
     xy = coords[:, :, :2]
     acc = np.abs(np.diff(xy, n=2, axis=0))
@@ -137,31 +113,29 @@ def continuity(coords):
     return (~np.isnan(coords[:, :, 0])).mean(axis=0)
 
 
-def stabilise(csv_path, fps, cutoff_hz=CUTOFF_HZ, min_visibility=MIN_VISIBILITY,
-              max_gap=MAX_GAP, out_dir=None):
+def stabilise_tracks(raw, visibility, min_visibility=MIN_VISIBILITY, max_gap=MAX_GAP):
+    """Mask + gap fill on arrays. Returns (masked, stable, filled_flag)."""
+    masked = mask_low_visibility(raw, visibility, min_visibility)
+    n_frames = raw.shape[0]
+    stable = np.full_like(masked, np.nan)
+    filled_flag = np.zeros((n_frames, 33), dtype=bool)
+    for kp in range(33):
+        for c in range(raw.shape[2]):
+            track, was_filled = fill_short_gaps(masked[:, kp, c], max_gap)
+            stable[:, kp, c] = track
+            if c == 0:
+                filled_flag[:, kp] = was_filled
+    return masked, stable, filled_flag
+
+
+def stabilise(csv_path, min_visibility=MIN_VISIBILITY, max_gap=MAX_GAP, out_dir=None, fps=None):
     csv_path = Path(csv_path)
     out_dir = Path(out_dir) if out_dir else csv_path.parent
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    if cutoff_hz >= fps / 2.0:
-        raise ValueError(f"cutoff {cutoff_hz} Hz must be below half the frame rate ({fps / 2} Hz)")
-
     clip_id, raw, visibility, time_ms, detected = load_tracks(csv_path)
     n_frames = raw.shape[0]
-
-    # 1. Mask low-visibility keypoints.
-    masked = raw.copy()
-    masked[visibility < min_visibility] = np.nan
-
-    # 2 + 3. Fill short gaps, then filter, one coordinate track at a time.
-    stable = np.full_like(masked, np.nan)
-    filled_flag = np.zeros((n_frames, 33), dtype=bool)
-    for kp in range(33):
-        for c in range(len(COORDS)):
-            track, was_filled = fill_short_gaps(masked[:, kp, c], max_gap)
-            stable[:, kp, c] = lowpass(track, fps, cutoff_hz, FILTER_ORDER)
-            if c == 0:
-                filled_flag[:, kp] = was_filled
+    masked, stable, filled_flag = stabilise_tracks(raw, visibility, min_visibility, max_gap)
 
     # Save the stabilised CSV in the same long format as extract.py.
     rows = []
@@ -176,7 +150,7 @@ def stabilise(csv_path, fps, cutoff_hz=CUTOFF_HZ, min_visibility=MIN_VISIBILITY,
     out_csv = out_dir / f"{clip_id}_stable.csv"
     pd.DataFrame(rows, columns=columns).to_csv(out_csv, index=False)
 
-    # Report: continuity and jitter before and after.
+    # Report: continuity before and after, and raw jitter for C2.
     cont_raw = continuity(raw)
     cont_masked = continuity(masked)
     cont_stable = continuity(stable)
@@ -185,20 +159,16 @@ def stabilise(csv_path, fps, cutoff_hz=CUTOFF_HZ, min_visibility=MIN_VISIBILITY,
         "fps": fps,
         "frames": n_frames,
         "settings": {
-            "cutoff_hz": cutoff_hz,
-            "filter": f"butterworth order {FILTER_ORDER} forward-backward (effective order {FILTER_ORDER * 2}, zero lag)",
             "min_visibility": min_visibility,
             "max_gap_frames": max_gap,
+            "smoothing": "none in C1 (Butterworth smoothing is done by C2)",
         },
         "continuity_mean": {
             "raw_detected": round(float(cont_raw.mean()), 4),
             "raw_visible": round(float(cont_masked.mean()), 4),
             "stabilised": round(float(cont_stable.mean()), 4),
         },
-        "jitter_mean": {
-            "raw_visible": jitter(masked),
-            "stabilised": jitter(stable),
-        },
+        "jitter_mean_unsmoothed": jitter(stable),
         "per_keypoint": {
             KEYPOINT_NAMES[k]: {
                 "continuity_raw_visible": round(float(cont_masked[k]), 4),
@@ -225,10 +195,8 @@ def fps_from_summary(csv_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Gap-fill and Butterworth-filter keypoint tracks.")
+    parser = argparse.ArgumentParser(description="Mask low-visibility keypoints and fill short gaps.")
     parser.add_argument("csv", help="raw keypoints CSV from extract.py")
-    parser.add_argument("--fps", type=float, help="frame rate (default: read from the summary JSON)")
-    parser.add_argument("--cutoff", type=float, default=CUTOFF_HZ, help=f"cutoff in Hz (default {CUTOFF_HZ})")
     parser.add_argument("--min-vis", type=float, default=MIN_VISIBILITY,
                         help=f"visibility below this counts as missing (default {MIN_VISIBILITY})")
     parser.add_argument("--max-gap", type=int, default=MAX_GAP,
@@ -236,18 +204,12 @@ def main():
     parser.add_argument("--out", help="output folder (default: same folder as the CSV)")
     args = parser.parse_args()
 
-    fps = args.fps or fps_from_summary(args.csv)
-    if not fps:
-        raise SystemExit("Frame rate unknown: pass --fps or keep the _summary.json next to the CSV")
-
-    r = stabilise(args.csv, fps, args.cutoff, args.min_vis, args.max_gap, args.out)
-    c, j = r["continuity_mean"], r["jitter_mean"]
-    print(f"{r['clip_id']}: {r['frames']} frames at {fps} fps, cutoff {args.cutoff} Hz")
+    r = stabilise(args.csv, args.min_vis, args.max_gap, args.out, fps=fps_from_summary(args.csv))
+    c = r["continuity_mean"]
+    filled = sum(k["frames_filled"] for k in r["per_keypoint"].values())
+    print(f"{r['clip_id']}: {r['frames']} frames")
     print(f"  continuity  detected {c['raw_detected']:.1%}  visible {c['raw_visible']:.1%}  "
-          f"-> stabilised {c['stabilised']:.1%}")
-    if j["raw_visible"] is not None and j["stabilised"] is not None:
-        print(f"  jitter      {j['raw_visible']:.5f} -> {j['stabilised']:.5f} "
-              f"({1 - j['stabilised'] / j['raw_visible']:.0%} lower)")
+          f"-> after gap fill {c['stabilised']:.1%}  ({filled} keypoint-frames filled)")
     print(f"  saved: {r['csv']}")
 
 
