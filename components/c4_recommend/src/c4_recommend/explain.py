@@ -77,7 +77,7 @@ def plan_summary(facts: dict, tier: str, top_recs: list, referral_required: bool
     if drivers:
         text += " Main drivers: " + ", ".join(drivers[:3]) + "."
     if top_recs:
-        text += " Priority action: " + top_recs[0].title.lower() + "."
+        text += " Priority action: " + top_recs[0].title + "."
     if referral_required:
         text += " Physiotherapist review required."
     return text
