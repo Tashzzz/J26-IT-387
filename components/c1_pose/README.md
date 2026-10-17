@@ -9,9 +9,9 @@ test–retest ICC across recording conditions, not on the model's own confidence
 | | |
 |---|---|
 | Input | Bowling video (upload or record in the app), trimmed to back-foot contact → ball release |
-| Processing | MediaPipe PoseLandmarker → 33 keypoints per frame → gap fill + Butterworth 4th-order filter → root-relative normalisation (hip centre, shoulder width) |
+| Processing | MediaPipe PoseLandmarker → 33 keypoints per frame → occlusion handling (mask visibility < 0.5, fill gaps ≤ 5 frames) → root-relative normalisation (hip centre, shoulder width). Smoothing (Butterworth) is done by C2, as proposed |
 | Output | Skeleton-overlay video + normalised keypoints JSON (`contracts/c1_keypoints.schema.json`) |
-| Metric | Detection rate, tracking continuity raw vs stabilised, processing time per delivery, lite vs full vs heavy |
+| Metric | Detection rate, tracking continuity before vs after gap fill, processing time per delivery, lite vs full vs heavy |
 | Without it | No skeleton, no angles: C2–C4 have no input |
 
 ## Key function 2 – Reliability-guided keypoint selection
@@ -32,8 +32,9 @@ src/c1_pose/
   keypoints.py     33 keypoint names, body regions, skeleton connections
   extract.py       video -> keypoints CSV + summary JSON
   overlay.py       keypoints CSV -> skeleton overlay video
-  stabilise.py     gap fill + Butterworth filter (zero-lag, cutoff 8 Hz)
-  normalise.py     (to do) hip-centre origin, shoulder-width scale
+  stabilise.py     occlusion handling: mask low-visibility keypoints + fill short gaps (no smoothing; C2 smooths)
+  normalise.py     hip-centre origin, shoulder-width (or torso-length) scale
+  probe_clips.py   measures fps/length/size of every clip -> data/metadata.csv
   reliability.py   (to do) ICC per keypoint/axis/condition, 0.75 gate
 scripts/
   download_models.py   downloads the lite/full/heavy .task files into models/
