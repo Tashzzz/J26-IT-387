@@ -12,3 +12,5 @@ Likelihood and impact: L / M / H. Review at every stand-up; update the status co
 | 6 | Live demo fails at PP1 | all | M | H | Freeze the build on 21 Oct; each member records a backup demo video | All | Open |
 | 7 | Bowler video leaks or is committed to GitHub | all | L | H | `.gitignore` blocks video files; data kept in a restricted shared folder; anonymised bowler IDs | Nethmi | Open |
 | 8 | Ethics approval status questioned by the panel | all | M | M | Confirm the SLIIT ERC status before 22 Oct and keep the evidence ready | Nethmi | Open |
+| 9 | C3 model not ready, so C4 has no real risk score at PP1 | C4 | M | M | C4 builds on `contracts/samples/c3_sample.json` and 3 synthetic demo bowlers; guideline-based fallback tier when C3 is missing | Rashmi | Open |
+| 10 | Panel challenges C4 thresholds as arbitrary | C4 | M | H | Every rule cites its source in `knowledge_base.json`; physiotherapist labels 12 cases (`experiments/evaluate.py`) for Cohen's kappa | Rashmi | Open |
