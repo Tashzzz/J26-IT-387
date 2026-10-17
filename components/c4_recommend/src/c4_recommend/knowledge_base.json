@@ -1,0 +1,980 @@
+{
+  "version": "0.4.0-pp1",
+  "status": "DRAFT - thresholds anchored to published guidelines, pending physiotherapist validation session",
+  "sources": {
+    "hulin2014": {
+      "citation": "Hulin BT, Gabbett TJ, Blanch P, Chapman P, Bailey D, Orchard JW. Spikes in acute workload are associated with increased injury risk in elite cricket fast bowlers. Br J Sports Med. 2014;48(8):708-712.",
+      "key_finding": "Acute (1-week) load above 200% of chronic (4-week) load: injury RR 4.5 (internal) / 3.3 (external) the following week.",
+      "verified": true
+    },
+    "gabbett2016": {
+      "citation": "Gabbett TJ. The training-injury prevention paradox: should athletes be training smarter and harder? Br J Sports Med. 2016;50(5):273-280.",
+      "key_finding": "Acute:chronic workload ratio 0.8-1.3 described as the 'sweet spot'; above 1.5 as the 'danger zone'.",
+      "verified": false
+    },
+    "dennis2005": {
+      "citation": "Dennis RJ, Finch CF, Farhart PJ. Is bowling workload a risk factor for injury to Australian junior cricket fast bowlers? Br J Sports Med. 2005;39(11):843-846.",
+      "key_finding": "Junior bowlers averaging < 3.5 rest days between bowling sessions: injury RR 3.1. Bowling >= 2.5 days/week: RR 2.5 (trend).",
+      "verified": true
+    },
+    "ecb_directives": {
+      "citation": "England and Wales Cricket Board. Fast Bowling Match Directives (2010, until further notice).",
+      "key_finding": "U13: 5 overs/spell, 10/day. U14-U15: 6/spell, 12/day. U16-U19: 7/spell, 18/day. Guidance: no more than 4 bowling days in 7, no more than 2 days in a row.",
+      "verified": true
+    },
+    "elliott2007": {
+      "citation": "Elliott B, Hardcastle P, Burnett A, Foster D. The influence of fast bowling and physical factors on radiologic features in high performance young fast bowlers. Sports Medicine, Training and Rehabilitation. 2007.",
+      "key_finding": "Shoulder counter-rotation (mixed action), front-knee angle and trunk lateral flexion are linked to lumbar stress injury in fast bowlers.",
+      "verified": false
+    },
+    "bartlett1996": {
+      "citation": "Bartlett RM, Stockill NP, Elliott BC, Burnett AF. The biomechanics of fast bowling in men's cricket: a review. J Sports Sci. 1996;14(5):403-424.",
+      "key_finding": "Review of fast-bowling technique; mixed actions associated with higher lumbar injury incidence.",
+      "verified": true
+    },
+    "orchard2017": {
+      "citation": "Orchard JW, Kountouris A, Sims K. Risk factors for hamstring injuries in Australian male professional cricket players. J Sport Health Sci. 2017;6(3):271-274.",
+      "key_finding": "Previous hamstring injury and high workload are risk factors for hamstring injury in cricketers.",
+      "verified": true
+    },
+    "petersen2011": {
+      "citation": "Petersen J, Thorborg K, Nielsen MB, Budtz-Jorgensen E, Holmich P. Preventive effect of eccentric training on acute hamstring injuries in men's soccer: a cluster-randomized controlled trial. Am J Sports Med. 2011;39(11):2296-2303.",
+      "key_finding": "Nordic hamstring exercise programme reduced new and recurrent hamstring injuries.",
+      "verified": false
+    },
+    "cricshield_safety": {
+      "citation": "CricShield clinical safety rule (Evidence and Decision Log, 2026). Draft - to be confirmed with physiotherapist.",
+      "key_finding": "Conservative escalation rules: refer when predicted risk is critical, pain is high, or a recent injury coincides with high risk.",
+      "verified": false
+    }
+  },
+  "risk_tiers": {
+    "_comment": "Cut-offs on Component 3 risk_score (0-1). Recall-weighted: we prefer a false referral over a missed injury.",
+    "Low": 0.0,
+    "Moderate": 0.3,
+    "High": 0.55,
+    "Critical": 0.75
+  },
+  "c2_threshold_fallback": {
+    "_comment": "Copy of components/c2_biomech/src/c2_biomech/thresholds.py. Used ONLY when C3 sends a kinematic factor but no C2 row arrived. C2 stays the owner of these limits.",
+    "shoulder_counter_rotation_deg": {
+      "threshold": 30.0,
+      "rule": "above"
+    },
+    "trunk_lateral_flexion_deg": {
+      "threshold": 40.0,
+      "rule": "above"
+    },
+    "front_knee_flexion_release_deg": {
+      "threshold": 30.0,
+      "rule": "below"
+    }
+  },
+  "limits": {
+    "_comment": "Base limits from ECB directives. Senior values have no ECB directive - coach-configurable default, pending validation.",
+    "age_groups": {
+      "U13": {
+        "max_age": 12.99,
+        "spell_cap": 5,
+        "daily_limit": 10
+      },
+      "U15": {
+        "max_age": 14.99,
+        "spell_cap": 6,
+        "daily_limit": 12
+      },
+      "U19": {
+        "max_age": 18.99,
+        "spell_cap": 7,
+        "daily_limit": 18
+      },
+      "Senior": {
+        "max_age": 99,
+        "spell_cap": 8,
+        "daily_limit": 24
+      }
+    },
+    "tier_multiplier": {
+      "Low": 1.0,
+      "Moderate": 0.75,
+      "High": 0.4,
+      "Critical": 0.0
+    },
+    "rest_window": {
+      "Low": "Normal - at least 1 rest day after 2 bowling days",
+      "Moderate": "24-hour recovery between bowling sessions",
+      "High": "48-hour deload before next bowling session",
+      "Critical": "No bowling until cleared by physiotherapist"
+    },
+    "max_bowling_days_per_week": {
+      "Low": 4,
+      "Moderate": 3,
+      "High": 2,
+      "Critical": 0
+    }
+  },
+  "critical_tier_policy": {
+    "_comment": "When the tier is Critical the athlete must not bowl, so volume advice is suppressed and technique work is deferred until clearance.",
+    "suppress_categories": [
+      "workload"
+    ],
+    "suppress_rules": [
+      "RC-JUNIOR-REST",
+      "RC-SORENESS"
+    ],
+    "action_prefix": {
+      "training": "When cleared to bowl: "
+    },
+    "exempt_rules": [
+      "TR-CRIT"
+    ]
+  },
+  "exercises": {
+    "prone_plank": {
+      "name": "Prone plank stabilisation",
+      "dose": "3 x 45 s holds",
+      "targets": "Lumbar / trunk stability"
+    },
+    "side_plank": {
+      "name": "Side plank",
+      "dose": "3 x 30 s each side",
+      "targets": "Lateral trunk control (quadratus lumborum, obliques)"
+    },
+    "bird_dog": {
+      "name": "Bird dog",
+      "dose": "3 x 10 each side",
+      "targets": "Lumbo-pelvic control"
+    },
+    "dead_bug": {
+      "name": "Dead bug",
+      "dose": "3 x 10 each side",
+      "targets": "Anti-extension core control"
+    },
+    "pallof_press": {
+      "name": "Pallof press (band)",
+      "dose": "3 x 10 each side",
+      "targets": "Anti-rotation trunk control"
+    },
+    "glute_bridge": {
+      "name": "Single-leg glute bridge",
+      "dose": "3 x 12 each leg",
+      "targets": "Hip extensors, pelvic stability"
+    },
+    "nordic_curl": {
+      "name": "Nordic hamstring curl",
+      "dose": "2 x 5, add reps weekly",
+      "targets": "Eccentric hamstring strength"
+    },
+    "eccentric_stepdown": {
+      "name": "Eccentric knee step-down",
+      "dose": "3 x 10 each leg",
+      "targets": "Front-knee bracing / quadriceps eccentric control"
+    },
+    "single_leg_squat": {
+      "name": "Single-leg squat to box",
+      "dose": "3 x 8 each leg",
+      "targets": "Knee alignment and landing control"
+    },
+    "band_external_rot": {
+      "name": "Band shoulder external rotation",
+      "dose": "3 x 15",
+      "targets": "Rotator cuff"
+    },
+    "scapular_pushup": {
+      "name": "Scapular push-up",
+      "dose": "3 x 12",
+      "targets": "Scapular control"
+    },
+    "mobility_flow": {
+      "name": "Thoracic & hip mobility flow",
+      "dose": "10 min",
+      "targets": "Active recovery"
+    }
+  },
+  "rules": [
+    {
+      "id": "TR-LOW",
+      "category": "training",
+      "priority": 40,
+      "when": {
+        "all": [
+          {
+            "fact": "tier",
+            "op": "eq",
+            "value": "Low"
+          }
+        ]
+      },
+      "title": "Continue normal programme",
+      "action": "Keep bowling within {daily_limit} overs a day and spells of {spell_cap} overs. Keep doing your preventive exercises.",
+      "explanation": "Your combined risk is low{risk_phrase}. Limits follow the {age_group} fast-bowling directive.",
+      "factors": [
+        "tier"
+      ],
+      "related_features": [],
+      "evidence": [
+        "ecb_directives"
+      ],
+      "contract_type": "training"
+    },
+    {
+      "id": "TR-MOD",
+      "category": "training",
+      "priority": 60,
+      "when": {
+        "all": [
+          {
+            "fact": "tier",
+            "op": "eq",
+            "value": "Moderate"
+          }
+        ]
+      },
+      "title": "Reduce bowling volume by 25%",
+      "action": "Bowl at most {daily_limit} overs a day in spells of {spell_cap} overs. Replace one high-intensity net session with skill work at 70-80% effort.",
+      "explanation": "Your risk is moderate{risk_phrase}. A 25% cut from your {age_group} limit keeps you training while the main risk factors settle.",
+      "factors": [
+        "tier"
+      ],
+      "related_features": [],
+      "evidence": [
+        "ecb_directives",
+        "cricshield_safety"
+      ],
+      "contract_type": "training"
+    },
+    {
+      "id": "TR-HIGH",
+      "category": "training",
+      "priority": 85,
+      "when": {
+        "all": [
+          {
+            "fact": "tier",
+            "op": "eq",
+            "value": "High"
+          }
+        ]
+      },
+      "title": "Deload: cap overs and intensity",
+      "action": "Bowl at most {daily_limit} overs a day, spells of {spell_cap} overs, at no more than 80% effort. No match bowling this week unless cleared by the coach.",
+      "explanation": "Your risk is high{risk_phrase}. Cutting volume to about 40% of your {age_group} limit gives tissue time to adapt.",
+      "factors": [
+        "tier"
+      ],
+      "related_features": [],
+      "evidence": [
+        "ecb_directives",
+        "cricshield_safety"
+      ],
+      "contract_type": "training"
+    },
+    {
+      "id": "TR-CRIT",
+      "category": "training",
+      "priority": 100,
+      "when": {
+        "all": [
+          {
+            "fact": "tier",
+            "op": "eq",
+            "value": "Critical"
+          }
+        ]
+      },
+      "title": "Stop bowling - see physiotherapist",
+      "action": "Do not bowl until a physiotherapist has assessed you. Light fitness work only.",
+      "explanation": "Your risk is critical{risk_phrase}. The safe action is to pause bowling and get a clinical assessment.",
+      "factors": [
+        "tier"
+      ],
+      "related_features": [],
+      "evidence": [
+        "cricshield_safety"
+      ],
+      "contract_type": "training"
+    },
+    {
+      "id": "WL-SPIKE-200",
+      "category": "workload",
+      "priority": 95,
+      "when": {
+        "all": [
+          {
+            "fact": "acwr",
+            "op": "gt",
+            "value": 2.0
+          }
+        ]
+      },
+      "title": "Big workload spike this week",
+      "action": "Keep this week's total under {target_weekly_overs} overs (about 1.3x your usual week).",
+      "explanation": "You bowled {acute_overs} overs in the last 7 days - {acwr}x your 4-week weekly average of {chronic_weekly_overs} overs. In elite fast bowlers, a week above 200% of the usual load came with about 4.5x the injury risk the next week (Hulin et al., 2014).",
+      "factors": [
+        "acwr",
+        "acute_overs"
+      ],
+      "related_features": [
+        "acute_chronic_workload_ratio",
+        "acute_overs",
+        "weekly_overs",
+        "workload_spike"
+      ],
+      "evidence": [
+        "hulin2014"
+      ],
+      "contract_type": "workload"
+    },
+    {
+      "id": "WL-SPIKE-150",
+      "category": "workload",
+      "priority": 80,
+      "when": {
+        "all": [
+          {
+            "fact": "acwr",
+            "op": "gt",
+            "value": 1.5
+          },
+          {
+            "fact": "acwr",
+            "op": "lte",
+            "value": 2.0
+          }
+        ]
+      },
+      "title": "Workload rising too fast",
+      "action": "Hold next week at about {target_weekly_overs} overs instead of increasing further.",
+      "explanation": "Your last 7 days ({acute_overs} overs) are {acwr}x your 4-week average ({chronic_weekly_overs} overs/week). Ratios above 1.5 are described as the danger zone; 0.8-1.3 is the safer range (Gabbett, 2016).",
+      "factors": [
+        "acwr"
+      ],
+      "related_features": [
+        "acute_chronic_workload_ratio",
+        "acute_overs",
+        "weekly_overs",
+        "workload_spike"
+      ],
+      "evidence": [
+        "gabbett2016",
+        "hulin2014"
+      ],
+      "contract_type": "workload"
+    },
+    {
+      "id": "WL-UNDERLOAD",
+      "category": "workload",
+      "priority": 45,
+      "when": {
+        "all": [
+          {
+            "fact": "acwr",
+            "op": "lt",
+            "value": 0.8
+          },
+          {
+            "fact": "chronic_weekly_overs",
+            "op": "gt",
+            "value": 0
+          }
+        ]
+      },
+      "title": "Build back up gradually",
+      "action": "Increase bowling step by step - aim for about {build_up_overs} overs next week, not a jump straight back to full load.",
+      "explanation": "You have bowled less than usual ({acute_overs} overs vs {chronic_weekly_overs} average). Being under-loaded and then spiking is what raises risk (Gabbett, 2016).",
+      "factors": [
+        "acwr"
+      ],
+      "related_features": [
+        "acute_chronic_workload_ratio",
+        "weekly_overs"
+      ],
+      "evidence": [
+        "gabbett2016"
+      ],
+      "contract_type": "workload"
+    },
+    {
+      "id": "WL-CONSEC",
+      "category": "workload",
+      "priority": 75,
+      "when": {
+        "all": [
+          {
+            "fact": "consecutive_days",
+            "op": "gte",
+            "value": 3
+          }
+        ]
+      },
+      "title": "Too many days in a row",
+      "action": "Take a full non-bowling day before your next session.",
+      "explanation": "You bowled on {consecutive_days} consecutive days. Fast-bowling guidance recommends no more than 2 days in a row (ECB directives).",
+      "factors": [
+        "consecutive_days"
+      ],
+      "related_features": [
+        "avg_rest_days",
+        "consecutive_days"
+      ],
+      "evidence": [
+        "ecb_directives"
+      ],
+      "contract_type": "workload"
+    },
+    {
+      "id": "WL-DAYS7",
+      "category": "workload",
+      "priority": 70,
+      "when": {
+        "all": [
+          {
+            "fact": "days_bowled_7",
+            "op": "gt",
+            "value": 4
+          }
+        ]
+      },
+      "title": "Too many bowling days this week",
+      "action": "Limit bowling to {max_days} days in the next 7.",
+      "explanation": "You bowled on {days_bowled_7} of the last 7 days. Guidance is no more than 4 bowling days in any 7-day period (ECB directives).",
+      "factors": [
+        "days_bowled_7"
+      ],
+      "related_features": [
+        "avg_rest_days",
+        "days_bowled_7"
+      ],
+      "evidence": [
+        "ecb_directives"
+      ],
+      "contract_type": "workload"
+    },
+    {
+      "id": "WL-OVERLIMIT",
+      "category": "workload",
+      "priority": 72,
+      "when": {
+        "all": [
+          {
+            "fact": "max_daily_overs_7",
+            "op": "gt",
+            "value": "{base_daily_limit}"
+          }
+        ]
+      },
+      "title": "Daily over limit exceeded",
+      "action": "Stay at or under {daily_limit} overs per day.",
+      "explanation": "On one day this week you bowled {max_daily_overs_7} overs, above the {age_group} limit of {base_daily_limit} overs per day (ECB directives).",
+      "factors": [
+        "max_daily_overs_7"
+      ],
+      "related_features": [
+        "acute_overs",
+        "daily_overs"
+      ],
+      "evidence": [
+        "ecb_directives"
+      ],
+      "contract_type": "workload"
+    },
+    {
+      "id": "RC-JUNIOR-REST",
+      "category": "recovery",
+      "priority": 70,
+      "when": {
+        "all": [
+          {
+            "fact": "is_junior",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "fact": "avg_rest_days",
+            "op": "lt",
+            "value": 3.5
+          },
+          {
+            "fact": "avg_rest_days",
+            "op": "exists"
+          }
+        ]
+      },
+      "title": "More rest between bowling days",
+      "action": "Leave at least 3-4 days between bowling sessions for the next 2 weeks.",
+      "explanation": "You average {avg_rest_days} rest days between bowling days. Junior bowlers averaging under 3.5 rest days had about 3x the injury risk (Dennis et al., 2005).",
+      "factors": [
+        "avg_rest_days"
+      ],
+      "related_features": [
+        "avg_rest_days",
+        "days_bowled_7"
+      ],
+      "evidence": [
+        "dennis2005"
+      ],
+      "contract_type": "recovery"
+    },
+    {
+      "id": "RC-TIER",
+      "category": "recovery",
+      "priority": 55,
+      "when": {
+        "any": [
+          {
+            "fact": "tier",
+            "op": "eq",
+            "value": "High"
+          },
+          {
+            "fact": "tier",
+            "op": "eq",
+            "value": "Critical"
+          },
+          {
+            "fact": "tier",
+            "op": "eq",
+            "value": "Moderate"
+          }
+        ]
+      },
+      "title": "Recovery window",
+      "action": "{rest_window}. Use rest days for mobility, sleep (8+ hours) and hydration.",
+      "explanation": "Recovery time scales with your risk tier ({tier}).",
+      "factors": [
+        "tier"
+      ],
+      "related_features": [],
+      "evidence": [
+        "cricshield_safety"
+      ],
+      "exercises": [
+        "mobility_flow"
+      ],
+      "contract_type": "recovery"
+    },
+    {
+      "id": "RC-SORENESS",
+      "category": "recovery",
+      "priority": 78,
+      "when": {
+        "all": [
+          {
+            "fact": "soreness_max_7",
+            "op": "gte",
+            "value": 4
+          },
+          {
+            "fact": "soreness_max_7",
+            "op": "lt",
+            "value": 7
+          }
+        ]
+      },
+      "title": "Active recovery day",
+      "action": "Replace your next bowling session with an active recovery day. Bowl again only when soreness is 3/10 or less.",
+      "explanation": "You reported soreness of {soreness_max_7}/10 this week.",
+      "factors": [
+        "soreness_max_7"
+      ],
+      "related_features": [
+        "soreness"
+      ],
+      "evidence": [
+        "cricshield_safety"
+      ],
+      "exercises": [
+        "mobility_flow"
+      ],
+      "contract_type": "recovery"
+    },
+    {
+      "id": "BM-SCR",
+      "category": "training",
+      "priority": 82,
+      "when": {
+        "all": [
+          {
+            "fact": "flag_scr",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "title": "Technique: shoulder counter-rotation",
+      "action": "Re-align shoulders and hips at back-foot contact to remove the mixed action. Video-check with your coach weekly.",
+      "explanation": "Your shoulder counter-rotation was {scr_value} deg (limit {scr_threshold} deg). Large counter-rotation (a mixed action) is linked to lumbar stress injuries (Elliott et al., 2007; Bartlett et al., 1996).",
+      "factors": [
+        "flag_scr"
+      ],
+      "related_features": [
+        "shoulder_counter_rotation_deg"
+      ],
+      "evidence": [
+        "elliott2007",
+        "bartlett1996"
+      ],
+      "contract_type": "technique"
+    },
+    {
+      "id": "BM-KNEE",
+      "category": "training",
+      "priority": 74,
+      "when": {
+        "all": [
+          {
+            "fact": "flag_knee",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "title": "Technique: front-knee action",
+      "action": "Review your front-knee action at release with your coach or physio before changing it; drill any change in short, low-intensity run-ups.",
+      "explanation": "Your front-knee flexion at release was {knee_value} deg, outside the C2 limit ({knee_threshold} deg). Front-knee angle is one of the fast-bowling kinematic markers linked to injury (Elliott et al., 2007).",
+      "factors": [
+        "flag_knee"
+      ],
+      "related_features": [
+        "front_knee_flexion_ffc_deg",
+        "front_knee_flexion_release_deg"
+      ],
+      "evidence": [
+        "elliott2007"
+      ],
+      "contract_type": "technique"
+    },
+    {
+      "id": "BM-TLF",
+      "category": "training",
+      "priority": 78,
+      "when": {
+        "all": [
+          {
+            "fact": "flag_tlf",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "title": "Technique: reduce side-bend",
+      "action": "Reduce trunk side-bend at ball release - aim for a taller, more upright delivery position.",
+      "explanation": "Your trunk side-bend at release was {tlf_value} deg (limit {tlf_threshold} deg). Excessive side-bend loads the lumbar spine (Elliott et al., 2007).",
+      "factors": [
+        "flag_tlf"
+      ],
+      "related_features": [
+        "trunk_lateral_flexion_deg"
+      ],
+      "evidence": [
+        "elliott2007"
+      ],
+      "contract_type": "technique"
+    },
+    {
+      "id": "PX-LUMBAR",
+      "category": "preventive_exercise",
+      "priority": 70,
+      "when": {
+        "any": [
+          {
+            "fact": "flag_scr",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "fact": "flag_tlf",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "title": "Trunk stability programme",
+      "action": "Do this core programme 3 times a week, on non-bowling days where possible.",
+      "explanation": "Your technique flags put extra load on the lower back, so trunk stability work is prioritised.",
+      "factors": [
+        "flag_scr",
+        "flag_tlf"
+      ],
+      "related_features": [
+        "shoulder_counter_rotation_deg",
+        "trunk_lateral_flexion_deg"
+      ],
+      "evidence": [
+        "elliott2007"
+      ],
+      "exercises": [
+        "prone_plank",
+        "side_plank",
+        "pallof_press",
+        "bird_dog"
+      ],
+      "contract_type": "exercise"
+    },
+    {
+      "id": "PX-KNEE",
+      "category": "preventive_exercise",
+      "priority": 62,
+      "when": {
+        "all": [
+          {
+            "fact": "flag_knee",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "title": "Front-knee bracing strength",
+      "action": "Add these lower-limb exercises twice a week.",
+      "explanation": "Eccentric quadriceps strength supports a braced front knee at landing.",
+      "factors": [
+        "flag_knee"
+      ],
+      "related_features": [
+        "front_knee_flexion_release_deg"
+      ],
+      "evidence": [
+        "elliott2007"
+      ],
+      "exercises": [
+        "eccentric_stepdown",
+        "single_leg_squat"
+      ],
+      "contract_type": "exercise"
+    },
+    {
+      "id": "PX-HAMSTRING",
+      "category": "preventive_exercise",
+      "priority": 60,
+      "when": {
+        "any": [
+          {
+            "fact": "hamstring_history",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "fact": "acwr",
+            "op": "gt",
+            "value": 1.5
+          }
+        ]
+      },
+      "title": "Hamstring protection",
+      "action": "Nordic hamstring curls twice a week (progress slowly).",
+      "explanation": "{hamstring_reason}. Previous hamstring injury and high workload are both hamstring risk factors in cricketers (Orchard et al., 2017), and Nordic curls reduced hamstring injuries in a randomised trial (Petersen et al., 2011).",
+      "factors": [
+        "hamstring_history",
+        "acwr"
+      ],
+      "related_features": [
+        "acute_chronic_workload_ratio"
+      ],
+      "evidence": [
+        "orchard2017",
+        "petersen2011"
+      ],
+      "exercises": [
+        "nordic_curl",
+        "glute_bridge"
+      ],
+      "contract_type": "exercise"
+    },
+    {
+      "id": "PX-BASE",
+      "category": "preventive_exercise",
+      "priority": 30,
+      "when": {
+        "all": [
+          {
+            "fact": "tier",
+            "op": "in",
+            "value": [
+              "Low",
+              "Moderate"
+            ]
+          },
+          {
+            "fact": "any_flag",
+            "op": "eq",
+            "value": false
+          }
+        ]
+      },
+      "title": "Maintenance programme",
+      "action": "Keep a 15-minute general prevention routine twice a week.",
+      "explanation": "No technique flags were raised, so a general maintenance routine is enough.",
+      "factors": [
+        "tier"
+      ],
+      "related_features": [],
+      "evidence": [
+        "cricshield_safety"
+      ],
+      "exercises": [
+        "dead_bug",
+        "glute_bridge",
+        "band_external_rot"
+      ],
+      "contract_type": "exercise"
+    },
+    {
+      "id": "RH-LUMBAR",
+      "category": "rehabilitation",
+      "priority": 92,
+      "when": {
+        "all": [
+          {
+            "fact": "recent_injury_sites",
+            "op": "contains",
+            "value": "lumbar"
+          }
+        ]
+      },
+      "title": "Lumbar return-to-bowl programme",
+      "action": "Follow a graded return-to-bowl programme set by a physiotherapist: start with short run-up, low-intensity deliveries and progress only if pain-free.",
+      "explanation": "You had a lower-back injury {lumbar_weeks_ago} weeks ago. Lumbar stress injuries are the most common serious fast-bowling injury and recur if load returns too fast.",
+      "factors": [
+        "recent_injury_sites"
+      ],
+      "related_features": [
+        "injury_history"
+      ],
+      "evidence": [
+        "elliott2007",
+        "cricshield_safety"
+      ],
+      "exercises": [
+        "bird_dog",
+        "dead_bug",
+        "side_plank"
+      ],
+      "contract_type": "rehabilitation"
+    },
+    {
+      "id": "RH-HAMSTRING",
+      "category": "rehabilitation",
+      "priority": 88,
+      "when": {
+        "all": [
+          {
+            "fact": "recent_injury_sites",
+            "op": "contains",
+            "value": "hamstring"
+          }
+        ]
+      },
+      "title": "Hamstring rehabilitation",
+      "action": "Progressive eccentric hamstring loading; sprint and bowl at full pace only after physio clearance.",
+      "explanation": "You had a hamstring injury in the last 12 weeks; previous hamstring injury is the strongest predictor of another (Orchard et al., 2017).",
+      "factors": [
+        "recent_injury_sites"
+      ],
+      "related_features": [
+        "injury_history"
+      ],
+      "evidence": [
+        "orchard2017",
+        "petersen2011"
+      ],
+      "exercises": [
+        "nordic_curl",
+        "glute_bridge"
+      ],
+      "contract_type": "rehabilitation"
+    },
+    {
+      "id": "RH-SHOULDER",
+      "category": "rehabilitation",
+      "priority": 84,
+      "when": {
+        "all": [
+          {
+            "fact": "recent_injury_sites",
+            "op": "contains",
+            "value": "shoulder"
+          }
+        ]
+      },
+      "title": "Shoulder rehabilitation",
+      "action": "Rotator-cuff and scapular strengthening 3 times a week; build bowling volume gradually.",
+      "explanation": "You had a shoulder injury in the last 12 weeks.",
+      "factors": [
+        "recent_injury_sites"
+      ],
+      "related_features": [
+        "injury_history"
+      ],
+      "evidence": [
+        "cricshield_safety"
+      ],
+      "exercises": [
+        "band_external_rot",
+        "scapular_pushup"
+      ],
+      "contract_type": "rehabilitation"
+    }
+  ],
+  "referral_rules": [
+    {
+      "id": "REF-CRIT",
+      "when": {
+        "all": [
+          {
+            "fact": "tier",
+            "op": "eq",
+            "value": "Critical"
+          }
+        ]
+      },
+      "reason": "Predicted injury risk is in the Critical tier"
+    },
+    {
+      "id": "REF-PAIN",
+      "when": {
+        "all": [
+          {
+            "fact": "soreness_max_7",
+            "op": "gte",
+            "value": 7
+          }
+        ]
+      },
+      "reason": "Reported soreness of 7/10 or more this week"
+    },
+    {
+      "id": "REF-REINJURY",
+      "when": {
+        "all": [
+          {
+            "fact": "recent_injury",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "fact": "tier",
+            "op": "in",
+            "value": [
+              "High",
+              "Critical"
+            ]
+          }
+        ]
+      },
+      "reason": "Recent injury combined with high predicted risk"
+    },
+    {
+      "id": "REF-MULTIFLAG",
+      "when": {
+        "all": [
+          {
+            "fact": "severe_flag_count",
+            "op": "gte",
+            "value": 2
+          }
+        ]
+      },
+      "reason": "Two or more severe biomechanical flags"
+    }
+  ]
+}
