@@ -1,0 +1,6 @@
+pydantic>=2.7
+fastapi
+uvicorn[standard]
+pytest
+httpx
+jsonschema

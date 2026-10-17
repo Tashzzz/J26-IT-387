@@ -1,0 +1,26 @@
+{
+  "c3": {
+    "bowler_id": "DEMO03",
+    "session_id": "DEMO03_demo",
+    "model": "sample - waiting for C3 model",
+    "risk_score": 0.81,
+    "risk_level": "high",
+    "top_factors": [
+      { "feature": "injury_history", "modality": "metadata", "value": 1, "shap": 0.18 },
+      { "feature": "trunk_lateral_flexion_deg", "modality": "kinematics", "value": 52.0, "shap": 0.15 },
+      { "feature": "shoulder_counter_rotation_deg", "modality": "kinematics", "value": 41.0, "shap": 0.09 },
+      { "feature": "soreness", "modality": "metadata", "value": 7, "shap": 0.07 }
+    ]
+  },
+  "c2": [
+    {
+      "video_id": "DEMO03_D01_front_10m",
+      "bowler_id": "DEMO03",
+      "events": {},
+      "features": {
+        "trunk_lateral_flexion_deg": { "value": 52.0, "threshold": 40.0, "breach": true, "reliable": true, "source": "Alway et al. (2021)" },
+        "shoulder_counter_rotation_deg": { "value": 41.0, "threshold": 30.0, "breach": true, "reliable": false, "source": "Portus et al. (2004)" }
+      }
+    }
+  ]
+}

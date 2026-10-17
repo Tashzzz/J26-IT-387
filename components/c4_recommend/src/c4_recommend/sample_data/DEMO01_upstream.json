@@ -1,0 +1,29 @@
+{
+  "c3": {
+    "bowler_id": "DEMO01",
+    "session_id": "DEMO01_demo",
+    "model": "sample - waiting for C3 model",
+    "risk_score": 0.68,
+    "risk_level": "high",
+    "top_factors": [
+      { "feature": "acute_chronic_workload_ratio", "modality": "workload", "value": 1.81, "shap": 0.19 },
+      { "feature": "shoulder_counter_rotation_deg", "modality": "kinematics", "value": 38.0, "shap": 0.14 },
+      { "feature": "consecutive_days", "modality": "workload", "value": 3, "shap": 0.06 },
+      { "feature": "injury_history", "modality": "metadata", "value": 1, "shap": 0.04 },
+      { "feature": "front_knee_flexion_ffc_deg", "modality": "kinematics", "value": 18.0, "shap": -0.03 }
+    ],
+    "explanation": "Sample C3 output for the C4 demo."
+  },
+  "c2": [
+    {
+      "video_id": "DEMO01_D01_side_10m",
+      "bowler_id": "DEMO01",
+      "events": { "bfc_frame": 112, "ffc_frame": 121, "release_frame": 131 },
+      "features": {
+        "shoulder_counter_rotation_deg": { "value": 38.0, "threshold": 30.0, "breach": true, "reliable": true, "source": "Portus et al. (2004); Elliott et al. (2007)" },
+        "trunk_lateral_flexion_deg": { "value": 33.0, "threshold": 40.0, "breach": false, "reliable": true, "source": "Alway et al. (2021)" },
+        "front_knee_flexion_release_deg": { "value": 36.0, "threshold": 30.0, "breach": false, "reliable": true, "source": "Proposal limit" }
+      }
+    }
+  ]
+}
