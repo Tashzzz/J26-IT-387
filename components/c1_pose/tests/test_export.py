@@ -46,10 +46,10 @@ def write_raw_csv(folder):
     return path
 
 
-def write_metadata(folder, bowling_arm="right"):
+def write_metadata(folder, bowling_arm="right", angle="side"):
     path = folder / "metadata.csv"
     pd.DataFrame([{"original_file": "x.MOV", "clip_id": CLIP, "bowler_id": "B09", "delivery_no": "1",
-                   "angle": "side", "distance_m": "5", "lighting": "overcast", "device": "iPhone",
+                   "angle": angle, "distance_m": "5", "lighting": "overcast", "device": "iPhone",
                    "fps": "30", "use": "icc", "notes": "", "bowling_arm": bowling_arm}]).to_csv(path, index=False)
     return path
 
@@ -71,6 +71,13 @@ def test_export_matches_contract_schema(processed):
     assert data["conditions"] == {"distance_m": 5, "angle": "side", "lighting": "overcast", "device": "iPhone"}
     assert data["model"] == "pose_landmarker_lite"
     assert data["fps"] == 30
+
+
+def test_rear_angle_exports_and_validates(processed):
+    """Rear camera (ball goes away from the camera) is a contract angle, not dropped."""
+    path, out = export_clip(CLIP, processed, write_metadata(processed, angle="rear"), processed / "handoff")
+    jsonschema.validate(json.loads(path.read_text()), json.loads(SCHEMA.read_text()))
+    assert out["conditions"]["angle"] == "rear"
 
 
 def test_frames_nulls_and_filled_points(processed):

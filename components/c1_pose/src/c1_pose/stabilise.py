@@ -1,4 +1,4 @@
-"""CricShield Component 1 - Step 2: occlusion handling and temporal stabilisation.
+"""CricShield Component 1 - Step 2: occlusion handling and temporal stabilisation. 
 
 Takes the raw keypoints CSV from extract.py and makes the keypoint tracks
 more continuous, in two steps:
@@ -15,7 +15,7 @@ presented at the proposal, smoothing belongs to Component 2 (biomechanical
 feature engineering), which filters the signals it computes angles from.
 C1 keeps the pose model's own output unsmoothed so that the reliability
 study (ICC) measures how reliable the pose model is under each recording
-condition, without a filter hiding the effect of the camera setup.
+condition, without a filter hiding the effect of the camera setup. 
 
 Outputs (next to the input CSV unless --out is given):
   <clip>_stable.csv          same columns as the raw CSV, plus "filled"
