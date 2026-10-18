@@ -14,7 +14,7 @@ inputs only (no bowler videos).
 | C1-T05 | Detection rate below 20 % (10 % summary) | `PipelineError`: "…bowler not visible enough – film closer or with better light." 20 % itself is accepted | Error raised at 10 %, no error at 20 % | Pass | 2026-10-18 |
 | C1-T06 | Unknown model name (`"huge"`) | `PipelineError`: "Unknown model…" | Error raised with that message | Pass | 2026-10-18 |
 | C1-T07 | Dark clip (filmed in low light) | Detection-rate error (C1-T05 message) or a clear warning; no crash | To do – manual test | – | 2026-10-18 |
-| C1-T08 | Two people in frame (bowler + another player) | Keypoints follow one person (`num_poses=1`); check in the overlay that it is the bowler | To do – manual test | – | 2026-10-18 |
+| C1-T08 | Real nets clip (T02_two_people): bowler + coach walking slowly beside him, 30 fps, 4.6 s | Keypoints follow the bowler | Skeleton followed the **coach**, not the bowler (`num_poses=1` picks the most confident person; the slow, upright coach is easier to detect than the blurred bowler). Detection rate 100 % | **Fail – known limitation.** Mitigation now: recording protocol, only the bowler in frame (filming tip in the app). Planned fix after PP1: `num_poses=2` + automatic bowler selection (person whose wrist rises highest / moves fastest) | 2026-10-18 |
 | C1-T09 | Normal clip `B03_D02_side_4m`, lite model, bowling arm left | Contract JSON (valid against `contracts/c1_keypoints.schema.json`) + overlay video | JSON valid, 421 frames, overlay written. Detection rate 62.95 %; extraction time 33.4 s (≈12.6 frames/s) on the development laptop | Pass | 2026-10-18 |
 
 Notes:
