@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "C4 output - personalised prevention plan for one bowler (shown in the app)",
+  "type": "object",
+  "required": ["bowler_id", "risk_level", "plan"],
+  "properties": {
+    "bowler_id": { "type": "string" },
+    "session_id": { "type": ["string", "null"] },
+    "risk_level": { "enum": ["low", "medium", "high"], "description": "Same 3-level scale as C3" },
+    "risk_tier": { "enum": ["Low", "Moderate", "High", "Critical"], "description": "Proposal FR3 4-tier scale (Critical = stop bowling + referral)" },
+    "risk_score": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "risk_source": { "enum": ["c3", "fallback_guidelines"] },
+    "summary": { "type": "string" },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "daily_limit_overs": { "type": "number", "minimum": 0 },
+        "spell_cap_overs": { "type": "number", "minimum": 0 },
+        "rest_window": { "type": "string" },
+        "max_bowling_days_per_week": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "referral": {
+      "type": "object",
+      "properties": {
+        "required": { "type": "boolean" },
+        "reasons": { "type": "array", "items": { "type": "string" } },
+        "to": { "type": ["string", "null"] }
+      }
+    },
+    "plan": {
+      "type": "array",
+      "description": "Compact list (same shape as samples/c4_sample.json). The full plan also has `recommendations` with explanation, evidence and exercises.",
+      "items": {
+        "type": "object",
+        "required": ["type", "action", "reason"],
+        "properties": {
+          "type": { "enum": ["training", "technique", "workload", "recovery", "rehabilitation", "exercise", "referral"] },
+          "action": { "type": "string" },
+          "reason": { "type": "string", "description": "C3 feature name, rule fact or risk tier that triggered it" }
+        }
+      }
+    }
+  }
+}

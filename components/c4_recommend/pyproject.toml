@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "c4_recommend"
+version = "0.4.0"
+description = "CricShield C4 - explainable, rule-based injury-prevention recommendations for fast bowlers"
+requires-python = ">=3.10"
+dependencies = ["pydantic>=2.7"]
+
+[project.optional-dependencies]
+test = ["pytest", "fastapi", "httpx", "jsonschema"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+c4_recommend = ["knowledge_base.json", "sample_data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
