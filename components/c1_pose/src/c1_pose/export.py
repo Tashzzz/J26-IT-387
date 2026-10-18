@@ -40,7 +40,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ANGLES = {"front", "semi_side", "side"}
+ANGLES = {"front", "rear", "semi_side", "side"}
 LIGHTING = {"daylight", "overcast", "indoor"}
 DECIMALS = 4
 
