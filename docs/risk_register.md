@@ -12,3 +12,4 @@ Likelihood and impact: L / M / H. Review at every stand-up; update the status co
 | 6 | Live demo fails at PP1 | all | M | H | Freeze the build on 21 Oct; each member records a backup demo video | All | Open |
 | 7 | Bowler video leaks or is committed to GitHub | all | L | H | `.gitignore` blocks video files; data kept in a restricted shared folder; anonymised bowler IDs | Nethmi | Open |
 | 8 | Ethics approval status questioned by the panel | all | M | M | Confirm the SLIIT ERC status before 22 Oct and keep the evidence ready | Nethmi | Open |
+| Other people in frame (coach, batter) are tracked instead of the bowler | Medium | High | Recording protocol: only the bowler in frame; filming tip shown in the app. After PP1: multi-person detection + automatic bowler selection | Nethmi (C1) |
