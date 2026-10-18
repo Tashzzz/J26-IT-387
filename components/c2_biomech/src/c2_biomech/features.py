@@ -45,9 +45,9 @@ DEFAULT_CUTOFF_HZ = 8.0  # agreed with C1 (stabilise.py used 8 Hz); must stay be
 
 # feature -> view -> (angle method, view suitability)
 VIEW_METHOD = {
-    # Set from the first real clips (B01, 16 Oct): front-view 3-D knee gave 33/77/99 deg on
-    # three deliveries of one bowler, semi-side 3-D trunk gave 78 deg -> depth too noisy.
-    "front_knee": {"side": ("2d", "good"), "semi_side": ("3d", "limited"),
+    # From the B01 clips (labels corrected by C1 on 18 Oct): semi-side 3-D knee gave
+    # 31/33/77/99 deg on four clips of one bowler, semi-side 3-D trunk 40-78 deg -> depth too noisy.
+    "front_knee": {"side": ("2d", "good"), "semi_side": ("3d", "poor"),
                    "front": ("3d", "poor"), "rear": ("3d", "poor")},
     "trunk_lateral": {"front": ("2d", "good"), "rear": ("2d", "good"),
                       "semi_side": ("3d", "poor"), "side": ("3d", "poor")},
