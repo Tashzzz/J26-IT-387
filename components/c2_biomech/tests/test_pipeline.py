@@ -139,3 +139,21 @@ def test_without_image_position_contacts_are_not_guessed():
     assert any("origin_px" in w for w in row["warnings"])
     row, _ = compute_features(from_c1_json(data), overrides={"bfc_frame": 15, "ffc_frame": 30})
     assert row["features"]["shoulder_counter_rotation_deg"]["value"] is not None
+
+
+def test_c1_icc_result_flags_knee_in_side_clips():
+    """C1's ICC study: knee/ankle unreliable side-on. Applied when the C1 file has no reliability block."""
+    row, _ = compute_features(from_c1_json(make_delivery(view="side")))
+    knee = row["features"]["front_knee_flexion_release_deg"]
+    assert knee["view_suitability"] == "good"          # geometry is fine side-on ...
+    assert knee["reliable"] is False                   # ... but tracking is not (C1 ICC < 0.75)
+    assert "left_knee" in knee["unusable_keypoints"]
+    assert row["keypoint_reliability_source"] == "c1_icc_table"
+
+
+def test_reliability_in_c1_file_wins_over_table():
+    data = make_delivery(view="side")
+    data["reliability"] = {"left_knee": {"icc": 0.9, "band": "excellent", "usable": True}}
+    row, _ = compute_features(from_c1_json(data))
+    assert row["keypoint_reliability_source"] == "c1_file"
+    assert "unusable_keypoints" not in row["features"]["front_knee_flexion_release_deg"]
