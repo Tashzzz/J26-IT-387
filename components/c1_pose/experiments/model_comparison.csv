@@ -1,10 +1,10 @@
 clip_id,model,detection_rate,processing_fps,arm_visibility,all_visibility
-B01_D02_front_5m,lite,0.6118,10.61,,0.8404
-B01_D02_front_5m,full,0.5724,10.45,,0.9153
-B01_D02_front_5m,heavy,0.5855,10.39,,0.8353
-B02_D02_side_10m,lite,0.6495,13.37,,0.8554
-B02_D02_side_10m,full,0.5825,5.7,,0.7413
-B02_D02_side_10m,heavy,0.6443,7.14,,0.784
+B01_D02_front_5m,lite,0.6118,10.61,0.8485,0.8404
+B01_D02_front_5m,full,0.5724,10.45,0.8977,0.9153
+B01_D02_front_5m,heavy,0.5855,10.39,0.7784,0.8353
+B02_D02_side_10m,lite,0.6495,13.37,0.8613,0.8554
+B02_D02_side_10m,full,0.5825,5.7,0.4874,0.7413
+B02_D02_side_10m,heavy,0.6443,7.14,0.7754,0.784
 B03_D02_side_4m,lite,0.6295,22.44,0.733,0.7525
 B03_D02_side_4m,full,0.3753,14.82,0.7398,0.8316
 B03_D02_side_4m,heavy,0.6532,4.56,0.5324,0.6695
