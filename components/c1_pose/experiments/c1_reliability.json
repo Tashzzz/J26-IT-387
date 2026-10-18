@@ -238,24 +238,24 @@
     },
     "B03_side_4m": {
       "nose": {
-        "icc": null,
-        "band": "not_enough_data",
+        "icc": 0.681,
+        "band": "moderate",
         "usable": false
       },
       "left_shoulder": {
-        "icc": null,
-        "band": "not_enough_data",
+        "icc": 0.705,
+        "band": "moderate",
         "usable": false
       },
       "right_shoulder": {
-        "icc": null,
-        "band": "not_enough_data",
+        "icc": 0.535,
+        "band": "moderate",
         "usable": false
       },
       "left_elbow": {
-        "icc": null,
-        "band": "not_enough_data",
-        "usable": false
+        "icc": 0.818,
+        "band": "good",
+        "usable": true
       },
       "right_elbow": {
         "icc": null,
@@ -263,9 +263,9 @@
         "usable": false
       },
       "left_wrist": {
-        "icc": null,
-        "band": "not_enough_data",
-        "usable": false
+        "icc": 0.835,
+        "band": "good",
+        "usable": true
       },
       "right_wrist": {
         "icc": null,
@@ -273,9 +273,9 @@
         "usable": false
       },
       "left_pinky": {
-        "icc": null,
-        "band": "not_enough_data",
-        "usable": false
+        "icc": 0.834,
+        "band": "good",
+        "usable": true
       },
       "right_pinky": {
         "icc": null,
@@ -283,9 +283,9 @@
         "usable": false
       },
       "left_index": {
-        "icc": null,
-        "band": "not_enough_data",
-        "usable": false
+        "icc": 0.833,
+        "band": "good",
+        "usable": true
       },
       "right_index": {
         "icc": null,
@@ -293,9 +293,9 @@
         "usable": false
       },
       "left_thumb": {
-        "icc": null,
-        "band": "not_enough_data",
-        "usable": false
+        "icc": 0.834,
+        "band": "good",
+        "usable": true
       },
       "right_thumb": {
         "icc": null,
@@ -303,53 +303,53 @@
         "usable": false
       },
       "left_hip": {
-        "icc": null,
-        "band": "not_enough_data",
-        "usable": false
+        "icc": 0.823,
+        "band": "good",
+        "usable": true
       },
       "right_hip": {
-        "icc": null,
-        "band": "not_enough_data",
-        "usable": false
+        "icc": 0.823,
+        "band": "good",
+        "usable": true
       },
       "left_knee": {
-        "icc": null,
-        "band": "not_enough_data",
+        "icc": 0.472,
+        "band": "poor",
         "usable": false
       },
       "right_knee": {
-        "icc": null,
-        "band": "not_enough_data",
+        "icc": 0.612,
+        "band": "moderate",
         "usable": false
       },
       "left_ankle": {
-        "icc": null,
-        "band": "not_enough_data",
+        "icc": 0.487,
+        "band": "poor",
         "usable": false
       },
       "right_ankle": {
-        "icc": null,
-        "band": "not_enough_data",
+        "icc": 0.536,
+        "band": "moderate",
         "usable": false
       },
       "left_heel": {
-        "icc": null,
-        "band": "not_enough_data",
+        "icc": 0.498,
+        "band": "poor",
         "usable": false
       },
       "right_heel": {
-        "icc": null,
-        "band": "not_enough_data",
+        "icc": 0.53,
+        "band": "moderate",
         "usable": false
       },
       "left_foot_index": {
-        "icc": null,
-        "band": "not_enough_data",
+        "icc": 0.473,
+        "band": "poor",
         "usable": false
       },
       "right_foot_index": {
-        "icc": null,
-        "band": "not_enough_data",
+        "icc": 0.586,
+        "band": "moderate",
         "usable": false
       }
     }

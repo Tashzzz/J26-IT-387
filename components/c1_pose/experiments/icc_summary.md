@@ -10,30 +10,26 @@ Each group is one bowler filmed several times from the same camera angle and dis
 |---|---|---|---|
 | B01_semi_side_5m | 3 | 3 | 30 |
 | B02_side_10m | 3 | 3 | 60 |
-| B03_side_4m | 3 | 2 | 30, 60 |
-
-Release window not usable (bowling wrist missing in more than 20 % of it, so the release could not be found and the delivery is left out of every keypoint): B03_D01_side_4m. A group left with fewer than 3 deliveries gets no ICC (n/a).
-
-Excluded by hand: B01_D01_semi_side_5m (different camera view from the rest of its group in the notes; to be corrected in the metadata).
+| B03_side_4m | 3 | 3 | 60 |
 
 ## Mean ICC per body region
 
 | region | B01_semi_side_5m | B02_side_10m | B03_side_4m |
 |---|---|---|---|
-| head | 0.94 | 0.69 | n/a |
-| shoulder | 0.88 | 0.63 | n/a |
-| elbow | 0.91 | 0.78 | n/a |
-| wrist_hand | 0.92 | 0.86 | n/a |
-| hip | 0.78 | 0.71 | n/a |
-| knee | 0.78 | 0.45 | n/a |
-| ankle_foot | 0.84 | 0.47 | n/a |
+| head | 0.94 | 0.69 | 0.68 |
+| shoulder | 0.88 | 0.63 | 0.62 |
+| elbow | 0.91 | 0.78 | 0.82 |
+| wrist_hand | 0.92 | 0.86 | 0.83 |
+| hip | 0.78 | 0.71 | 0.82 |
+| knee | 0.78 | 0.45 | 0.54 |
+| ankle_foot | 0.84 | 0.47 | 0.52 |
 
 ## Usable keypoints (ICC >= 0.75)
 
 - **B01_semi_side_5m** (22/23): nose, left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist, left_pinky, right_pinky, left_index, right_index, left_thumb, right_thumb, left_hip, right_hip, left_knee, left_ankle, right_ankle, left_heel, right_heel, left_foot_index, right_foot_index
 - **B02_side_10m** (10/23): right_shoulder, right_elbow, left_wrist, right_wrist, left_pinky, right_pinky, left_index, right_index, left_thumb, right_thumb
-- **B03_side_4m** (0/23): none
-- **Usable in every group** (0/23): none
+- **B03_side_4m** (7/23): left_elbow, left_wrist, left_pinky, left_index, left_thumb, left_hip, right_hip
+- **Usable in every group** (4/23): left_wrist, left_pinky, left_index, left_thumb
 
 ## Limitations
 
