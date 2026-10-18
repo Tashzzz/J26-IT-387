@@ -37,6 +37,7 @@ For checking only (under data/, so never committed):
 Usage (run from components/c1_pose):
   python src/c1_pose/reliability.py
   python src/c1_pose/reliability.py --model full --no-checks
+  python src/c1_pose/reliability.py --exclude B01_D01_semi_side_5m
 """
 
 import argparse
@@ -89,14 +90,21 @@ def group_label(bowler_id, angle, distance_m):
     return f"{bowler_id}_{angle}_{int(d) if d.is_integer() else d}m"
 
 
-def icc_groups(metadata, min_deliveries=MIN_DELIVERIES):
+def icc_groups(metadata, min_deliveries=MIN_DELIVERIES, exclude=()):
     """{group label: rows of metadata} for use=icc clips, grouped by metadata columns.
 
-    Groups with fewer than min_deliveries clips are dropped.
+    Clips in exclude are left out. Groups with fewer than min_deliveries clips
+    are dropped. Two clips with the same delivery number in one group means the
+    metadata is inconsistent (e.g. two camera views under one angle), so it stops.
     """
-    icc = metadata[metadata["use"].astype(str).str.strip() == "icc"]
+    icc = metadata[(metadata["use"].astype(str).str.strip() == "icc")
+                   & ~metadata["clip_id"].isin(list(exclude))]
     groups = {}
     for (bowler, angle, dist), rows in icc.groupby(["bowler_id", "angle", "distance_m"], sort=True):
+        dup = rows[rows["delivery_no"].duplicated(keep=False)]
+        if len(dup):
+            raise ValueError(f"{group_label(bowler, angle, dist)}: same delivery number on clips "
+                             f"{', '.join(dup['clip_id'])} - fix metadata.csv or use --exclude")
         if len(rows) >= min_deliveries:
             groups[group_label(bowler, angle, dist)] = rows.sort_values("delivery_no")
     return groups
@@ -284,7 +292,7 @@ def reliability_json(results):
     return out
 
 
-def summary_markdown(results, group_info):
+def summary_markdown(results, group_info, exclude=()):
     table = keypoint_table(results)
     kp_regions = pd.Series({k: REGION[KEYPOINT_NAMES.index(k)] for k in table.index})
     by_region = table.groupby(kp_regions).mean().reindex(REGION_ORDER)
@@ -307,6 +315,9 @@ def summary_markdown(results, group_info):
     for g in groups:
         fps = ", ".join(f"{f:g}" for f in group_info[g]["fps"])
         lines.append(f"| {g} | {group_info[g]['n']} | {fps} |")
+    if exclude:
+        lines += ["", "Excluded by hand: " + ", ".join(exclude) + " (different camera view from the "
+                  "rest of its group in the notes; to be corrected in the metadata)."]
 
     lines += ["", "## Mean ICC per body region", "",
               "| region | " + " | ".join(groups) + " |",
@@ -360,9 +371,9 @@ def save_release_check(video, norm_csv, release, out_jpg):
 
 # ---------------------------------------------------------------- run
 
-def run_study(metadata_csv, processed_dir, out_dir, checks_dir=None, raw_dir=None):
+def run_study(metadata_csv, processed_dir, out_dir, checks_dir=None, raw_dir=None, exclude=()):
     metadata = pd.read_csv(metadata_csv)     # read only - never written
-    groups = icc_groups(metadata)
+    groups = icc_groups(metadata, exclude=exclude)
     if not groups:
         raise SystemExit(f"no group with >= {MIN_DELIVERIES} icc deliveries in {metadata_csv}")
 
@@ -392,7 +403,7 @@ def run_study(metadata_csv, processed_dir, out_dir, checks_dir=None, raw_dir=Non
     plot_heatmap(results, out_dir / "icc_by_region.png")
     with open(out_dir / "c1_reliability.json", "w") as f:
         json.dump(reliability_json(results), f, indent=2)
-    (out_dir / "icc_summary.md").write_text(summary_markdown(results, group_info), encoding="utf-8")
+    (out_dir / "icc_summary.md").write_text(summary_markdown(results, group_info, exclude), encoding="utf-8")
     return results
 
 
@@ -402,11 +413,14 @@ def main():
     parser.add_argument("--model", default="lite", help="which processed/<model> folder to read")
     parser.add_argument("--out", default=C1 / "experiments")
     parser.add_argument("--no-checks", action="store_true", help="skip the release-frame check images")
+    parser.add_argument("--exclude", nargs="*", default=[], metavar="CLIP_ID",
+                        help="clips to leave out (recorded in icc_summary.md)")
     args = parser.parse_args()
 
     processed = ROOT / "data" / "processed" / args.model
     checks = None if args.no_checks else ROOT / "data" / "processed" / "icc_checks"
-    results = run_study(args.metadata, processed, args.out, checks, ROOT / "data" / "raw")
+    results = run_study(args.metadata, processed, args.out, checks, ROOT / "data" / "raw",
+                        tuple(args.exclude))
     kp = results[results["axis"] == "xy_mean"]
     print(f"\n{kp['usable'].sum()}/{len(kp)} keypoint-group results usable (ICC >= {GATE})")
     print(f"saved to {args.out}")

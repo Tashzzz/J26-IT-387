@@ -72,6 +72,20 @@ def test_groups_use_metadata_columns_not_clip_id():
     assert len(groups["B09_side_4m"]) == 3
 
 
+def test_duplicate_delivery_in_group_stops_unless_excluded():
+    meta = pd.DataFrame({
+        "clip_id": ["A", "B", "C", "D"],
+        "bowler_id": ["B09"] * 4,
+        "delivery_no": [1, 1, 2, 3],
+        "angle": ["semi_side"] * 4,
+        "distance_m": [5] * 4,
+        "use": ["icc"] * 4,
+    })
+    with pytest.raises(ValueError, match="same delivery number"):
+        icc_groups(meta)
+    assert list(icc_groups(meta, exclude=["A"])["B09_semi_side_5m"]["clip_id"]) == ["B", "C", "D"]
+
+
 def test_bowling_arm_and_bands():
     assert bowling_wrist("left-arm; added for ICC group") == LEFT_WRIST
     assert bowling_wrist("right-arm") == RIGHT_WRIST
