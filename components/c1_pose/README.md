@@ -36,6 +36,7 @@ src/c1_pose/
   normalise.py     hip-centre origin, shoulder-width (or torso-length) scale
   probe_clips.py   measures fps/length/size of every clip -> data/metadata.csv
   compare_models.py  lite vs full vs heavy summaries -> experiments/model_comparison.csv/.png/.md
+  pipeline.py      run_pipeline(): all C1 steps for one video (used by the FastAPI endpoint)
   reliability.py   (to do) ICC per keypoint/axis/condition, 0.75 gate
 scripts/
   download_models.py   downloads the lite/full/heavy .task files into models/

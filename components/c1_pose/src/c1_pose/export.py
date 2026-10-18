@@ -120,6 +120,14 @@ def build_frames(norm_df):
 
 
 def export_clip(clip_id, processed_dir, metadata_path, out_dir, bowling_arm=None):
+    """Export one clip, taking conditions and bowling arm from its metadata.csv row."""
+    row = read_metadata_row(metadata_path, clip_id)
+    return export_from_row(clip_id, processed_dir, row, out_dir, bowling_arm)
+
+
+def export_from_row(clip_id, processed_dir, row, out_dir, bowling_arm=None):
+    """Export one clip from a metadata-style dict (distance_m, angle, lighting,
+    device, fps, bowling_arm). Used directly by pipeline.py, which has no metadata.csv."""
     processed_dir, out_dir = Path(processed_dir), Path(out_dir)
     norm_csv = processed_dir / f"{clip_id}_norm.csv"
     norm_info_path = processed_dir / f"{clip_id}_norm_info.json"
@@ -128,7 +136,6 @@ def export_clip(clip_id, processed_dir, metadata_path, out_dir, bowling_arm=None
             raise FileNotFoundError(f"{p} not found (run normalise.py first)")
     check_unsmoothed(processed_dir / f"{clip_id}_stable_report.json")
 
-    row = read_metadata_row(metadata_path, clip_id)
     arm = (row.get("bowling_arm") or bowling_arm or "").strip().lower()
     if arm not in ("left", "right"):
         raise ValueError(f"bowling arm unknown for {clip_id}: add a bowling_arm column "
