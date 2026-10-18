@@ -346,10 +346,13 @@ def summary_markdown(results, group_info, exclude=()):
 
     lines += ["", "## Limitations", "",
               f"- This is a pilot with {MIN_DELIVERIES} deliveries per group, so the confidence intervals "
-              "in icc_pilot.csv are wide and single values should not be over-read.",
-              "- The B03 group mixes 30 fps and 60 fps clips. Resampling to 101 time points puts them on "
-              "the same time axis, but frame rate will be a separate condition in the full study.",
-              "- ICC here measures pose-estimation reliability together with the bowler's natural "
+              "in icc_pilot.csv are wide and single values should not be over-read."]
+    for g in groups:
+        if len(group_info[g]["fps"]) > 1:
+            rates = " and ".join(f"{f:g} fps" for f in group_info[g]["fps"])
+            lines.append(f"- The {g} group mixes {rates} clips. Resampling to 101 time points puts them "
+                         "on the same time axis, but frame rate will be a separate condition in the full study.")
+    lines += ["- ICC here measures pose-estimation reliability together with the bowler's natural "
               "variation between deliveries; the two cannot be separated with this design.",
               "- The 101 time points of one keypoint path are not independent of each other, so the "
               "confidence intervals are likely narrower than they should be.",

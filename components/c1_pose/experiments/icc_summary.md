@@ -34,7 +34,6 @@ Each group is one bowler filmed several times from the same camera angle and dis
 ## Limitations
 
 - This is a pilot with 3 deliveries per group, so the confidence intervals in icc_pilot.csv are wide and single values should not be over-read.
-- The B03 group mixes 30 fps and 60 fps clips. Resampling to 101 time points puts them on the same time axis, but frame rate will be a separate condition in the full study.
 - ICC here measures pose-estimation reliability together with the bowler's natural variation between deliveries; the two cannot be separated with this design.
 - The 101 time points of one keypoint path are not independent of each other, so the confidence intervals are likely narrower than they should be.
 - Release is found automatically (highest bowling wrist) and was checked by eye on the release-frame images; a wrong release would misalign a delivery and lower its ICC.
