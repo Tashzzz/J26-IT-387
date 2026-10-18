@@ -236,6 +236,7 @@ def plot_heatmap(results, out_png):
     # One-hue sequential ramp: light = low ICC, dark = high ICC.
     cmap = LinearSegmentedColormap.from_list("icc", ["#cde2fb", "#6da7ec", "#256abf", "#0d366b"])
     cmap.set_bad("#e6e6e6")
+    plt.rcParams["hatch.linewidth"] = 0.6
     fig, ax = plt.subplots(figsize=(6.4, 0.34 * len(table) + 1.6))
     im = ax.imshow(np.ma.masked_invalid(values), cmap=cmap, vmin=0, vmax=1, aspect="auto")
 
@@ -246,13 +247,16 @@ def plot_heatmap(results, out_png):
                 ax.text(j, i, "n/a", ha="center", va="center", fontsize=8, color="#555555")
                 continue
             if v < GATE:   # hatch = below the gate, so it does not rely on colour alone
-                ax.add_patch(plt.Rectangle((j - 0.5, i - 0.5), 1, 1, fill=False, hatch="///",
+                ax.add_patch(plt.Rectangle((j - 0.5, i - 0.5), 1, 1, fill=False, hatch="//",
                                            edgecolor="#b03a2e", linewidth=0))
-            ax.text(j, i, f"{v:.2f}", ha="center", va="center", fontsize=8,
-                    color="white" if v >= 0.55 else "#1a1a1a",
-                    fontweight="bold" if v >= GATE else "normal")
+                ax.text(j, i, f"{v:.2f}", ha="center", va="center", fontsize=8, color="#1a1a1a",
+                        bbox=dict(boxstyle="round,pad=0.15", facecolor="white", edgecolor="none"))
+            else:
+                ax.text(j, i, f"{v:.2f}", ha="center", va="center", fontsize=8, color="white",
+                        fontweight="bold")
 
-    ax.set_xticks(range(len(table.columns)), table.columns, fontsize=9)
+    labels = [g.replace("_", " ").replace(" ", "\n", 1) for g in table.columns]
+    ax.set_xticks(range(len(table.columns)), labels, fontsize=9)
     ax.xaxis.tick_top()
     ax.set_yticks(range(len(table)), [f"{k}" for k in table.index], fontsize=8)
     ax.tick_params(length=0)
@@ -267,7 +271,7 @@ def plot_heatmap(results, out_png):
     for spine in ax.spines.values():
         spine.set_visible(False)
 
-    cbar = fig.colorbar(im, ax=ax, fraction=0.04, pad=0.28)
+    cbar = fig.colorbar(im, ax=ax, fraction=0.05, pad=0.2)
     cbar.ax.axhline(GATE, color="#b03a2e", linewidth=2)
     cbar.set_label("ICC(2,1), mean of x and y", fontsize=8)
     cbar.ax.tick_params(labelsize=8)
@@ -311,10 +315,16 @@ def summary_markdown(results, group_info, exclude=()):
              f"A keypoint is usable when its ICC is at least {GATE} (bands: poor < 0.50, moderate < 0.75, "
              "good < 0.90, excellent >= 0.90).",
              "", "## Groups", "",
-             "| group | deliveries | fps |", "|---|---|---|"]
+             "| group | deliveries | release window usable | fps |", "|---|---|---|---|"]
     for g in groups:
         fps = ", ".join(f"{f:g}" for f in group_info[g]["fps"])
-        lines.append(f"| {g} | {group_info[g]['n']} | {fps} |")
+        n_ok = group_info[g]["n"] - len(group_info[g]["bad_release"])
+        lines.append(f"| {g} | {group_info[g]['n']} | {n_ok} | {fps} |")
+    bad = [c for g in groups for c in group_info[g]["bad_release"]]
+    if bad:
+        lines += ["", "Release window not usable (bowling wrist missing in more than 20 % of it, "
+                  "so the release could not be found and the delivery is left out of every keypoint): "
+                  + ", ".join(bad) + ". A group left with fewer than 3 deliveries gets no ICC (n/a)."]
     if exclude:
         lines += ["", "Excluded by hand: " + ", ".join(exclude) + " (different camera view from the "
                   "rest of its group in the notes; to be corrected in the metadata)."]
@@ -335,7 +345,7 @@ def summary_markdown(results, group_info, exclude=()):
                  + (", ".join(all_usable) or "none"))
 
     lines += ["", "## Limitations", "",
-              f"- This is a pilot: {MIN_DELIVERIES}-4 deliveries per group, so the confidence intervals "
+              f"- This is a pilot with {MIN_DELIVERIES} deliveries per group, so the confidence intervals "
               "in icc_pilot.csv are wide and single values should not be over-read.",
               "- The B03 group mixes 30 fps and 60 fps clips. Resampling to 101 time points puts them on "
               "the same time axis, but frame rate will be a separate condition in the full study.",
@@ -379,21 +389,27 @@ def run_study(metadata_csv, processed_dir, out_dir, checks_dir=None, raw_dir=Non
 
     rows, group_info = [], {}
     for label, clips in groups.items():
-        aligned = []
+        aligned, bad_release = [], []
         for clip in clips.itertuples():
             norm_csv = Path(processed_dir) / f"{clip.clip_id}_norm.csv"
             tracks = load_tracks(norm_csv)
             wrist = bowling_wrist(clip.notes)
             release = find_release(tracks[:, wrist, 1])
             aligned.append(align_delivery(tracks, release, float(clip.fps)))
+            # the wrist that defines release must itself be usable in the window
+            if np.isnan(aligned[-1][wrist]).all():
+                bad_release.append(clip.clip_id)
             print(f"  {label}: {clip.clip_id} release at frame {release} "
-                  f"({release / float(clip.fps):.2f} s, {clip.fps:g} fps)")
+                  f"({release / float(clip.fps):.2f} s, {clip.fps:g} fps)"
+                  + ("  <- release window not usable" if clip.clip_id in bad_release else ""))
             if checks_dir is not None:
                 videos = sorted(Path(raw_dir).glob(f"{clip.clip_id}.*"))
                 if videos:
                     save_release_check(videos[0], norm_csv, release,
                                        Path(checks_dir) / f"{clip.clip_id}_release.jpg")
-        group_info[label] = {"n": len(clips), "fps": sorted({round(float(f)) for f in clips["fps"]})}
+        # nominal frame rate (phones record 59.2-59.8 for "60 fps")
+        group_info[label] = {"n": len(clips), "fps": sorted({30 * round(float(f) / 30) for f in clips["fps"]}),
+                             "bad_release": bad_release}
         rows += group_icc(label, aligned)
 
     results = pd.DataFrame(rows)

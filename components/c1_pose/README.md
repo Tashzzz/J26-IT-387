@@ -37,7 +37,7 @@ src/c1_pose/
   probe_clips.py   measures fps/length/size of every clip -> data/metadata.csv
   compare_models.py  lite vs full vs heavy summaries -> experiments/model_comparison.csv/.png/.md
   pipeline.py      run_pipeline(): all C1 steps for one video (used by the FastAPI endpoint)
-  reliability.py   (to do) ICC per keypoint/axis/condition, 0.75 gate
+  reliability.py   pilot ICC(2,1) per keypoint/axis/group, 0.75 gate -> experiments/icc_*
 scripts/
   download_models.py   downloads the lite/full/heavy .task files into models/
 experiments/       model comparison and pilot ICC results (CSV / plots only, no video)

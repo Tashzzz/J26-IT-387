@@ -6,11 +6,13 @@ Each group is one bowler filmed several times from the same camera angle and dis
 
 ## Groups
 
-| group | deliveries | fps |
-|---|---|---|
-| B01_semi_side_5m | 3 | 30 |
-| B02_side_10m | 3 | 59, 60 |
-| B03_side_4m | 3 | 30, 59 |
+| group | deliveries | release window usable | fps |
+|---|---|---|---|
+| B01_semi_side_5m | 3 | 3 | 30 |
+| B02_side_10m | 3 | 3 | 60 |
+| B03_side_4m | 3 | 2 | 30, 60 |
+
+Release window not usable (bowling wrist missing in more than 20 % of it, so the release could not be found and the delivery is left out of every keypoint): B03_D01_side_4m. A group left with fewer than 3 deliveries gets no ICC (n/a).
 
 Excluded by hand: B01_D01_semi_side_5m (different camera view from the rest of its group in the notes; to be corrected in the metadata).
 
@@ -35,7 +37,7 @@ Excluded by hand: B01_D01_semi_side_5m (different camera view from the rest of i
 
 ## Limitations
 
-- This is a pilot: 3-4 deliveries per group, so the confidence intervals in icc_pilot.csv are wide and single values should not be over-read.
+- This is a pilot with 3 deliveries per group, so the confidence intervals in icc_pilot.csv are wide and single values should not be over-read.
 - The B03 group mixes 30 fps and 60 fps clips. Resampling to 101 time points puts them on the same time axis, but frame rate will be a separate condition in the full study.
 - ICC here measures pose-estimation reliability together with the bowler's natural variation between deliveries; the two cannot be separated with this design.
 - The 101 time points of one keypoint path are not independent of each other, so the confidence intervals are likely narrower than they should be.
