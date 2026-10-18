@@ -5,7 +5,7 @@
   "model": "pose_landmarker_lite",
   "conditions": { "distance_m": 10, "angle": "side", "lighting": "daylight", "device": "iPhone_13" },
   "window": { "bfc_frame": 112, "release_frame": 131 },
-  "normalisation": { "origin": "hip_centre", "scale": "shoulder_width", "filter": "butterworth_4th_order_8Hz" },
+  "normalisation": { "origin": "hip_centre", "scale": "shoulder_width", "filter": "none" },
   "frames": [
     {
       "t": 0.0,
