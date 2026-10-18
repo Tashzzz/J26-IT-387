@@ -2,3 +2,8 @@ fastapi
 uvicorn[standard]
 python-multipart
 firebase-admin
+# C2 (features router imports components/c2_biomech)
+numpy
+scipy
+pandas
+matplotlib
