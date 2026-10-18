@@ -1,0 +1,357 @@
+{
+  "icc_type": "ICC(2,1) two-way random, absolute agreement, single measure",
+  "gate": 0.75,
+  "groups": {
+    "B01_semi_side_5m": {
+      "nose": {
+        "icc": 0.94,
+        "band": "excellent",
+        "usable": true
+      },
+      "left_shoulder": {
+        "icc": 0.864,
+        "band": "good",
+        "usable": true
+      },
+      "right_shoulder": {
+        "icc": 0.894,
+        "band": "good",
+        "usable": true
+      },
+      "left_elbow": {
+        "icc": 0.895,
+        "band": "good",
+        "usable": true
+      },
+      "right_elbow": {
+        "icc": 0.932,
+        "band": "excellent",
+        "usable": true
+      },
+      "left_wrist": {
+        "icc": 0.899,
+        "band": "good",
+        "usable": true
+      },
+      "right_wrist": {
+        "icc": 0.945,
+        "band": "excellent",
+        "usable": true
+      },
+      "left_pinky": {
+        "icc": 0.892,
+        "band": "good",
+        "usable": true
+      },
+      "right_pinky": {
+        "icc": 0.942,
+        "band": "excellent",
+        "usable": true
+      },
+      "left_index": {
+        "icc": 0.898,
+        "band": "good",
+        "usable": true
+      },
+      "right_index": {
+        "icc": 0.946,
+        "band": "excellent",
+        "usable": true
+      },
+      "left_thumb": {
+        "icc": 0.9,
+        "band": "excellent",
+        "usable": true
+      },
+      "right_thumb": {
+        "icc": 0.95,
+        "band": "excellent",
+        "usable": true
+      },
+      "left_hip": {
+        "icc": 0.779,
+        "band": "good",
+        "usable": true
+      },
+      "right_hip": {
+        "icc": 0.779,
+        "band": "good",
+        "usable": true
+      },
+      "left_knee": {
+        "icc": 0.895,
+        "band": "good",
+        "usable": true
+      },
+      "right_knee": {
+        "icc": 0.661,
+        "band": "moderate",
+        "usable": false
+      },
+      "left_ankle": {
+        "icc": 0.85,
+        "band": "good",
+        "usable": true
+      },
+      "right_ankle": {
+        "icc": 0.853,
+        "band": "good",
+        "usable": true
+      },
+      "left_heel": {
+        "icc": 0.824,
+        "band": "good",
+        "usable": true
+      },
+      "right_heel": {
+        "icc": 0.867,
+        "band": "good",
+        "usable": true
+      },
+      "left_foot_index": {
+        "icc": 0.841,
+        "band": "good",
+        "usable": true
+      },
+      "right_foot_index": {
+        "icc": 0.819,
+        "band": "good",
+        "usable": true
+      }
+    },
+    "B02_side_10m": {
+      "nose": {
+        "icc": 0.687,
+        "band": "moderate",
+        "usable": false
+      },
+      "left_shoulder": {
+        "icc": 0.447,
+        "band": "poor",
+        "usable": false
+      },
+      "right_shoulder": {
+        "icc": 0.807,
+        "band": "good",
+        "usable": true
+      },
+      "left_elbow": {
+        "icc": 0.717,
+        "band": "moderate",
+        "usable": false
+      },
+      "right_elbow": {
+        "icc": 0.852,
+        "band": "good",
+        "usable": true
+      },
+      "left_wrist": {
+        "icc": 0.86,
+        "band": "good",
+        "usable": true
+      },
+      "right_wrist": {
+        "icc": 0.844,
+        "band": "good",
+        "usable": true
+      },
+      "left_pinky": {
+        "icc": 0.873,
+        "band": "good",
+        "usable": true
+      },
+      "right_pinky": {
+        "icc": 0.85,
+        "band": "good",
+        "usable": true
+      },
+      "left_index": {
+        "icc": 0.877,
+        "band": "good",
+        "usable": true
+      },
+      "right_index": {
+        "icc": 0.849,
+        "band": "good",
+        "usable": true
+      },
+      "left_thumb": {
+        "icc": 0.875,
+        "band": "good",
+        "usable": true
+      },
+      "right_thumb": {
+        "icc": 0.844,
+        "band": "good",
+        "usable": true
+      },
+      "left_hip": {
+        "icc": 0.711,
+        "band": "moderate",
+        "usable": false
+      },
+      "right_hip": {
+        "icc": 0.711,
+        "band": "moderate",
+        "usable": false
+      },
+      "left_knee": {
+        "icc": 0.453,
+        "band": "poor",
+        "usable": false
+      },
+      "right_knee": {
+        "icc": 0.44,
+        "band": "poor",
+        "usable": false
+      },
+      "left_ankle": {
+        "icc": 0.431,
+        "band": "poor",
+        "usable": false
+      },
+      "right_ankle": {
+        "icc": 0.519,
+        "band": "moderate",
+        "usable": false
+      },
+      "left_heel": {
+        "icc": 0.42,
+        "band": "poor",
+        "usable": false
+      },
+      "right_heel": {
+        "icc": 0.536,
+        "band": "moderate",
+        "usable": false
+      },
+      "left_foot_index": {
+        "icc": 0.453,
+        "band": "poor",
+        "usable": false
+      },
+      "right_foot_index": {
+        "icc": 0.465,
+        "band": "poor",
+        "usable": false
+      }
+    },
+    "B03_side_4m": {
+      "nose": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "left_shoulder": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "right_shoulder": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "left_elbow": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "right_elbow": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "left_wrist": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "right_wrist": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "left_pinky": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "right_pinky": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "left_index": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "right_index": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "left_thumb": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "right_thumb": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "left_hip": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "right_hip": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "left_knee": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "right_knee": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "left_ankle": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "right_ankle": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "left_heel": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "right_heel": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "left_foot_index": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      },
+      "right_foot_index": {
+        "icc": null,
+        "band": "not_enough_data",
+        "usable": false
+      }
+    }
+  }
+}
