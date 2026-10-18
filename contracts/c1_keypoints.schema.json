@@ -13,7 +13,7 @@
       "description": "Recording conditions, used by the ICC study",
       "properties": {
         "distance_m": { "type": "number" },
-        "angle": { "enum": ["front", "semi_side", "side"] },
+        "angle": { "enum": ["front", "rear", "semi_side", "side"] },
         "lighting": { "enum": ["daylight", "overcast", "indoor"] },
         "device": { "type": "string" }
       }

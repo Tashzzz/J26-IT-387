@@ -35,7 +35,9 @@ src/c1_pose/
   stabilise.py     occlusion handling: mask low-visibility keypoints + fill short gaps (no smoothing; C2 smooths)
   normalise.py     hip-centre origin, shoulder-width (or torso-length) scale
   probe_clips.py   measures fps/length/size of every clip -> data/metadata.csv
-  reliability.py   (to do) ICC per keypoint/axis/condition, 0.75 gate
+  compare_models.py  lite vs full vs heavy summaries -> experiments/model_comparison.csv/.png/.md
+  pipeline.py      run_pipeline(): all C1 steps for one video (used by the FastAPI endpoint)
+  reliability.py   pilot ICC(2,1) per keypoint/axis/group, 0.75 gate -> experiments/icc_*
 scripts/
   download_models.py   downloads the lite/full/heavy .task files into models/
 experiments/       model comparison and pilot ICC results (CSV / plots only, no video)
