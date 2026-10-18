@@ -13,7 +13,7 @@
       "description": "Recording conditions, used by the ICC study",
       "properties": {
         "distance_m": { "type": "number" },
-        "angle": { "enum": ["front", "semi_side", "side"] },
+        "angle": { "enum": ["front", "rear", "semi_side", "side"] },
         "lighting": { "enum": ["daylight", "overcast", "indoor"] },
         "device": { "type": "string" }
       }
@@ -31,7 +31,7 @@
       "properties": {
         "origin": { "const": "hip_centre" },
         "scale": { "const": "shoulder_width" },
-        "filter": { "type": "string", "examples": ["butterworth_4th_order_6Hz"] }
+        "filter": { "type": "string", "description": "Smoothing applied by C1. C1 sends unsmoothed keypoints; C2 applies the Butterworth filter.", "examples": ["none"] }
       }
     },
     "frames": {

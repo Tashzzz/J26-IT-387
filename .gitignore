@@ -2,6 +2,7 @@
 data/*
 !data/README.md
 !data/metadata_template.csv
+videos/
 *.mov
 *.MOV
 *.mp4

@@ -26,9 +26,14 @@ VIS_THRESHOLD = 0.5
 
 
 def load_keypoints(csv_path):
-    """Return {frame: {kp_id: (x, y, visibility)}} for detected frames."""
+    """Return {frame: {kp_id: (x, y, visibility)}} for detected frames.
+
+    Works with the raw CSV from extract.py and the stabilised CSV from
+    stabilise.py. The stabilised CSV leaves poorly tracked keypoints empty
+    (NaN) on purpose, so those are skipped instead of drawn.
+    """
     df = pd.read_csv(csv_path)
-    df = df[df["detected"] == 1]
+    df = df[(df["detected"] == 1) & df["x"].notna() & df["y"].notna()]
     frames = {}
     for row in df.itertuples(index=False):
         frames.setdefault(int(row.frame), {})[int(row.kp_id)] = (
@@ -58,34 +63,37 @@ def make_overlay(video_path, csv_path, out_path, show=False):
     used_window = show
     writer = None
     idx = 0
-    while True:
-        ok, frame = cap.read()
-        if not ok:
-            break
-        if writer is None:
-            h, w = frame.shape[:2]
-            writer = cv2.VideoWriter(str(out_path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+    # try/finally: if anything fails part-way, the MP4 is still closed properly
+    # (an unclosed MP4 has no index and video players show nothing).
+    try:
+        while True:
+            ok, frame = cap.read()
+            if not ok:
+                break
+            if writer is None:
+                h, w = frame.shape[:2]
+                writer = cv2.VideoWriter(str(out_path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        if idx in frames:
-            draw(frame, frames[idx])
-            label = f"frame {idx}"
-        else:
-            label = f"frame {idx}  NO POSE"
-        cv2.putText(frame, label, (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
+            if idx in frames:
+                draw(frame, frames[idx])
+                label = f"frame {idx}"
+            else:
+                label = f"frame {idx}  NO POSE"
+            cv2.putText(frame, label, (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
 
-        writer.write(frame)
-        if show:
-            cv2.imshow("CricShield overlay (q to quit)", frame)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                show = False
-                cv2.destroyAllWindows()
-        idx += 1
-
-    cap.release()
-    if writer is not None:
-        writer.release()
-    if used_window:
-        cv2.destroyAllWindows()
+            writer.write(frame)
+            if show:
+                cv2.imshow("CricShield overlay (q to quit)", frame)
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    show = False
+                    cv2.destroyAllWindows()
+            idx += 1
+    finally:
+        cap.release()
+        if writer is not None:
+            writer.release()
+        if used_window:
+            cv2.destroyAllWindows()
     return idx
 
 
