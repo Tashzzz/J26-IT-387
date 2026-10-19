@@ -37,14 +37,19 @@ C1 JSON → quality gate → Butterworth 8 Hz → release / BFC / FFC → 2-D or
 | Feature | Event | Limit | Front / rear view | Side view | Semi-side |
 |---|---|---|---|---|---|
 | `trunk_lateral_flexion_deg` | release | > 40° (to confirm) | **2-D, good** | 3-D, poor | 3-D, poor |
-| `front_knee_flexion_release_deg` | release | < 30° (knee > 150°) | 3-D, poor | **2-D, good** | 3-D, limited |
-| `front_knee_flexion_ffc_deg` | FFC | reported | 3-D, poor | **2-D, good** | 3-D, limited |
+| `front_knee_flexion_release_deg` | release | < 30° (knee > 150°) | 3-D, poor | **2-D, good**¹ | 3-D, poor |
+| `front_knee_flexion_ffc_deg` | FFC | reported | 3-D, poor | **2-D, good**¹ | 3-D, poor |
 | `shoulder_counter_rotation_deg` | BFC → FFC | > 30° | 3-D, poor | 3-D, poor | 3-D, poor |
 | `hip_shoulder_separation_bfc_deg` | BFC | reported | 3-D, poor | 3-D, poor | 3-D, poor |
 
 One camera measures angles in the image plane well; anything in the depth direction
 relies on MediaPipe's z, its noisiest axis. "Poor" features are still output but marked
 `reliable: false`. The table was set from the first real clips (see `docs/decisions.md`).
+
+¹ Geometry is good side-on, but C1's ICC study found knee/ankle tracking unreliable in side-on
+clips (ICC < 0.75), so these are also marked `reliable: false` (`c1_reliability.py`) until C1's
+reliability says otherwise. Two separate gates: can this camera see the angle (view), and does
+C1 track those joints reliably (ICC).
 
 **Events.** Release is automatic: the frame where the bowling wrist is highest above the
 shoulder, divided by trunk length (so it doesn't change as the bowler gets closer to the

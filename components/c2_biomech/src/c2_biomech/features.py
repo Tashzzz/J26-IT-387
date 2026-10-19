@@ -36,6 +36,7 @@ from . import keypoints as kp
 from .angles import angle_series, wrap180
 from .events import arm_elevation, detect_events
 from .filtering import filter_delivery, max_cutoff, residual_analysis
+from .c1_reliability import reliability_for
 from .quality import gate
 from .thresholds import THRESHOLDS, classify
 
@@ -44,9 +45,9 @@ DEFAULT_CUTOFF_HZ = 8.0  # agreed with C1 (stabilise.py used 8 Hz); must stay be
 
 # feature -> view -> (angle method, view suitability)
 VIEW_METHOD = {
-    # Set from the first real clips (B01, 16 Oct): front-view 3-D knee gave 33/77/99 deg on
-    # three deliveries of one bowler, semi-side 3-D trunk gave 78 deg -> depth too noisy.
-    "front_knee": {"side": ("2d", "good"), "semi_side": ("3d", "limited"),
+    # From the B01 clips (labels corrected by C1 on 18 Oct): semi-side 3-D knee gave
+    # 31/33/77/99 deg on four clips of one bowler, semi-side 3-D trunk 40-78 deg -> depth too noisy.
+    "front_knee": {"side": ("2d", "good"), "semi_side": ("3d", "poor"),
                    "front": ("3d", "poor"), "rear": ("3d", "poor")},
     "trunk_lateral": {"front": ("2d", "good"), "rear": ("2d", "good"),
                       "semi_side": ("3d", "poor"), "side": ("3d", "poor")},
@@ -169,11 +170,12 @@ def compute_features(delivery, overrides=None, thresholds=None, filter_mode="aut
             (value_at(ang["hip_shoulder_separation_deg"], bfc), "bfc", trunk, rot_m, rot_s),
     }
 
+    reliability, reliability_source = reliability_for(delivery)
     features = {}
     for name, (value, event, used, meth, suit) in raw.items():
         t = thresholds[name]
         breach, level = classify(name, value, thresholds)
-        ok, unusable, unchecked = keypoint_reliable(used, delivery.reliability)
+        ok, unusable, unchecked = keypoint_reliable(used, reliability)
         features[name] = {
             "value": None if value is None else round(value, 1),
             "threshold": t["threshold"],
@@ -189,7 +191,7 @@ def compute_features(delivery, overrides=None, thresholds=None, filter_mode="aut
         }
         if unusable:
             features[name]["unusable_keypoints"] = unusable
-        if unchecked and delivery.reliability:
+        if unchecked and reliability:
             features[name]["unchecked_keypoints"] = unchecked
         if value is None:
             warnings.append(f"{name}: no value (event or keypoints missing)")
@@ -205,6 +207,7 @@ def compute_features(delivery, overrides=None, thresholds=None, filter_mode="aut
         "fps": delivery.fps,
         "delivery": ev_info,
         "quality": quality,
+        "keypoint_reliability_source": reliability_source,
         "filter": filter_info,
         "warnings": warnings,
         "c2_version": "0.2.0",
