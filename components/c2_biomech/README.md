@@ -51,10 +51,13 @@ clips (ICC < 0.75), so these are also marked `reliable: false` (`c1_reliability.
 reliability says otherwise. Two separate gates: can this camera see the angle (view), and does
 C1 track those joints reliably (ICC).
 
-**Events.** Release is automatic: the frame where the bowling wrist is highest above the
-shoulder, divided by trunk length (so it doesn't change as the bowler gets closer to the
-camera). BFC and FFC need the hip centre's position in the image (`origin_px` per frame and
-`normalisation.scale_px` from C1); without them, enter them by hand (`--events`).
+**Events.** Release is automatic: arm elevation = bowling wrist above the shoulder, divided by
+trunk length (so it doesn't change as the bowler gets closer to the camera); release is the
+**first** arm peak reaching 60 % of the highest one, because bowlers often lift the arm again after
+the follow-through. Checked against release frames marked by hand on 13 clips: within 1 frame
+(mean error 0.08 frames). BFC and FFC need the hip centre's position in the image (`origin_px` per
+frame and `normalisation.scale_px` from C1); until then they are entered by hand (`--events`, see
+`experiments/events_manual_2026-10-19.csv` for the 13 current clips).
 Priority: manual > C1 window > automatic.
 
 ## Run

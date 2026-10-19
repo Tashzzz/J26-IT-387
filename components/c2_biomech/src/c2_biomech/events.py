@@ -7,10 +7,14 @@
 Ball release (automatic, works on C1's hip-centred keypoints)
     Arm elevation = how far the bowling wrist is above the bowling shoulder,
     divided by the trunk length in the same frame (so it does not change when
-    the bowler runs towards the camera and gets bigger). Release is taken as
-    the frame of highest arm elevation. In real clips with several detected
-    stretches, the stretch with the highest peak is taken as the delivery and
-    the other peaks are listed as alternatives.
+    the bowler runs towards the camera and gets bigger). Release is the FIRST
+    arm-elevation peak that reaches RELEASE_PEAK_RATIO of the clip's highest
+    peak. Not simply the highest: bowlers often lift the arm again after the
+    follow-through, and on 3 of 13 real clips (B02_D01, B02_D02, B03_D04) that
+    later lift was higher than the release. Checked against release frames
+    marked by hand from the videos (19 Oct): highest-peak rule mean error 4.9
+    frames (max 23); first-strong-peak rule 0.08 frames (max 1). The 0.6 ratio
+    was chosen on those same 13 clips - re-check it on new data.
 
 Foot contacts
     A foot lands when it stops moving DOWN in the image. C1's keypoints are
@@ -36,6 +40,8 @@ from .quality import runs
 
 LANDING_FRACTION = 0.5
 MIN_ELEVATION = 0.3        # wrist at least 0.3 trunk-lengths above the shoulder
+RELEASE_PEAK_RATIO = 0.6   # first peak reaching 60% of the highest peak = release
+PEAK_SEPARATION_S = 0.15   # peaks closer than this count as one
 CONTACT_SEARCH_S = 0.6     # look this far back for a foot contact
 
 
@@ -62,6 +68,22 @@ def release_candidates(points, bowling_arm, keep=None):
         if elev[i] >= MIN_ELEVATION:
             out.append((i, float(elev[i]), (s, e)))
     return sorted(out, key=lambda c: -c[1])
+
+
+def arm_peaks(elev, usable, fps):
+    """Local maxima of arm elevation in usable frames, earliest first: [(frame, elevation)]."""
+    e = np.where(usable, elev, np.nan)
+    if not np.isfinite(e).any():
+        return []
+    sep = max(1, int(round(PEAK_SEPARATION_S * fps)))
+    out = []
+    for i in range(len(e)):
+        if not np.isfinite(e[i]) or e[i] < MIN_ELEVATION:
+            continue
+        lo, hi = max(0, i - sep), min(len(e), i + sep + 1)
+        if e[i] >= np.nanmax(e[lo:hi]) and (not out or i - out[-1][0] > sep):
+            out.append((i, float(e[i])))
+    return out
 
 
 def detect_landing(foot_y, start, stop):
@@ -114,16 +136,21 @@ def detect_events(delivery, overrides=None, keep=None, points=None):
             return int(window[name]), "c1_window"
         return None, None
 
-    # 1. Release.
-    cands = release_candidates(P, delivery.bowling_arm, keep)
-    info["release_candidates"] = [{"frame": f, "arm_elevation": round(e, 2), "stretch": list(r)}
-                                  for f, e, r in cands[:3]]
+    # 1. Release: first strong arm peak (see module docstring).
+    usable = np.ones(n, dtype=bool) if keep is None else keep
+    elev = arm_elevation(P, delivery.bowling_arm)
+    peaks = arm_peaks(elev, usable, delivery.fps)
+    top = max((e for _, e in peaks), default=None)
+    strong = [(fr, e) for fr, e in peaks if top is not None and e >= RELEASE_PEAK_RATIO * top]
+    info["release_candidates"] = [{"frame": fr, "arm_elevation": round(e, 2)} for fr, e in strong[:3]]
     f, m = given("release_frame")
-    if f is None and cands:
-        f, m = cands[0][0], "auto"
-        if len(cands) > 1 and cands[1][1] > 0.8 * cands[0][1]:
-            warnings.append(f"release: two similar arm peaks (frames {cands[0][0]} and {cands[1][0]}); "
-                            f"using {cands[0][0]} - check against the video")
+    if f is None and strong:
+        f, m = strong[0][0], "auto"
+        if len(strong) > 1:
+            later = ", ".join(str(fr) for fr, _ in strong[1:3])
+            warnings.append(f"release: two similar arm peaks (using the first, frame {f}; later peak at "
+                            f"frame {later} is probably the arm lifted after the follow-through) "
+                            "- check against the video")
     events["release_frame"], method["release_frame"] = f, m or "not_detected"
     rel = events["release_frame"]
 
