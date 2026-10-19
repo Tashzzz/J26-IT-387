@@ -19,6 +19,11 @@ from app.routers import pose  # noqa: E402
 
 client = TestClient(app)
 
+# The pipeline checks the model before the video, so video tests need the model file
+# (git-ignored; downloaded with components/c1_pose/scripts/download_models.py).
+needs_model = pytest.mark.skipif(not (pose.C1_DIR / "models" / "pose_landmarker_lite.task").exists(),
+                                 reason="lite model not downloaded")
+
 
 @pytest.fixture(autouse=True)
 def runs_in_tmp(tmp_path, monkeypatch):
@@ -41,6 +46,7 @@ def test_wrong_file_type_is_rejected():
     assert r.json()["detail"] == "Please upload an MP4 or MOV video."
 
 
+@needs_model
 def test_text_file_renamed_to_mp4_gives_plain_message():
     r = upload("fake.mp4", b"this is just text, not a video")
     assert r.status_code == 422
@@ -58,8 +64,7 @@ def test_failed_run_leaves_no_folder(tmp_path):
     assert not any((tmp_path / "runs").glob("*"))
 
 
-@pytest.mark.skipif(not (pose.C1_DIR / "models" / "pose_landmarker_lite.task").exists(),
-                    reason="lite model not downloaded")
+@needs_model
 def test_empty_video_says_no_person(tmp_path):
     path = tmp_path / "black.mp4"
     writer = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"mp4v"), 30, (320, 240))
