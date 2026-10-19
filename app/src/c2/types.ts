@@ -64,3 +64,9 @@ export type Thresholds = Record<FeatureName, Threshold>;
 
 /** C1 -> C2 handoff JSON (contracts/c1_keypoints.schema.json). C2 only passes it on to the backend. */
 export type C1Keypoints = { video_id: string; fps: number; bowling_arm: string; frames: unknown[] } & Record<string, unknown>;
+
+/** The few athlete fields C2 needs from C4 (/recommend/athletes). Full type: src/c4/types.ts. */
+export type AthleteRef = { id: number; bowler_id: string; dominant_arm: 'right' | 'left' };
+
+/** What C4 stores per athlete and C3 reads: latest C3 risk + C2 rows (one per delivery, max 50). */
+export type Upstream = { c3: unknown | null; c2: (Omit<FeatureRow, 'series'> & Record<string, unknown>)[]; received_at?: string };

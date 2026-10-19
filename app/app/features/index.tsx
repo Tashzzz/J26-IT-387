@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { c2 } from '../../src/api/c2';
 import type { C1Keypoints, Events, FeatureRow, Thresholds } from '../../src/c2/types';
+import { SendToC4 } from '../../src/c2/SendToC4';
 import { EventsCard, FEATURE_ORDER, FeatureCard } from '../../src/c2/ui';
 import { Banner, Body, Button, Card, Field, H, Loading, Row, Screen, Tile } from '../../src/c4/ui';
 
@@ -138,6 +139,9 @@ export default function Features() {
           {FEATURE_ORDER.filter((n) => row.features[n]).map((n) => (
             <FeatureCard key={n} name={n} f={row.features[n]} info={thresholds?.[n]} trueValue={row.true_values?.[n]} />
           ))}
+
+          <H>Send to Risk & Plan</H>
+          <SendToC4 row={row} />
 
           {row.warnings.length > 0 && (
             <>
