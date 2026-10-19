@@ -8,11 +8,11 @@ one tab per component.
 | `app/capture/` | Upload / record video → skeleton overlay | C1 – Nethmi | placeholder |
 | `app/reliability/` | Reliability dashboard grouped by body region | C1 – Nethmi | placeholder (hidden tab) |
 | `app/features/` | Feature detail with threshold breach indicators | C2 – Samarasinghe | placeholder |
-| `app/risk/` | Risk gauge + SHAP explanation | C3 – Rizma | placeholder |
+| `app/risk/` | Risk gauge, narrative, two-level SHAP, all factors, history, hand-off to the plan | C3 – Rizma | working |
 | `app/plan/` | Recommendation dashboard, why-screen, workload log, profile, history, coach feedback | C4 – Rathnayaka | working |
 
 All calls to the backend go through `src/api/client.ts`, so the API address is set in one place.
-Each component adds its own module next to it (`src/api/c4.ts` for C4). Component-specific UI code lives in
+Each component adds its own module next to it (`src/api/c4.ts` for C4, `src/api/risk.ts` for C3). Component-specific UI code lives in
 `src/<component>/` (e.g. `src/c4/`), so screens can be replaced without touching other members' code.
 
 ## Run
