@@ -63,3 +63,17 @@ def test_30fps_clip_filters_below_nyquist():
     assert row["filter"]["cutoff_hz"] < 15.0
     assert any("too high" in w for w in row["warnings"])
     assert np.isfinite(row["features"]["trunk_lateral_flexion_deg"]["value"])
+
+
+def test_arm_lifted_after_follow_through_is_not_taken_as_release():
+    """Seen in B02_D01, B02_D02, B03_D04: the arm goes up again after the delivery, higher than at release."""
+    import copy
+    data = make_delivery()
+    late = copy.deepcopy(data["frames"][42])
+    late["landmarks"][16][1] -= 0.4  # right wrist even higher than at release
+    for i in range(15):
+        f = copy.deepcopy(late)
+        data["frames"].append(f)
+    row, _ = compute_features(from_c1_json(data))
+    assert row["events"]["release_frame"] == 42
+    assert any("two similar arm peaks" in w for w in row["warnings"])

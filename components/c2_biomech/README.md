@@ -37,8 +37,8 @@ C1 JSON → quality gate → Butterworth 8 Hz → release / BFC / FFC → 2-D or
 | Feature | Event | Limit | Front / rear view | Side view | Semi-side |
 |---|---|---|---|---|---|
 | `trunk_lateral_flexion_deg` | release | > 40° (to confirm) | **2-D, good** | 3-D, poor | 3-D, poor |
-| `front_knee_flexion_release_deg` | release | < 30° (knee > 150°) | 3-D, poor | **2-D, good** | 3-D, limited |
-| `front_knee_flexion_ffc_deg` | FFC | reported | 3-D, poor | **2-D, good** | 3-D, limited |
+| `front_knee_flexion_release_deg` | release | < 30° (knee > 150°) | 3-D, poor | **2-D, good**¹ | 3-D, poor |
+| `front_knee_flexion_ffc_deg` | FFC | reported | 3-D, poor | **2-D, good**¹ | 3-D, poor |
 | `shoulder_counter_rotation_deg` | BFC → FFC | > 30° | 3-D, poor | 3-D, poor | 3-D, poor |
 | `hip_shoulder_separation_bfc_deg` | BFC | reported | 3-D, poor | 3-D, poor | 3-D, poor |
 
@@ -46,10 +46,18 @@ One camera measures angles in the image plane well; anything in the depth direct
 relies on MediaPipe's z, its noisiest axis. "Poor" features are still output but marked
 `reliable: false`. The table was set from the first real clips (see `docs/decisions.md`).
 
-**Events.** Release is automatic: the frame where the bowling wrist is highest above the
-shoulder, divided by trunk length (so it doesn't change as the bowler gets closer to the
-camera). BFC and FFC need the hip centre's position in the image (`origin_px` per frame and
-`normalisation.scale_px` from C1); without them, enter them by hand (`--events`).
+¹ Geometry is good side-on, but C1's ICC study found knee/ankle tracking unreliable in side-on
+clips (ICC < 0.75), so these are also marked `reliable: false` (`c1_reliability.py`) until C1's
+reliability says otherwise. Two separate gates: can this camera see the angle (view), and does
+C1 track those joints reliably (ICC).
+
+**Events.** Release is automatic: arm elevation = bowling wrist above the shoulder, divided by
+trunk length (so it doesn't change as the bowler gets closer to the camera); release is the
+**first** arm peak reaching 60 % of the highest one, because bowlers often lift the arm again after
+the follow-through. Checked against release frames marked by hand on 13 clips: within 1 frame
+(mean error 0.08 frames). BFC and FFC need the hip centre's position in the image (`origin_px` per
+frame and `normalisation.scale_px` from C1); until then they are entered by hand (`--events`, see
+`experiments/events_manual_2026-10-19.csv` for the 13 current clips).
 Priority: manual > C1 window > automatic.
 
 ## Run

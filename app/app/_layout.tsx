@@ -21,7 +21,8 @@ export default function RootLayout() {
         <Tabs.Screen name="features/index" options={{ title: 'Biomechanics (C2)', tabBarLabel: 'Features', tabBarIcon: icon('body-outline') }} />
         <Tabs.Screen name="risk/index" options={{ title: 'Risk (C3)', tabBarLabel: 'Risk', tabBarIcon: icon('pulse-outline') }} />
         <Tabs.Screen name="plan" options={{ headerShown: false, title: 'Prevention plan', tabBarLabel: 'Plan', tabBarIcon: icon('clipboard-outline') }} />
-        <Tabs.Screen name="reliability/index" options={{ href: null, title: 'Reliability (C1)' }} />
+        {/* Hidden from the tab bar but still reachable (SDK 58: href: null now redirects away). */}
+        <Tabs.Screen name="reliability/index" options={{ tabBarItemStyle: { display: 'none' }, title: 'Reliability (C1)' }} />
       </Tabs>
     </ThemeProvider>
   );
