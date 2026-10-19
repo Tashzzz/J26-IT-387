@@ -50,7 +50,8 @@ def _run(c1: dict, overrides: dict, include_series: bool):
         raise HTTPException(status_code=422, detail=f"Invalid C1 input: {e}")
     row, series = compute_features(delivery, overrides)
     if include_series:
-        row["series"] = series.where(series.notna(), None).to_dict(orient="list")
+        # astype(object) first: on float columns pandas turns None back into NaN, and NaN is not valid JSON
+        row["series"] = series.astype(object).where(series.notna(), None).to_dict(orient="list")
     return row
 
 
