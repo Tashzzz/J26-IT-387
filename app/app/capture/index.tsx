@@ -75,6 +75,10 @@ export default function Capture() {
       {error && <Banner tone="danger" icon="alert-circle-outline" title="Could not process this video"><Body>{error}</Body></Banner>}
 
       {result && <ResultView result={result} />}
+      {result && (
+        <Button title="Analyse joint angles (C2)" icon="body-outline"
+          onPress={() => router.push({ pathname: '/features', params: { run_id: result.run_id } })} />
+      )}
 
       <Button title="How reliable are the keypoints?" icon="analytics-outline" variant="secondary"
         onPress={() => router.push('/reliability')} />
