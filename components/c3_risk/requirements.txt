@@ -1,0 +1,10 @@
+numpy
+pandas
+scikit-learn
+xgboost>=2.0
+pydantic>=2.7
+fastapi
+uvicorn[standard]
+pytest
+httpx
+jsonschema

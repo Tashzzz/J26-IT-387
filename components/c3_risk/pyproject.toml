@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "c3_risk"
+version = "0.2.0"
+description = "CricShield C3 - multimodal XGBoost injury-risk classifier with two-level SHAP explanations"
+requires-python = ">=3.10"
+dependencies = ["numpy", "pandas", "scikit-learn", "xgboost>=2.0", "pydantic>=2.7"]
+
+[project.optional-dependencies]
+test = ["pytest", "fastapi", "httpx", "jsonschema"]
+research = ["tensorflow", "shap", "imbalanced-learn", "matplotlib", "scipy"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
