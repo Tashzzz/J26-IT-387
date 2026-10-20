@@ -98,9 +98,13 @@ def test_unreliable_keypoint_from_c1_is_flagged():
 def test_classify_levels():
     assert classify("shoulder_counter_rotation_deg", 31.0) == (True, "red")
     assert classify("shoulder_counter_rotation_deg", 27.0) == (False, "amber")
+    assert classify("shoulder_counter_rotation_deg", 22.0) == (False, "amber")   # amber 20-30 (physio)
+    assert classify("trunk_lateral_flexion_deg", 32.0) == (False, "amber")       # amber 30-40 (physio)
     assert classify("shoulder_counter_rotation_deg", 10.0) == (False, "green")
     assert classify("front_knee_flexion_release_deg", 10.0) == (True, "red")
+    assert classify("front_knee_flexion_release_deg", 35.0) == (False, "amber")   # 30-40 deg band
     assert classify("front_knee_flexion_release_deg", 45.0) == (False, "green")
+    assert classify("hip_shoulder_separation_bfc_deg", 32.0) == (True, "red")    # Portus mixed-action
     assert classify("front_knee_flexion_ffc_deg", 25.0) == (False, "none")
     assert classify("trunk_lateral_flexion_deg", None) == (False, "none")
 
@@ -130,15 +134,17 @@ def test_view_decides_2d_or_3d():
     assert f["shoulder_counter_rotation_deg"]["reliable"] is False  # depth-based from one camera
 
 
-def test_without_image_position_contacts_are_not_guessed():
-    """No origin_px from C1: release is still automatic, BFC/FFC are left for manual entry."""
+def test_without_image_position_contacts_are_estimated_and_labelled():
+    """No origin_px from C1 (today's files): BFC/FFC are estimated, labelled as such, and can be overridden."""
     data = make_delivery(with_origin=False)
     row, _ = compute_features(from_c1_json(data))
-    assert row["events"] == {"release_frame": 42}
-    assert row["event_method"]["ffc_frame"] == "not_detected"
-    assert any("origin_px" in w for w in row["warnings"])
-    row, _ = compute_features(from_c1_json(data), overrides={"bfc_frame": 15, "ffc_frame": 30})
+    assert row["event_method"]["ffc_frame"] == "estimated"
+    assert row["event_method"]["bfc_frame"] == "estimated"
+    assert row["events"]["bfc_frame"] < row["events"]["ffc_frame"] <= row["events"]["release_frame"]
+    assert any("estimated" in w for w in row["warnings"])
     assert row["features"]["shoulder_counter_rotation_deg"]["value"] is not None
+    row, _ = compute_features(from_c1_json(data), overrides={"bfc_frame": 15, "ffc_frame": 30})
+    assert row["event_method"]["ffc_frame"] == "manual" and row["events"]["bfc_frame"] == 15
 
 
 def test_c1_icc_result_flags_knee_in_side_clips():
@@ -157,3 +163,15 @@ def test_reliability_in_c1_file_wins_over_table():
     row, _ = compute_features(from_c1_json(data))
     assert row["keypoint_reliability_source"] == "c1_file"
     assert "unusable_keypoints" not in row["features"]["front_knee_flexion_release_deg"]
+
+
+def test_front_knee_judged_in_context():
+    """Physio review: straight knee is red only with twist or lean; collapsing knee is amber."""
+    from c2_biomech.thresholds import knee_release_level
+    assert knee_release_level(10.0, scr=35.0, trunk=20.0)[:2] == (True, "red")     # straight + twist
+    assert knee_release_level(10.0, scr=10.0, trunk=45.0)[:2] == (True, "red")     # straight + lean
+    assert knee_release_level(10.0, scr=10.0, trunk=20.0)[:2] == (False, "amber")  # hard bracing
+    assert knee_release_level(10.0)[:2] == (False, "amber")                        # twist/lean unknown
+    assert knee_release_level(40.0, scr=35.0)[:2] == (False, "green")              # cushioned
+    assert knee_release_level(60.0)[:2] == (False, "amber")                        # collapsing
+    assert knee_release_level(None) == (False, "none", None)

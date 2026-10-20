@@ -28,6 +28,7 @@ export default function Features() {
   const [error, setError] = useState<string | null>(null);
   const [frames, setFrames] = useState({ bfc: '', ffc: '', release: '' });
   const [showNotes, setShowNotes] = useState(false);
+  const [showFrames, setShowFrames] = useState(false); // frame boxes are hidden unless the user wants to correct them
 
   // Limits + meanings: loaded once. Not fatal if it fails (the cards still show value and limit).
   useEffect(() => {
@@ -71,6 +72,7 @@ export default function Features() {
   useEffect(() => {
     setRow(null);
     setFrames({ bfc: '', ffc: '', release: '' });
+    setShowFrames(false);
     if (runId) analyseRun(runId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId]);
@@ -110,12 +112,12 @@ export default function Features() {
           )}
 
           <Row>
-            <Tile label="Breaches" value={String(confirmedBreaches)} tone={confirmedBreaches ? 'danger' : 'ok'} />
+            <Tile label="Red flags" value={String(confirmedBreaches)} tone={confirmedBreaches ? 'danger' : 'ok'} />
             <Tile label="Reliable angles" value={`${reliable} / ${FEATURE_ORDER.length}`} tone={reliable ? 'neutral' : 'danger'} />
           </Row>
           {uncheckedBreaches > 0 && (
-            <Banner tone="warn" icon="eye-off-outline" title={`${uncheckedBreaches} more over the limit, not confirmed`}>
-              <Body muted>Measured from a camera view that cannot see that angle reliably. Check on video before acting.</Body>
+            <Banner tone="warn" icon="eye-off-outline" title={`${uncheckedBreaches} more over the limit · low visibility`}>
+              <Body muted>Measured from a camera view that cannot see that angle reliably. Check the camera setup and the video before acting.</Body>
             </Banner>
           )}
 
@@ -123,22 +125,40 @@ export default function Features() {
           <EventsCard events={row.events} method={row.event_method} fps={row.fps} />
 
           {source === 'capture' && runId && (
-            <Card>
-              <Body muted>BFC and FFC cannot be found automatically yet. Type the frames from the video to get shoulder counter-rotation. Leave a box empty to let C2 find it.</Body>
-              <Row>
-                <Field half label="BFC frame" keyboardType="number-pad" value={frames.bfc} onChangeText={(t) => setFrames({ ...frames, bfc: t })} />
-                <Field half label="FFC frame" keyboardType="number-pad" value={frames.ffc} onChangeText={(t) => setFrames({ ...frames, ffc: t })} />
-                <Field half label="Release frame" keyboardType="number-pad" value={frames.release} onChangeText={(t) => setFrames({ ...frames, release: t })} />
-              </Row>
-              <Button title="Recompute with these frames" icon="refresh-outline" variant="secondary"
-                onPress={() => analyseRun(runId, { bfc_frame: toFrame(frames.bfc), ffc_frame: toFrame(frames.ffc), release_frame: toFrame(frames.release) })} />
-            </Card>
+            <>
+              <Button title={showFrames ? 'Hide event frames' : 'Correct event frames (optional)'} icon="create-outline"
+                variant="secondary" onPress={() => setShowFrames(!showFrames)} />
+              {showFrames && (
+                <Card>
+                  <Body muted>Only if an event above is wrong: type the right frame from the video and recompute. Leave a box empty to keep the automatic frame.</Body>
+                  <Row>
+                    <Field half label="BFC frame" placeholder={String(row.events.bfc_frame ?? '')} keyboardType="number-pad" value={frames.bfc} onChangeText={(t) => setFrames({ ...frames, bfc: t })} />
+                    <Field half label="FFC frame" placeholder={String(row.events.ffc_frame ?? '')} keyboardType="number-pad" value={frames.ffc} onChangeText={(t) => setFrames({ ...frames, ffc: t })} />
+                    <Field half label="Release frame" placeholder={String(row.events.release_frame ?? '')} keyboardType="number-pad" value={frames.release} onChangeText={(t) => setFrames({ ...frames, release: t })} />
+                  </Row>
+                  <Button title="Recompute with these frames" icon="refresh-outline" variant="secondary"
+                    onPress={() => analyseRun(runId, { bfc_frame: toFrame(frames.bfc), ffc_frame: toFrame(frames.ffc), release_frame: toFrame(frames.release) })} />
+                </Card>
+              )}
+            </>
           )}
 
           <H>Joint angles</H>
           {FEATURE_ORDER.filter((n) => row.features[n]).map((n) => (
             <FeatureCard key={n} name={n} f={row.features[n]} info={thresholds?.[n]} trueValue={row.true_values?.[n]} />
           ))}
+
+          {confirmedBreaches > 0 && (
+            <Banner tone="danger" icon="alert-circle-outline" title="What to do about a red angle">
+              <Body>1. Today: reduce bowling intensity and avoid long spells.</Body>
+              <Body>2. Coaching: hip–shoulder alignment and technique drills.</Body>
+              <Body>3. If red again in 2 or more sessions: refer to a sports physiotherapist for a lower-back check.</Body>
+            </Banner>
+          )}
+
+          <Banner tone="info" icon="medkit-outline" title="Screening, not a diagnosis">
+            <Body muted>Red means the angle is like the bowlers who got injured in published studies. Never judge on one ball: check one over (4–6 deliveries). A warning that repeats on 2 or more balls matters.</Body>
+          </Banner>
 
           <H>Send to Risk & Plan</H>
           <SendToC4 row={row} />

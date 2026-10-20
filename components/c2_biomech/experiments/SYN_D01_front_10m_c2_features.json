@@ -1,0 +1,153 @@
+{
+  "video_id": "SYN_D01_front_10m",
+  "bowler_id": "unknown",
+  "events": {
+    "release_frame": 42,
+    "ffc_frame": 30,
+    "bfc_frame": 15
+  },
+  "features": {
+    "shoulder_counter_rotation_deg": {
+      "value": 33.2,
+      "threshold": 30.0,
+      "rule": "above",
+      "breach": true,
+      "level": "red",
+      "reliable": false,
+      "source": "Portus et al. (2004); Elliott et al. (2007)",
+      "event": "bfc_to_ffc",
+      "method": "3d",
+      "view_suitability": "poor",
+      "keypoints": [
+        "left_shoulder",
+        "right_shoulder"
+      ]
+    },
+    "front_knee_flexion_ffc_deg": {
+      "value": 24.9,
+      "threshold": null,
+      "rule": null,
+      "breach": false,
+      "level": "none",
+      "reliable": false,
+      "source": "Felton et al. (2019)",
+      "event": "ffc",
+      "method": "3d",
+      "view_suitability": "poor",
+      "keypoints": [
+        "left_hip",
+        "left_knee",
+        "left_ankle"
+      ]
+    },
+    "front_knee_flexion_release_deg": {
+      "value": 15.3,
+      "threshold": 30.0,
+      "rule": "below",
+      "breach": true,
+      "level": "red",
+      "reliable": false,
+      "source": "Proposal limit: knee angle > 150 deg at release (flexion < 30 deg)",
+      "event": "release",
+      "method": "3d",
+      "view_suitability": "poor",
+      "keypoints": [
+        "left_hip",
+        "left_knee",
+        "left_ankle"
+      ]
+    },
+    "trunk_lateral_flexion_deg": {
+      "value": 41.4,
+      "threshold": 40.0,
+      "rule": "above",
+      "breach": true,
+      "level": "red",
+      "reliable": true,
+      "source": "Alway et al. (2021) - limit to be confirmed",
+      "event": "release",
+      "method": "2d",
+      "view_suitability": "good",
+      "keypoints": [
+        "left_hip",
+        "right_hip",
+        "left_shoulder",
+        "right_shoulder"
+      ]
+    },
+    "hip_shoulder_separation_bfc_deg": {
+      "value": 20.5,
+      "threshold": null,
+      "rule": null,
+      "breach": false,
+      "level": "none",
+      "reliable": false,
+      "source": "Portus et al. (2004) - used to classify the action type",
+      "event": "bfc",
+      "method": "3d",
+      "view_suitability": "poor",
+      "keypoints": [
+        "left_hip",
+        "right_hip",
+        "left_shoulder",
+        "right_shoulder"
+      ]
+    }
+  },
+  "event_method": {
+    "release_frame": "auto",
+    "ffc_frame": "auto",
+    "bfc_frame": "auto"
+  },
+  "n_breaches": 3,
+  "view": "front",
+  "fps": 60.0,
+  "delivery": {
+    "release_candidates": [
+      {
+        "frame": 42,
+        "arm_elevation": 0.96
+      }
+    ],
+    "delivery_stretch": [
+      0,
+      59
+    ]
+  },
+  "quality": {
+    "frames": 60,
+    "frames_with_detection": 60,
+    "frames_kept": 60,
+    "frames_rejected": 0,
+    "kept_runs": [
+      [
+        0,
+        59
+      ]
+    ]
+  },
+  "keypoint_reliability_source": "none",
+  "filter": {
+    "applied": true,
+    "type": "butterworth order 2 forward-backward (effective order 4, zero lag)",
+    "cutoff_hz": 8.0,
+    "cutoff_source": "fixed",
+    "residual_analysis_cutoff_hz": 8.5,
+    "fps": 60.0,
+    "input_prefiltered": false,
+    "min_visibility": 0.5,
+    "max_gap_frames": 5,
+    "frames_gap_filled": 0,
+    "jitter_before": 0.0021045919540229924,
+    "jitter_after": 0.0019791840619361326,
+    "jitter_reduction_pct": 6.0,
+    "residual_analysis_delivery_cutoff_hz": 8.5,
+    "residual_analysis_delivery_window": [
+      12,
+      59
+    ]
+  },
+  "warnings": [],
+  "c2_version": "0.2.0",
+  "processing_seconds": 0.4106
+}

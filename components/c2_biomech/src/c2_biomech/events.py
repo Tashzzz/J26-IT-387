@@ -16,17 +16,26 @@ Ball release (automatic, works on C1's hip-centred keypoints)
     frames (max 23); first-strong-peak rule 0.08 frames (max 1). The 0.6 ratio
     was chosen on those same 13 clips - re-check it on new data.
 
-Foot contacts
-    A foot lands when it stops moving DOWN in the image. C1's keypoints are
-    hip-centred, so the movement of the whole body is removed and a planted
-    foot no longer looks still. Automatic contact detection therefore needs
-    the hip-centre position in the image (origin_px per frame + scale_px) to
-    rebuild where each foot really is. Without them, BFC and FFC must come
-    from C1's window or be typed in manually (--bfc / --ffc / events CSV).
-    With them: the landing frame is the first frame after the peak downward
-    speed where the speed drops below LANDING_FRACTION of that peak.
+Foot contacts - two automatic methods
+    1. With the hip-centre position in the image (origin_px per frame + scale_px
+       from C1): a foot lands when it stops moving DOWN in the image - the first
+       frame after the peak downward speed where the speed drops below
+       LANDING_FRACTION of that peak.
+    2. Without it (C1's current files are hip-centred only), "estimated":
+       timing gives the search window, the foot movement relative to the hips
+       picks the frame:
+         FFC  = the frame where the leading foot reaches furthest forward of the
+                hips, searched FFC_BEFORE_RELEASE_S +/- CONTACT_WINDOW_S before
+                release. Left/right labels can swap in side-on video, so the
+                leading foot is whichever ankle reaches furthest.
+         BFC  = the frame where the other (back) foot is lowest below the hips,
+                searched BFC_BEFORE_FFC_S +/- CONTACT_WINDOW_S before FFC.
+       Checked against frames marked by hand on 13 clips (3 bowlers, 30/60 fps,
+       leave-one-out): side-on FFC within 2 frames (mean 15 ms), BFC within 4
+       frames (mean 27 ms); all views FFC within 3, BFC within 4 frames. The two
+       timings are medians of those 13 clips - re-check them on new bowlers.
 
-Priority for every event: manual > C1 window > automatic.
+Priority for every event: manual > C1 window > image position > estimated.
 
 Limitations (state these at PP1)
     - Highest wrist is a few frames before the real release.
@@ -43,6 +52,9 @@ MIN_ELEVATION = 0.3        # wrist at least 0.3 trunk-lengths above the shoulder
 RELEASE_PEAK_RATIO = 0.6   # first peak reaching 60% of the highest peak = release
 PEAK_SEPARATION_S = 0.15   # peaks closer than this count as one
 CONTACT_SEARCH_S = 0.6     # look this far back for a foot contact
+FFC_BEFORE_RELEASE_S = 0.17  # median FFC -> release time, 13 hand-marked clips
+BFC_BEFORE_FFC_S = 0.15      # median BFC -> FFC time, same clips
+CONTACT_WINDOW_S = 0.07      # search +/- this around those times
 
 
 def arm_elevation(points, bowling_arm):
@@ -105,6 +117,39 @@ def detect_landing(foot_y, start, stop):
         if np.isfinite(v[i]) and v[i] <= limit:
             return start + i
     return start + int(np.nanargmax(seg))
+
+
+def estimate_contacts(points, fps, release):
+    """BFC and FFC from hip-centred keypoints only (method 2 in the module docstring).
+
+    Returns (bfc, ffc); either can be None when the feet are not tracked there.
+    """
+    P = np.asarray(points, dtype=float)
+    n = len(P)
+    hip = (P[:, kp.LEFT_HIP] + P[:, kp.RIGHT_HIP]) / 2
+    ankles = [P[:, kp.LEFT_ANKLE] - hip, P[:, kp.RIGHT_ANKLE] - hip]
+    w = max(1, int(round(CONTACT_WINDOW_S * fps)))
+
+    # FFC: leading foot = the ankle furthest from the hips (horizontally) near the expected time.
+    guess = release - int(round(FFC_BEFORE_RELEASE_S * fps))
+    a, b = max(0, guess - w), min(n, release + 1, guess + w + 1)
+    if b <= a:
+        return None, None
+    reach = [np.nanmax(np.abs(x[a:b, 0])) if np.isfinite(x[a:b, 0]).any() else -1.0 for x in ankles]
+    lead = int(np.argmax(reach))
+    if reach[lead] < 0:
+        return None, None
+    seg = np.abs(ankles[lead][a:b, 0])
+    direction = np.sign(ankles[lead][a + int(np.nanargmax(seg)), 0])  # which way the bowler runs
+    ffc = a + int(np.nanargmax(direction * ankles[lead][a:b, 0]))
+
+    # BFC: the back foot at its lowest below the hips (y points down) near the expected time.
+    back_y = ankles[1 - lead][:, 1]
+    guess = ffc - int(round(BFC_BEFORE_FFC_S * fps))
+    a, b = max(0, guess - w), min(ffc, guess + w + 1)
+    if b <= a or not np.isfinite(back_y[a:b]).any():
+        return None, ffc
+    return a + int(np.nanargmax(back_y[a:b])), ffc
 
 
 def image_y(delivery, points, keypoint):
@@ -176,10 +221,23 @@ def detect_events(delivery, overrides=None, keep=None, points=None):
         f, m = detect_landing(back_y, max(lo, ffc - win), ffc), "auto"
     events["bfc_frame"], method["bfc_frame"] = f, m or "not_detected"
 
-    if not auto_contacts and (events["ffc_frame"] is None or events["bfc_frame"] is None):
-        warnings.append("BFC/FFC need the hip-centre position in the image (origin_px + scale_px "
-                        "from C1) for automatic detection; until then enter them manually "
-                        "(--bfc/--ffc or an events CSV). Features that need them are left empty.")
+    # 2b. No image position: estimate from foot movement relative to the hips.
+    if not auto_contacts and rel is not None and (events["ffc_frame"] is None or events["bfc_frame"] is None):
+        est_bfc, est_ffc = estimate_contacts(P, delivery.fps, rel)
+        if events["ffc_frame"] is None and est_ffc is not None:
+            events["ffc_frame"], method["ffc_frame"] = est_ffc, "estimated"
+        ffc = events["ffc_frame"]
+        if events["bfc_frame"] is None and ffc is not None:
+            if method["ffc_frame"] != "estimated":  # FFC given by hand: estimate BFC from that FFC
+                est_bfc, _ = estimate_contacts(P, delivery.fps, ffc + int(round(FFC_BEFORE_RELEASE_S * delivery.fps)))
+            if est_bfc is not None and est_bfc < ffc:
+                events["bfc_frame"], method["bfc_frame"] = est_bfc, "estimated"
+        if "estimated" in (method["bfc_frame"], method["ffc_frame"]):
+            warnings.append("BFC/FFC estimated from foot movement (checked on 13 hand-marked clips: "
+                            "within 2-4 frames) - check against the video, or type the frames to correct them.")
+        if events["ffc_frame"] is None or events["bfc_frame"] is None:
+            warnings.append("BFC/FFC could not be estimated (feet not tracked around the delivery); "
+                            "type the frames to fill the features that need them.")
 
     # 3. Sanity checks.
     for name, fr in list(events.items()):

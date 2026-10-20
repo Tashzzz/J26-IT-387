@@ -36,11 +36,11 @@ C1 JSON → quality gate → Butterworth 8 Hz → release / BFC / FFC → 2-D or
 
 | Feature | Event | Limit | Front / rear view | Side view | Semi-side |
 |---|---|---|---|---|---|
-| `trunk_lateral_flexion_deg` | release | > 40° (to confirm) | **2-D, good** | 3-D, poor | 3-D, poor |
-| `front_knee_flexion_release_deg` | release | < 30° (knee > 150°) | 3-D, poor | **2-D, good**¹ | 3-D, poor |
+| `trunk_lateral_flexion_deg` | release | > 40° (Bayne 2016: injured 50°, uninjured 40°) | **2-D, good** | 3-D, poor | 3-D, poor |
+| `front_knee_flexion_release_deg` | release | knee > 150° **with** twist > 30° or lean > 40° = red; alone = amber (Portus; physio review) | 3-D, poor | **2-D, good**¹ | 3-D, poor |
 | `front_knee_flexion_ffc_deg` | FFC | reported | 3-D, poor | **2-D, good**¹ | 3-D, poor |
-| `shoulder_counter_rotation_deg` | BFC → FFC | > 30° | 3-D, poor | 3-D, poor | 3-D, poor |
-| `hip_shoulder_separation_bfc_deg` | BFC | reported | 3-D, poor | 3-D, poor | 3-D, poor |
+| `shoulder_counter_rotation_deg` | BFC → FFC | > 30° (Portus mixed action: injured 41°, uninjured 19°) | 3-D, poor | 3-D, poor | 3-D, poor |
+| `hip_shoulder_separation_bfc_deg` | BFC | > 30° (Portus mixed-action criterion) | 3-D, poor | 3-D, poor | 3-D, poor |
 
 One camera measures angles in the image plane well; anything in the depth direction
 relies on MediaPipe's z, its noisiest axis. "Poor" features are still output but marked
@@ -55,10 +55,14 @@ C1 track those joints reliably (ICC).
 trunk length (so it doesn't change as the bowler gets closer to the camera); release is the
 **first** arm peak reaching 60 % of the highest one, because bowlers often lift the arm again after
 the follow-through. Checked against release frames marked by hand on 13 clips: within 1 frame
-(mean error 0.08 frames). BFC and FFC need the hip centre's position in the image (`origin_px` per
-frame and `normalisation.scale_px` from C1); until then they are entered by hand (`--events`, see
-`experiments/events_manual_2026-10-19.csv` for the 13 current clips).
-Priority: manual > C1 window > automatic.
+(mean error 0.08 frames). BFC and FFC are found automatically too: with the hip centre's image
+position from C1 (`origin_px`, `normalisation.scale_px`) from foot landing; without it (today's C1
+files) they are **estimated** - timing gives the search window, the foot movement relative to the
+hips picks the frame (front foot furthest forward = FFC, back foot lowest = BFC). Against the hand-
+marked frames of 13 clips: FFC mean 1.4 / max 3 frames, BFC mean 1.3 / max 4 frames
+(`python experiments/validate_events.py ../../data/handoff`). Estimated events are labelled
+`estimated` and can be corrected by hand (`--events`, `--bfc/--ffc`, or the app's "Correct event
+frames"). Priority: manual > C1 window > image position > estimated.
 
 ## Run
 
