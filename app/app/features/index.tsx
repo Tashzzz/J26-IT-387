@@ -112,12 +112,12 @@ export default function Features() {
           )}
 
           <Row>
-            <Tile label="Breaches" value={String(confirmedBreaches)} tone={confirmedBreaches ? 'danger' : 'ok'} />
+            <Tile label="Red flags" value={String(confirmedBreaches)} tone={confirmedBreaches ? 'danger' : 'ok'} />
             <Tile label="Reliable angles" value={`${reliable} / ${FEATURE_ORDER.length}`} tone={reliable ? 'neutral' : 'danger'} />
           </Row>
           {uncheckedBreaches > 0 && (
-            <Banner tone="warn" icon="eye-off-outline" title={`${uncheckedBreaches} more over the limit, not confirmed`}>
-              <Body muted>Measured from a camera view that cannot see that angle reliably. Check on video before acting.</Body>
+            <Banner tone="warn" icon="eye-off-outline" title={`${uncheckedBreaches} more over the limit · low visibility`}>
+              <Body muted>Measured from a camera view that cannot see that angle reliably. Check the camera setup and the video before acting.</Body>
             </Banner>
           )}
 
@@ -148,8 +148,16 @@ export default function Features() {
             <FeatureCard key={n} name={n} f={row.features[n]} info={thresholds?.[n]} trueValue={row.true_values?.[n]} />
           ))}
 
+          {confirmedBreaches > 0 && (
+            <Banner tone="danger" icon="alert-circle-outline" title="What to do about a red angle">
+              <Body>1. Today: reduce bowling intensity and avoid long spells.</Body>
+              <Body>2. Coaching: hip–shoulder alignment and technique drills.</Body>
+              <Body>3. If red again in 2 or more sessions: refer to a sports physiotherapist for a lower-back check.</Body>
+            </Banner>
+          )}
+
           <Banner tone="info" icon="medkit-outline" title="Screening, not a diagnosis">
-            <Body muted>Red means the angle is like the bowlers who got injured in published studies. Review red angles on video with a coach or physiotherapist, and judge a bowler on several deliveries, not one.</Body>
+            <Body muted>Red means the angle is like the bowlers who got injured in published studies. Never judge on one ball: check one over (4–6 deliveries). A warning that repeats on 2 or more balls matters.</Body>
           </Banner>
 
           <H>Send to Risk & Plan</H>

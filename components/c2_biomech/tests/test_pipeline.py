@@ -98,6 +98,8 @@ def test_unreliable_keypoint_from_c1_is_flagged():
 def test_classify_levels():
     assert classify("shoulder_counter_rotation_deg", 31.0) == (True, "red")
     assert classify("shoulder_counter_rotation_deg", 27.0) == (False, "amber")
+    assert classify("shoulder_counter_rotation_deg", 22.0) == (False, "amber")   # amber 20-30 (physio)
+    assert classify("trunk_lateral_flexion_deg", 32.0) == (False, "amber")       # amber 30-40 (physio)
     assert classify("shoulder_counter_rotation_deg", 10.0) == (False, "green")
     assert classify("front_knee_flexion_release_deg", 10.0) == (True, "red")
     assert classify("front_knee_flexion_release_deg", 35.0) == (False, "amber")   # 30-40 deg band
@@ -161,3 +163,15 @@ def test_reliability_in_c1_file_wins_over_table():
     row, _ = compute_features(from_c1_json(data))
     assert row["keypoint_reliability_source"] == "c1_file"
     assert "unusable_keypoints" not in row["features"]["front_knee_flexion_release_deg"]
+
+
+def test_front_knee_judged_in_context():
+    """Physio review: straight knee is red only with twist or lean; collapsing knee is amber."""
+    from c2_biomech.thresholds import knee_release_level
+    assert knee_release_level(10.0, scr=35.0, trunk=20.0)[:2] == (True, "red")     # straight + twist
+    assert knee_release_level(10.0, scr=10.0, trunk=45.0)[:2] == (True, "red")     # straight + lean
+    assert knee_release_level(10.0, scr=10.0, trunk=20.0)[:2] == (False, "amber")  # hard bracing
+    assert knee_release_level(10.0)[:2] == (False, "amber")                        # twist/lean unknown
+    assert knee_release_level(40.0, scr=35.0)[:2] == (False, "green")              # cushioned
+    assert knee_release_level(60.0)[:2] == (False, "amber")                        # collapsing
+    assert knee_release_level(None) == (False, "none", None)

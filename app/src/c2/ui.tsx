@@ -17,12 +17,21 @@ export const FEATURE_ORDER: FeatureName[] = [
   'hip_shoulder_separation_bfc_deg',
 ];
 
+// Plain names for coaches (physiotherapist review, 20 Oct) + the technical name shown small underneath.
 export const FEATURE_LABEL: Record<FeatureName, string> = {
-  shoulder_counter_rotation_deg: 'Shoulder counter-rotation',
-  front_knee_flexion_release_deg: 'Front-knee bend at release',
-  trunk_lateral_flexion_deg: 'Trunk side-bend at release',
-  front_knee_flexion_ffc_deg: 'Front-knee bend at front-foot contact',
-  hip_shoulder_separation_bfc_deg: 'Hip–shoulder separation at back-foot contact',
+  shoulder_counter_rotation_deg: 'Shoulder twist',
+  front_knee_flexion_release_deg: 'Front knee bend at release',
+  trunk_lateral_flexion_deg: 'Sideways body lean at release',
+  front_knee_flexion_ffc_deg: 'Front knee bend at landing',
+  hip_shoulder_separation_bfc_deg: 'Hips vs shoulders at back-foot landing',
+};
+
+export const TECH_LABEL: Record<FeatureName, string> = {
+  shoulder_counter_rotation_deg: 'shoulder counter-rotation, BFC → FFC',
+  front_knee_flexion_release_deg: 'front-knee flexion at ball release',
+  trunk_lateral_flexion_deg: 'trunk lateral flexion at ball release',
+  front_knee_flexion_ffc_deg: 'front-knee flexion at front-foot contact',
+  hip_shoulder_separation_bfc_deg: 'hip–shoulder separation at back-foot contact',
 };
 
 const EVENT_LABEL: Record<EventName, string> = {
@@ -54,8 +63,8 @@ export function featureStatus(f: Feature): Status {
   if (f.threshold === null || f.level === 'none') return { text: 'No limit · reported only', color: colors.muted, icon: 'information-circle-outline' };
   if (!f.reliable) {
     return f.breach
-      ? { text: 'Over the limit · not confirmed', color: colors.warn, icon: 'help-circle-outline' }
-      : { text: 'Within limit · not confirmed', color: colors.muted, icon: 'help-circle-outline' };
+      ? { text: 'Over the limit · low visibility', color: colors.warn, icon: 'eye-off-outline' }
+      : { text: 'Low visibility', color: colors.muted, icon: 'eye-off-outline' };
   }
   const byLevel: Record<Level, Status> = {
     red: { text: 'Over risk limit', color: colors.danger, icon: 'alert-circle' },
@@ -67,7 +76,8 @@ export function featureStatus(f: Feature): Status {
 }
 
 /** "Breach if more than 30°" / "Breach if less than 30°" / "No published limit". */
-export function ruleText(f: Pick<Feature, 'threshold' | 'rule'>): string {
+export function ruleText(f: Pick<Feature, 'threshold' | 'rule'>, name?: FeatureName): string {
+  if (name === 'front_knee_flexion_release_deg') return 'Red if straighter than 150° (bend under 30°) together with twist or lean';
   if (f.threshold === null || !f.rule) return 'No published limit';
   return `Breach if ${f.rule === 'above' ? 'more' : 'less'} than ${f.threshold}°`;
 }
@@ -81,6 +91,7 @@ export function FeatureCard({ name, f, info, trueValue }: {
   return (
     <Card style={{ borderColor: st.color === colors.muted ? colors.border : st.color }}>
       <Text style={s.title}>{FEATURE_LABEL[name]}</Text>
+      <Text style={s.small}>{TECH_LABEL[name]}</Text>
       {info?.meaning ? <Body muted>{info.meaning}</Body> : null}
 
       <View style={s.valueRow}>
@@ -91,16 +102,19 @@ export function FeatureCard({ name, f, info, trueValue }: {
         </View>
       </View>
 
-      <Text style={s.small}>{ruleText(f)} · measured at {f.event.replace(/_/g, ' ').replace('bfc', 'BFC').replace('ffc', 'FFC')} · {f.method.toUpperCase()}</Text>
+      {f.note && f.value !== null ? <Text style={[s.note, { color: st.color === colors.muted ? colors.text : st.color }]}>{f.note}</Text> : null}
+      <Text style={s.small}>{ruleText(f, name)} · measured at {f.event.replace(/_/g, ' ').replace('bfc', 'BFC').replace('ffc', 'FFC')} · {f.method.toUpperCase()}</Text>
       {trueValue !== undefined ? <Text style={s.small}>Demo built with {fmt(trueValue)} (check: C2 should be close)</Text> : null}
 
       {!f.reliable && f.value !== null ? (
         <View style={s.warn}>
           <Ionicons name="eye-off-outline" size={16} color={colors.warn} />
           <Text style={s.warnText}>
-            Camera view not reliable for this angle (C1 ICC)
-            {f.unusable_keypoints?.length ? ` · ${f.unusable_keypoints.join(', ').replace(/_/g, ' ')}` : ''}
-            {f.view_suitability === 'poor' ? ' · this view cannot see the angle well' : ''}
+            Low visibility · check camera setup.
+            {f.view_suitability === 'poor'
+              ? ` This camera view cannot see this angle well: film ${name.startsWith('front_knee') ? 'side-on' : 'from behind or in front of'} the bowler.`
+              : ' The pose tracker is not reliable for these joints from this view (C1 ICC).'}
+            {f.unusable_keypoints?.length ? ` (${f.unusable_keypoints.join(', ').replace(/_/g, ' ')})` : ''}
           </Text>
         </View>
       ) : null}
@@ -138,6 +152,7 @@ const s = StyleSheet.create({
   pill: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
   pillText: { fontSize: 12, fontWeight: '800', letterSpacing: 0.5 },
   small: { color: colors.muted, fontSize: 12 },
+  note: { fontSize: 14, fontWeight: '700' },
   source: { color: colors.muted, fontSize: 11, fontStyle: 'italic', marginTop: 2 },
   warn: { flexDirection: 'row', gap: 6, alignItems: 'flex-start', borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 8, marginTop: 2 },
   warnText: { color: colors.warn, fontSize: 13, flex: 1 },

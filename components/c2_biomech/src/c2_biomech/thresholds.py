@@ -9,6 +9,12 @@ touching the angle code. Each entry:
     source     reference shown in the app and in the C2 JSON
     evidence   the numbers behind the limit (injured vs uninjured groups)
 
+Physiotherapist review (20 Oct 2026, see docs/decisions.md): recommendations drafted
+with AI help were reviewed and accepted by a physiotherapist. Applied here:
+    - wider amber bands: shoulder twist 20-30 deg, sideways lean 30-40 deg (red limits unchanged)
+    - front knee at release judged in context (knee_release_level below)
+    - plain names for coaches ("label")
+
 How the limits were chosen (20 Oct 2026, see docs/decisions.md):
     The red limits are where the published injured-bowler groups sit, so a
     breach means "like the bowlers who got injured"; the amber band reaches back
@@ -42,31 +48,37 @@ How the limits were chosen (20 Oct 2026, see docs/decisions.md):
 
 THRESHOLDS = {
     "shoulder_counter_rotation_deg": {
-        "threshold": 30.0, "rule": "above", "amber_band": 5.0,
+        "threshold": 30.0, "rule": "above", "amber_band": 10.0,
+        "label": "Shoulder twist",
         "source": "Portus et al. (2004) - mixed-action criterion",
         "evidence": "Stress-fracture bowlers 41° vs uninjured 19° (Portus); not confirmed in elite adults (Alway 2021)",
         "meaning": "Mixed action: shoulders twist back against the hips between BFC and FFC - linked to lower-back stress fractures",
     },
     "front_knee_flexion_ffc_deg": {
         "threshold": None, "rule": None, "amber_band": None,
+        "label": "Front knee bend at landing",
         "source": "Portus et al. (2004); Alway et al. (2021) - no published limit",
         "evidence": "Injured 165-167° vs uninjured 154° knee angle (Portus); no difference in Alway 2021",
         "meaning": "Front-knee bend as the front foot lands",
     },
     "front_knee_flexion_release_deg": {
         "threshold": 30.0, "rule": "below", "amber_band": 10.0,
+        "label": "Front knee bend at release",
+        "collapse_above": 50.0,
         "source": "Portus et al. (2004); Crewe et al. (2013)",
         "evidence": "Trunk-injured bowlers 149-155° vs uninjured 131° knee angle at release; straighter knee = more lumbar load",
         "meaning": "Straight, braced front knee at release (knee angle over 150°): more force goes up into the lower back",
     },
     "trunk_lateral_flexion_deg": {
-        "threshold": 40.0, "rule": "above", "amber_band": 5.0,
+        "threshold": 40.0, "rule": "above", "amber_band": 10.0,
+        "label": "Sideways body lean",
         "source": "Bayne et al. (2016); Ranson et al. (2008)",
         "evidence": "Injured 50° vs uninjured 40° side-bend at release (Bayne 2016, adolescents)",
         "meaning": "Side-bend of the trunk at ball release - more side-bend loads the lower back",
     },
     "hip_shoulder_separation_bfc_deg": {
         "threshold": 30.0, "rule": "above", "amber_band": 5.0,
+        "label": "Hip-shoulder separation",
         "source": "Portus et al. (2004) - mixed-action criterion",
         "evidence": "Mixed action = hip-shoulder separation of 30° or more at BFC, or SCR of 30° or more",
         "meaning": "Hips and shoulders point in different directions at back-foot contact (part of a mixed action)",
@@ -93,3 +105,30 @@ def classify(name, value, thresholds=None):
             return True, "red"
         return False, "amber" if value < limit + band else "green"
     raise ValueError(f"unknown rule {t['rule']!r} for {name}")
+
+
+def knee_release_level(flexion, scr=None, trunk=None, thresholds=None):
+    """Front knee at release, judged in context (physiotherapist review, 20 Oct 2026).
+
+    Returns (breach, level, note):
+      knee straighter than 150 deg (flexion < 30) AND shoulder twist > 30 or lean > 40
+            -> red: impact plus twisting / bending load on the lower back
+      knee straighter than 150 deg, posture fine -> amber: hard bracing, watch back workload
+      knee 130-150 deg (flexion 30-50)            -> green: cushioned landing
+      knee more bent than 130 deg (flexion > 50)  -> amber: knee collapsing (performance)
+    A straight knee alone is not red: it adds pace, and the injury studies link it to
+    load on the lower back, which matters most together with twisting or leaning.
+    """
+    t = (thresholds or THRESHOLDS)
+    knee = t["front_knee_flexion_release_deg"]
+    if flexion is None:
+        return False, "none", None
+    scr_risky = scr is not None and scr > t["shoulder_counter_rotation_deg"]["threshold"]
+    lean_risky = trunk is not None and trunk > t["trunk_lateral_flexion_deg"]["threshold"]
+    if flexion < knee["threshold"]:
+        if scr_risky or lean_risky:
+            return True, "red", "Straight knee together with twisting or leaning: high lower-back load"
+        return False, "amber", "Hard bracing (good for pace): monitor lower-back workload"
+    if flexion > knee.get("collapse_above", 50.0):
+        return False, "amber", "Knee collapsing: loses height and energy (technique, not injury)"
+    return False, "green", "Cushioned landing"
