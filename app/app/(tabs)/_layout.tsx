@@ -4,14 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect } from 'expo-router';
 import { Tabs, type BottomTabBarButtonProps } from 'expo-router/js-tabs';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, type ColorValue } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useApp } from '../../src/shell/AppContext';
 import { color, glow, gradient, type IconName } from '../../src/ui';
 
-const icon = (name: IconName, active: IconName) => ({ color: c, size, focused }: { color: string; size: number; focused: boolean }) =>
-  <Ionicons name={focused ? active : name} color={c} size={size} />;
+const icon = (name: IconName, active: IconName) => ({ color: c, size, focused }: { color: ColorValue; size: number; focused: boolean }) =>
+  <Ionicons name={focused ? active : name} color={c as string} size={size} />;
 
 function AnalyseButton({ onPress, accessibilityState }: BottomTabBarButtonProps) {
   return (

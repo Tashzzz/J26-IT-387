@@ -47,23 +47,29 @@ export function Screen({ children, scroll = true, onRefresh, safeTop, style }: {
   );
 }
 
-/** Hero header. With `component` it uses that component's colour and icon; otherwise the brand gradient. */
-export function GradientHeader({ title, subtitle, component, icon, right }: {
+/**
+ * Hero header. With `component` it uses that component's colour and icon; `tint` overrides the colour
+ * (e.g. a bowler's risk colour); otherwise the brand gradient.
+ */
+export function GradientHeader({ title, subtitle, component, icon, tint, right, children }: {
   title: string;
   subtitle?: string;
   component?: ComponentKey;
   icon?: IconName;
+  tint?: string;
   right?: React.ReactNode;
+  children?: React.ReactNode;
 }) {
   const c = component ? COMPONENT[component] : null;
-  const stops = c ? ([alpha(c.color, 0.35), alpha(c.color, 0.04)] as const) : ([alpha(gradient.brand[0], 0.4), alpha(gradient.brand[1], 0.12)] as const);
+  const hue = tint ?? c?.color;
+  const stops = hue ? ([alpha(hue, 0.35), alpha(hue, 0.04)] as const) : ([alpha(gradient.brand[0], 0.4), alpha(gradient.brand[1], 0.12)] as const);
   const ic = icon ?? c?.icon;
   return (
-    <LinearGradient colors={stops} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[s.header, { borderColor: c ? alpha(c.color, 0.4) : color.border }]}>
+    <LinearGradient colors={stops} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[s.header, { borderColor: hue ? alpha(hue, 0.4) : color.border }]}>
       <View style={s.headerRow}>
         {ic && (
-          <View style={[s.headerIcon, { backgroundColor: alpha(c?.color ?? gradient.brand[1], 0.18) }]}>
-            <Ionicons name={ic} size={22} color={c?.color ?? gradient.brand[1]} />
+          <View style={[s.headerIcon, { backgroundColor: alpha(hue ?? gradient.brand[1], 0.18) }]}>
+            <Ionicons name={ic} size={22} color={hue ?? gradient.brand[1]} />
           </View>
         )}
         <View style={{ flex: 1 }}>
@@ -73,6 +79,7 @@ export function GradientHeader({ title, subtitle, component, icon, right }: {
         {right}
       </View>
       {subtitle ? <Text style={s.headerSub}>{subtitle}</Text> : null}
+      {children}
     </LinearGradient>
   );
 }
