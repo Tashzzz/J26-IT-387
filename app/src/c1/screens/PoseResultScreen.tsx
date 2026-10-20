@@ -9,7 +9,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { regionsFromSummary } from '../../analysis/reliability';
 import { c1 } from '../../api/c1';
 import {
-  BodyReliabilityMap, Card, color, COMPONENT, font, IconButton, MetricTile, radius, RISK, ScoreRing, SegmentedControl, sp,
+  BodyReliabilityMap, Card, color, COMPONENT, font, IconButton, MetricTile, radius, RISK, ScoreRing, SegmentedControl, sp, useResearchMode,
 } from '../../ui';
 import type { ProcessResult } from '../types';
 
@@ -54,6 +54,7 @@ export function PoseResultScreen({ result }: { result: ProcessResult }) {
   const q = QUALITY[detectionQuality(rate)];
   const rel = result.reliability;
   const tint = COMPONENT.c1.color;
+  const research = useResearchMode();
 
   return (
     <View style={{ gap: sp(2) }}>
@@ -83,7 +84,7 @@ export function PoseResultScreen({ result }: { result: ProcessResult }) {
       <Card>
         <Text style={s.h2}>Keypoint reliability for this setup</Text>
         {rel?.setup_matched ? (
-          <Text style={s.muted}>Camera setup {rel.setup_matched}: {rel.usable} of {rel.total} keypoints passed the reliability check (ICC ≥ {rel.gate ?? 0.75}). Keypoints are only tagged, never removed.</Text>
+          <Text style={s.muted}>Camera setup {rel.setup_matched}: {rel.usable} of {rel.total} body points passed the reliability check{research ? ` (ICC ≥ ${rel.gate ?? 0.75})` : ''}. Points are only tagged, never removed.</Text>
         ) : (
           <View style={s.unverified}>
             <Ionicons name="help-circle" size={20} color={RISK.moderate.color} />

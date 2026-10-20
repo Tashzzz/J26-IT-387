@@ -5,15 +5,33 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { alpha, Card, color, COMPONENT, font, MetricTile, RISK, RiskGauge, sp, toRiskLevel } from '../../ui';
+import { alpha, Card, color, COMPONENT, font, MetricTile, RISK, RiskGauge, sp, toRiskLevel, useResearchMode } from '../../ui';
 import type { Assessment, Factor } from '../types';
 import { FactorDetail, FactorRow, LevelBadge, ModalityBars } from '../ui';
 
 const pctText = (v: number) => `${(v * 100).toFixed(v < 0.1 ? 1 : 0)}%`;
 
+/** Coach mode: one factor in plain words (direction from C3, no SHAP numbers). */
+function PlainFactor({ f }: { f: Factor }) {
+  const up = f.direction === 'increases_risk';
+  const down = f.direction === 'decreases_risk';
+  const c = up ? RISK.high.text : down ? RISK.low.color : color.muted;
+  return (
+    <View style={s.plain}>
+      <Ionicons name={up ? 'arrow-up-circle' : down ? 'arrow-down-circle' : 'remove-circle-outline'} size={22} color={c} />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={s.plainLabel}>{f.label}</Text>
+        <Text style={s.muted}>{f.display_value}</Text>
+      </View>
+      <Text style={[s.plainEffect, { color: c }]}>{up ? 'raises risk' : down ? 'lowers risk' : f.measured === false ? 'not measured' : 'no effect'}</Text>
+    </View>
+  );
+}
+
 export function RiskResultScreen({ result }: { result: Assessment }) {
   const [showAll, setShowAll] = useState(false);
   const [detail, setDetail] = useState<Factor | null>(null);
+  const research = useResearchMode();
   const level = toRiskLevel(result.risk_tier ?? result.risk_level) ?? 'low';
   const tint = COMPONENT.c3.color;
 
@@ -74,12 +92,14 @@ export function RiskResultScreen({ result }: { result: Assessment }) {
       <Card>
         <Text style={s.h2}>Technique vs workload</Text>
         <ModalityBars items={result.modality_attribution} />
-        <Text style={s.note}>Points on the 0–100 risk score, compared with an average squad member ({Math.round(result.base_score * 100)}).</Text>
+        <Text style={s.note}>Points on the 0–100 risk score, compared with an average squad member ({Math.round(result.base_score * 100)}).{research ? ' Two-level TreeSHAP attribution.' : ''}</Text>
       </Card>
 
       <Card style={{ gap: 0 }}>
         <Text style={[s.h2, { marginBottom: sp(0.5) }]}>{showAll ? 'All factors' : 'Top factors'}</Text>
-        {factors.map((f) => <FactorRow key={f.feature} f={f} max={maxShap} onPress={() => setDetail(f)} />)}
+        {factors.map((f) => (research
+          ? <FactorRow key={f.feature} f={f} max={maxShap} onPress={() => setDetail(f)} />
+          : <PlainFactor key={f.feature} f={f as Factor} />))}
         <Pressable onPress={() => setShowAll((v) => !v)} accessibilityRole="button" style={s.toggle}>
           <Ionicons name={showAll ? 'chevron-up' : 'chevron-down'} size={16} color={tint} />
           <Text style={[s.toggleText, { color: tint }]}>{showAll ? 'Show top 3 only' : `Show all ${result.all_factors.length} factors`}</Text>
@@ -98,7 +118,7 @@ export function RiskResultScreen({ result }: { result: Assessment }) {
           {result.data_quality.map((n) => <Text key={n} style={s.muted}>• {n}</Text>)}
         </Card>
       )}
-      <Text style={s.footer}>{result.model} · {result.latency_ms} ms · {new Date(result.generated_at).toLocaleString()}</Text>
+      <Text style={s.footer}>{research ? `${result.model} · ${result.latency_ms} ms · ` : ''}{new Date(result.generated_at).toLocaleString()}</Text>
 
       <FactorDetail f={detail} onClose={() => setDetail(null)} />
     </View>
@@ -122,4 +142,7 @@ const s = StyleSheet.create({
   toggleText: { ...font.body, fontWeight: '700' },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: sp(1) },
   footer: { ...font.caption, color: color.muted, textAlign: 'center' },
+  plain: { flexDirection: 'row', alignItems: 'center', gap: sp(1.5), paddingVertical: sp(1), borderBottomWidth: 1, borderBottomColor: color.border },
+  plainLabel: { ...font.body, color: color.text, fontWeight: '700' },
+  plainEffect: { ...font.caption, fontWeight: '800' },
 });

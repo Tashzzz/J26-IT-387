@@ -7,6 +7,7 @@ export const KEYS = {
   coach: 'cricshield.app.coach',
   extras: 'cricshield.app.bowlerExtras',
   research: 'cricshield.app.researchMode',
+  analyses: 'cricshield.app.analyses',
   // Read by the members' screens to pick the bowler they open on (their keys, written here only to hand over).
   c4Selected: 'cricshield.c4.selectedAthlete',
   c3Selected: 'cricshield.c3.selectedAthlete',

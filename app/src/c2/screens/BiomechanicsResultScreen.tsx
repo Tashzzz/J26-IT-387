@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
-  alpha, Card, color, COMPONENT, DeliveryTimeline, font, MetricTile, radius, RISK, SecondaryButton, sp, Tag,
+  alpha, Card, color, COMPONENT, DeliveryTimeline, font, MetricTile, radius, RISK, SecondaryButton, sp, Tag, useResearchMode,
 } from '../../ui';
 import type { Feature, FeatureName, FeatureRow, Threshold, Thresholds } from '../types';
 import { EventsCard, FEATURE_LABEL, FEATURE_ORDER, FeatureCard, featureStatus, ruleText, TECH_LABEL } from '../ui';
@@ -42,12 +42,13 @@ function LimitBar({ f, info, markerColor }: { f: Feature; info?: Threshold; mark
 
 function AngleCard({ name, f, info, trueValue }: { name: FeatureName; f: Feature; info?: Threshold; trueValue?: number }) {
   const [open, setOpen] = useState(false);
+  const research = useResearchMode();
   const st = featureStatus(f);
   const muted = st.color === color.muted; // featureStatus uses the shared muted colour for "no limit / no value"
   return (
     <View style={[s.card, { borderColor: muted ? color.border : alpha(st.color, 0.6) }]}>
       <Text style={s.title}>{FEATURE_LABEL[name]}</Text>
-      <Text style={s.small}>{TECH_LABEL[name]}</Text>
+      {research && <Text style={s.small}>{TECH_LABEL[name]}</Text>}
       <View style={s.valueRow}>
         <Text style={[s.value, { color: muted ? color.text : st.color }]}>{fmt(f.value)}</Text>
         <View style={[s.pill, { borderColor: st.color, backgroundColor: alpha(st.color, 0.12) }]}>
@@ -60,8 +61,8 @@ function AngleCard({ name, f, info, trueValue }: { name: FeatureName; f: Feature
       <View style={s.tags}>
         {!f.reliable && f.value !== null && <Tag label="Low visibility" icon="eye-off-outline" tint={RISK.moderate.color} />}
         {f.view_suitability !== 'good' && <Tag label={`View: ${f.view_suitability}`} />}
-        {f.unusable_keypoints?.length ? <Tag label={`${f.unusable_keypoints.length} keypoint${f.unusable_keypoints.length === 1 ? '' : 's'} below ICC gate`} /> : null}
-        <Tag label={f.method.toUpperCase()} />
+        {research && f.unusable_keypoints?.length ? <Tag label={`${f.unusable_keypoints.length} keypoint${f.unusable_keypoints.length === 1 ? '' : 's'} below ICC gate`} /> : null}
+        {research && <Tag label={f.method.toUpperCase()} />}
       </View>
       <Pressable onPress={() => setOpen(!open)} accessibilityRole="button" accessibilityState={{ expanded: open }} style={s.more}>
         <Text style={[s.moreText, { color: COMPONENT.c2.color }]}>{open ? 'Hide details' : 'Meaning, evidence and source'}</Text>

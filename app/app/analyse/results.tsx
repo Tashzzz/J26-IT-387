@@ -19,7 +19,7 @@ import {
 export default function ResultsHub() {
   const router = useRouter();
   const { athlete, results, steps, reset } = useAnalysis();
-  const { saveExtra, researchMode } = useApp();
+  const { researchMode } = useApp();
   const { refresh } = useSquad();
 
   if (!athlete || !results.pose) {
@@ -41,7 +41,6 @@ export default function ResultsHub() {
   };
 
   async function saveAndOpen() {
-    await saveExtra(athlete!.id, { lastAnalysedAt: new Date().toISOString() });
     await refresh();
     const id = athlete!.id;
     reset();

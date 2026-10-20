@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { ActivityIndicator, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useResearchMode } from '../prefs';
 import { alpha, color, COMPONENT, COMPONENT_KEYS, font, glow, gradient, RISK, sp, type ComponentKey } from '../theme';
 
 export type StepState = 'pending' | 'running' | 'done' | 'failed';
@@ -31,6 +32,7 @@ export function PipelineStepper({ states, onPress, compact }: {
   compact?: boolean;
 }) {
   const d = compact ? 36 : 48;
+  const research = useResearchMode();
   return (
     <View style={s.row}>
       {COMPONENT_KEYS.map((k, i) => {
@@ -53,8 +55,8 @@ export function PipelineStepper({ states, onPress, compact }: {
                   : <Ionicons name={c.icon} size={d * 0.4} color={alpha(c.color, 0.7)} />}
               </View>
             </View>
-            {!compact && <Text style={[s.code, { color: st === 'pending' ? color.muted : st === 'failed' ? RISK.critical.text : c.color }]}>{c.code}</Text>}
-            {!compact && <Text style={s.name} numberOfLines={1}>{c.label}</Text>}
+            {!compact && research && <Text style={[s.code, { color: st === 'pending' ? color.muted : st === 'failed' ? RISK.critical.text : c.color }]}>{c.code}</Text>}
+            {!compact && <Text style={[s.name, !research && { marginTop: 0 }]} numberOfLines={1}>{c.label}</Text>}
           </View>
         );
         return (

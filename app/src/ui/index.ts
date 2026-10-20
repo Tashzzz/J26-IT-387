@@ -1,5 +1,6 @@
 // CricShield design system (ui-v2). Import from 'src/ui' in screens.
 export * from './theme';
+export { ResearchModeContext, useResearchMode } from './prefs';
 export { Avatar } from './components/Avatar';
 export { BottomSheet } from './components/BottomSheet';
 export { IconButton, PrimaryButton, SecondaryButton } from './components/buttons';

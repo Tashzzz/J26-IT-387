@@ -14,10 +14,12 @@ import { c4 } from '../api/c4';
 import { c3 } from '../api/risk';
 import type { CameraDistance, ProcessResult } from '../c1/types';
 import type { FeatureRow } from '../c2/types';
+import { FEATURE_ORDER } from '../c2/ui';
 import type { Assessment } from '../c3/types';
 import type { Athlete, PreventionPlan } from '../c4/types';
+import { useApp } from '../shell/AppContext';
 import { setItem } from '../shell/storage';
-import type { CameraView, ComponentKey, StepState } from '../ui';
+import { toRiskLevel, type CameraView, type ComponentKey, type StepState } from '../ui';
 
 export type Video = PickedVideo & { durationMs: number | null; source: 'library' | 'camera' };
 
@@ -85,6 +87,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [running, setRunning] = useState(false);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const busy = useRef(false);
+  const app = useApp();
+  const appRef = useRef(app);
+  appRef.current = app;
   // Latest values for the async runner (state inside a running promise would be stale).
   const live = useRef({ athlete, angle, distance, video, results });
   live.current = { athlete, angle, distance, video, results };
@@ -147,8 +152,23 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       }],
     ];
 
+    let ok = true;
     for (const [k, work] of plan.slice(start)) {
-      if (!(await step(k, work))) break;
+      if (!(await step(k, work))) { ok = false; break; }
+    }
+    // A finished analysis: log it on this phone (Home "recent analyses") and mark the bowler as analysed.
+    if (ok && res.pose) {
+      const at = new Date().toISOString();
+      const top = res.risk ? (res.risk.all_factors.find((f) => f.feature === res.risk!.top_factors[0]?.feature) ?? res.risk.top_factors[0]) : null;
+      await appRef.current.logAnalysis({
+        athleteId: a.id, code: a.bowler_id, at,
+        level: res.risk ? toRiskLevel(res.risk.risk_tier ?? res.risk.risk_level) : null,
+        score: res.risk ? Math.round(res.risk.risk_score * 100) : null,
+        redFlags: res.row ? FEATURE_ORDER.filter((n) => res.row!.features[n]?.breach && res.row!.features[n]?.reliable).length : null,
+        detection: res.pose.detection_rate,
+        reason: top?.label ?? null,
+      });
+      await appRef.current.saveExtra(a.id, { lastAnalysedAt: at });
     }
     busy.current = false;
     setRunning(false);

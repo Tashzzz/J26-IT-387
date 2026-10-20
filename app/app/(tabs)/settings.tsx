@@ -10,6 +10,7 @@ import { c4 } from '../../src/api/c4';
 import { c3 } from '../../src/api/risk';
 import { useApp } from '../../src/shell/AppContext';
 import { useSquad } from '../../src/shell/squad';
+import { StatusPill, useBackendStatus } from '../../src/shell/status';
 import {
   Card, color, COMPONENT, COMPONENT_KEYS, font, GradientHeader, gradient, PrimaryButton, RISK, Screen, SecondaryButton, sp, TextField,
   type ComponentKey,
@@ -29,6 +30,7 @@ export default function Settings() {
   const [testing, setTesting] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const status = useBackendStatus();
 
   useEffect(() => { setName(coach.name); setTeam(coach.team); }, [coach]);
   useEffect(() => setUrl(apiBase), [apiBase]);
@@ -42,6 +44,7 @@ export default function Settings() {
     )));
     setPings(Object.fromEntries(COMPONENT_KEYS.map((k, i) => [k, res[i]])) as Record<ComponentKey, Ping>);
     setTesting(false);
+    status.check();
   }
 
   async function resetDemo() {
@@ -64,6 +67,7 @@ export default function Settings() {
 
       <Card>
         <Text style={s.h2}>Team computer</Text>
+        <StatusPill status={status} onPress={status.check} />
         <Text style={s.muted}>Videos are processed on the team computer running the CricShield backend - nothing goes to the cloud.</Text>
         <TextField label="Backend URL" value={url} onChangeText={setUrl} autoCapitalize="none" autoCorrect={false} icon="desktop-outline"
           hint="Phone: your PC's IP on the same Wi-Fi, e.g. http://192.168.1.23:8000. Leave empty for automatic." />
@@ -86,7 +90,7 @@ export default function Settings() {
         <View style={s.switchRow}>
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={s.h2}>Research mode</Text>
-            <Text style={s.muted}>Shows which team member owns each result screen (C1 Nethmi · C2 Tashini · C3 Rizma · C4 Rashmi).</Text>
+            <Text style={s.muted}>Shows the C1–C4 component badges, who owns each part (Nethmi · Tashini · Rizma · Rashmi) and technical values such as ICC, SHAP points and rule ids. Off: plain coaching language.</Text>
           </View>
           <Switch value={researchMode} onValueChange={setResearchMode} accessibilityLabel="Research mode"
             trackColor={{ true: gradient.brand[1], false: color.surface2 }} thumbColor={color.text} />

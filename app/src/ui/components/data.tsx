@@ -4,16 +4,22 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useResearchMode } from '../prefs';
 import { alpha, color, COMPONENT, font, gradient, radius, sp, type ComponentKey, type IconName } from '../theme';
 
-/** "C2 · Biomechanics" chip in the component's colour. compact: code only. */
+/**
+ * Component chip in its colour. Research mode: "C2 · Biomechanics" (compact: "C2").
+ * Coach mode: the plain name only ("Biomechanics"), no research codes.
+ */
 export function ComponentBadge({ component, compact }: { component: ComponentKey; compact?: boolean }) {
+  const research = useResearchMode();
   const c = COMPONENT[component];
+  const text = research ? (compact ? c.code : `${c.code} · ${c.label}`) : c.label;
   return (
     <View style={[s.badge, { backgroundColor: alpha(c.color, 0.16), borderColor: alpha(c.color, 0.5) }]}
       accessibilityLabel={`${c.code} ${c.label}`}>
       <Ionicons name={c.icon} size={13} color={c.color} />
-      <Text style={[s.badgeText, { color: c.color }]}>{compact ? c.code : `${c.code} · ${c.label}`}</Text>
+      <Text style={[s.badgeText, { color: c.color }]}>{text}</Text>
     </View>
   );
 }

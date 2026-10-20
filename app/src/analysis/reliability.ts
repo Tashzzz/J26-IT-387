@@ -17,7 +17,15 @@ export function studyForSetup(rel: Reliability, angle: CameraView, distance: num
   if (!close.length) return null;
   const best = close.sort((a, b) => Math.abs(a - distance) - Math.abs(b - distance) || a - b)[0];
   const setups = sameAngle.filter((s) => s.distance_m === best);
+  return {
+    label: `${angle.replace('_', '-')} ${Number.isInteger(best) ? best : best.toFixed(1)} m`,
+    setups,
+    ...combineSetups(setups),
+  };
+}
 
+/** One or more studied setups -> region status + usable keypoint count (C1 _combine() + summary()). */
+export function combineSetups(setups: Setup[]): { regions: Record<string, RegionStatus>; usable: number; total: number } {
   // _combine(): several bowlers -> lowest ICC per keypoint (a missing ICC counts as lowest).
   const kp = new Map<string, { region: string; tag: KeypointIcc }>();
   for (const s of setups) {
@@ -38,13 +46,7 @@ export function studyForSetup(rel: Reliability, angle: CameraView, distance: num
     regions[region] = usable * 2 >= tags.length ? 'usable' : 'unreliable';
   }
   const tags = [...kp.values()].map((v) => v.tag);
-  return {
-    label: `${angle.replace('_', '-')} ${Number.isInteger(best) ? best : best.toFixed(1)} m`,
-    setups,
-    regions,
-    usable: tags.filter((t) => t.usable).length,
-    total: tags.length,
-  };
+  return { regions, usable: tags.filter((t) => t.usable).length, total: tags.length };
 }
 
 /** Regions from the reliability summary of a processed clip. */
