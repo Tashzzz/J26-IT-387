@@ -2,7 +2,7 @@
 
 Owner: Rathnayaka R. (IT23208162) · Last run: 17 Oct 2026
 
-## Automated (components/c4_recommend, `python -m pytest`) – 389 passed
+## Automated (components/c4_recommend, `python -m pytest`) – 405 passed
 
 | Level (Lecture 9) | What | Tests |
 |---|---|---|
@@ -15,6 +15,10 @@ Owner: Rathnayaka R. (IT23208162) · Last run: 17 Oct 2026
 | Garbage input | negative / 500 overs, "ten" overs, bad date, future date, unknown session type, soreness 42, empty body, risk 5 / -0.2 / "high", unknown risk level, SHAP 9, a real name as bowler ID → all rejected with 422 | `test_bad_*` |
 | What-if (counterfactual) | Only real problems become actions; realistic targets (angle just inside the limit, ACWR → 1.1); inputs never modified; age / injury history never changed; ranking by effect; greedy combination beats any single action; small effects flagged; with C3's real model a technique fix never raises risk; endpoint returns 503 (not a crash) without C3 | `test_whatif.py`, `test_api.py` |
 | Performance (NFR < 3 s) | mean 0.47 ms, p95 0.58 ms over 500 plans | `experiments/evaluate.py` |
+| Week planner – unit | ECB daily cap, ≤ 2 days in a row (counting the log), ≤ 4 days in any 7 (counting the log), matches kept first, usual-week pattern, empty log, selection for every mode | `test_weekplan.py` |
+| Week planner – with C3 model | every mode returns a plan inside the hard limits; tradeoff never raises predicted risk; keep_bowling ≥ rule overs at ≤ rule risk; Critical and not-returned → no bowling + referral; correcting a breached angle never raises risk; API 200 / bad mode 422; < 3 s | `test_weekplan.py` |
+| Week planner – research evaluation | 366 held-out sessions, true hazard (oracle check: 1,800 terms, mean error 0.00007); results in `experiments/weekplan_results_test.md`, `weekplan_frontier_results.json` | `experiments/weekplan_study.py`, `weekplan_frontier.py` |
+| Week planner – performance | ≈ 85 ms mean, ≈ 165 ms p95 for ~50 candidate weeks | `experiments/weekplan_results_test.md` |
 
 ## Manual UI test (web build, 400 × 860 phone viewport)
 
