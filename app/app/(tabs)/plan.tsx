@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Category, Recommendation } from '../../src/c4/types';
+import { WeekPlanCard, useWeekPlan } from '../../src/c4/WeekPlanCard';
 import { WhatIfCard } from '../../src/c4/WhatIfCard';
 import { pts, useWhatIf } from '../../src/c4/useWhatIf';
 import { useApp } from '../../src/state/AppContext';
@@ -17,6 +18,7 @@ export default function PlanScreen() {
   const router = useRouter();
   const { athlete, plan, planIsCached, planLoading, planError, online, generatePlan } = useApp();
   const whatif = useWhatIf(athlete?.id, plan && !planIsCached ? (plan.id ?? plan.generated_at) : null);
+  const weekplan = useWeekPlan(athlete?.id, plan && !planIsCached ? (plan.id ?? plan.generated_at) : null);
 
   const subtitle = athlete ? `${athlete.bowler_id}${plan ? ` · updated ${new Date(plan.generated_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}` : ''}` : undefined;
 
@@ -86,6 +88,9 @@ export default function PlanScreen() {
       {/* ---- model-guided check (C3 model tests each action) ---- */}
       <WhatIfCard data={whatif.data} loading={whatif.loading} unavailable={whatif.unavailable} onOpen={() => router.push('/whatif')} />
 
+      {/* ---- week planner (C3 model simulates next week's options) ---- */}
+      <WeekPlanCard data={weekplan.data} loading={weekplan.loading} unavailable={weekplan.unavailable} onOpen={() => router.push('/week-plan')} />
+
       {/* ---- actions ---- */}
       {grouped.map(({ c, recs }) => (
         <Section key={c} title={categoryMeta[c].label}>
@@ -106,6 +111,7 @@ export default function PlanScreen() {
 
       <Section title="More">
         <List>
+          <ListItem icon="git-compare-outline" title="Week planner" subtitle="Compare next week's options with the risk model" onPress={() => router.push('/week-plan')} />
           <ListItem icon="calendar-outline" title="Workload log" subtitle={`${plan.metrics.acute_overs} overs in the last 7 days`} onPress={() => router.push('/workload')} />
           <ListItem icon="time-outline" title="Plan history" subtitle="Earlier plans and their feedback" onPress={() => router.push('/plan-history')} />
           <ListItem icon="chatbox-ellipses-outline" title="Coach or physio review" subtitle="Accept, change or reject this plan" onPress={() => router.push('/feedback')} last />

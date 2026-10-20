@@ -1,6 +1,6 @@
 // Root navigator. One app-wide state (current bowler, plan, server) around a stack:
 //   welcome -> onboarding (create bowler profile)  ->  (tabs): Home · Analyse · Risk · Plan · Profile
-// Detail screens (workload log, why-this, model check, plan history, feedback, bowlers, settings) are pushed on top.
+// Detail screens (workload log, why-this, model check, week planner, plan history, feedback, bowlers, settings) are pushed on top.
 import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
@@ -35,6 +35,7 @@ export default function RootLayout() {
           <Stack.Screen name="why/[ruleId]" options={{ title: 'Why this action?' }} />
           <Stack.Screen name="plan-history" options={{ title: 'Plan history' }} />
           <Stack.Screen name="whatif" options={{ title: 'Model check' }} />
+          <Stack.Screen name="week-plan" options={{ title: 'Week planner' }} />
           <Stack.Screen name="feedback" options={{ title: 'Review this plan', presentation: 'modal' }} />
           <Stack.Screen name="reliability" options={{ title: 'Camera setup guide' }} />
           <Stack.Screen name="settings" options={{ title: 'Settings' }} />

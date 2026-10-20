@@ -178,3 +178,60 @@ export interface WhatIfResult {
   plan_tier: Tier;
   referral_required: boolean;
 }
+
+// ---- Week planner: model-guided next-week plan (POST /recommend/athletes/{id}/week-plan) ----
+export interface WeekPlanDay {
+  session_date: string;
+  weekday: string;
+  session_type: string;
+  overs: number;
+}
+
+export interface WeekPlanOption {
+  label: string;
+  days: WeekPlanDay[];
+  total_overs: number;
+  bowling_days: number;
+  matches: number;
+  overs_kept_pct: number;
+  peak_risk: number;
+  end_risk: number;
+  daily_risk: number[];
+  risk_14d: number;
+}
+
+export interface WeekPlanTechnique {
+  feature: string;
+  label: string;
+  limit: number;
+  current: number;
+  breached_deliveries: number;
+  deliveries: number;
+  risk_now: number;
+  risk_if_corrected: number;
+  change: number;
+}
+
+export interface WeekPlanResult {
+  bowler_id: string;
+  as_of: string;
+  model: string;
+  synthetic_model: boolean;
+  risk_now: number;
+  tier: Tier;
+  mode: 'tradeoff' | 'keep_bowling' | 'lower_risk' | 'state';
+  over_value: number;
+  status: 'no_change' | 'rule_plan_kept' | 'optimised' | 'safety_stop';
+  usual: WeekPlanOption;
+  rule_plan: WeekPlanOption;
+  recommended: WeekPlanOption;
+  risk_reduction: number;
+  overs_saved_vs_rules: number;
+  alternatives: WeekPlanOption[];
+  technique: WeekPlanTechnique[];
+  explanation: string;
+  referral_advised: boolean;
+  candidates_evaluated: number;
+  assumptions: string[];
+  latency_ms: number;
+}
