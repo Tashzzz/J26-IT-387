@@ -148,6 +148,10 @@ export default function Features() {
             <FeatureCard key={n} name={n} f={row.features[n]} info={thresholds?.[n]} trueValue={row.true_values?.[n]} />
           ))}
 
+          <Banner tone="info" icon="medkit-outline" title="Screening, not a diagnosis">
+            <Body muted>Red means the angle is like the bowlers who got injured in published studies. Review red angles on video with a coach or physiotherapist, and judge a bowler on several deliveries, not one.</Body>
+          </Banner>
+
           <H>Send to Risk & Plan</H>
           <SendToC4 row={row} />
 

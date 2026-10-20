@@ -59,6 +59,7 @@ export type Threshold = {
   amber_band: number | null;
   source: string;
   meaning: string;
+  evidence?: string; // the numbers behind the limit (injured vs uninjured groups)
 };
 
 export type Thresholds = Record<FeatureName, Threshold>;

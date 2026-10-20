@@ -36,11 +36,11 @@ C1 JSON → quality gate → Butterworth 8 Hz → release / BFC / FFC → 2-D or
 
 | Feature | Event | Limit | Front / rear view | Side view | Semi-side |
 |---|---|---|---|---|---|
-| `trunk_lateral_flexion_deg` | release | > 40° (to confirm) | **2-D, good** | 3-D, poor | 3-D, poor |
-| `front_knee_flexion_release_deg` | release | < 30° (knee > 150°) | 3-D, poor | **2-D, good**¹ | 3-D, poor |
+| `trunk_lateral_flexion_deg` | release | > 40° (Bayne 2016: injured 50°, uninjured 40°) | **2-D, good** | 3-D, poor | 3-D, poor |
+| `front_knee_flexion_release_deg` | release | < 30° = knee > 150° (Portus: injured 149–155°, uninjured 131°) | 3-D, poor | **2-D, good**¹ | 3-D, poor |
 | `front_knee_flexion_ffc_deg` | FFC | reported | 3-D, poor | **2-D, good**¹ | 3-D, poor |
-| `shoulder_counter_rotation_deg` | BFC → FFC | > 30° | 3-D, poor | 3-D, poor | 3-D, poor |
-| `hip_shoulder_separation_bfc_deg` | BFC | reported | 3-D, poor | 3-D, poor | 3-D, poor |
+| `shoulder_counter_rotation_deg` | BFC → FFC | > 30° (Portus mixed action: injured 41°, uninjured 19°) | 3-D, poor | 3-D, poor | 3-D, poor |
+| `hip_shoulder_separation_bfc_deg` | BFC | > 30° (Portus mixed-action criterion) | 3-D, poor | 3-D, poor | 3-D, poor |
 
 One camera measures angles in the image plane well; anything in the depth direction
 relies on MediaPipe's z, its noisiest axis. "Poor" features are still output but marked

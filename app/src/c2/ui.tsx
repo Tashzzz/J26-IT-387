@@ -58,7 +58,7 @@ export function featureStatus(f: Feature): Status {
       : { text: 'Within limit · not confirmed', color: colors.muted, icon: 'help-circle-outline' };
   }
   const byLevel: Record<Level, Status> = {
-    red: { text: 'Breach', color: colors.danger, icon: 'alert-circle' },
+    red: { text: 'Over risk limit', color: colors.danger, icon: 'alert-circle' },
     amber: { text: 'Close to the limit', color: colors.warn, icon: 'warning-outline' },
     green: { text: 'OK', color: colors.ok, icon: 'checkmark-circle-outline' },
     none: { text: 'No limit · reported only', color: colors.muted, icon: 'information-circle-outline' },
@@ -105,6 +105,7 @@ export function FeatureCard({ name, f, info, trueValue }: {
         </View>
       ) : null}
 
+      {info?.evidence ? <Text style={s.small}>Evidence: {info.evidence}</Text> : null}
       <Text style={s.source}>Source: {f.source}</Text>
     </Card>
   );

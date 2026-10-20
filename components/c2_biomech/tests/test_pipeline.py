@@ -100,7 +100,9 @@ def test_classify_levels():
     assert classify("shoulder_counter_rotation_deg", 27.0) == (False, "amber")
     assert classify("shoulder_counter_rotation_deg", 10.0) == (False, "green")
     assert classify("front_knee_flexion_release_deg", 10.0) == (True, "red")
+    assert classify("front_knee_flexion_release_deg", 35.0) == (False, "amber")   # 30-40 deg band
     assert classify("front_knee_flexion_release_deg", 45.0) == (False, "green")
+    assert classify("hip_shoulder_separation_bfc_deg", 32.0) == (True, "red")    # Portus mixed-action
     assert classify("front_knee_flexion_ffc_deg", 25.0) == (False, "none")
     assert classify("trunk_lateral_flexion_deg", None) == (False, "none")
 
