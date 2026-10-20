@@ -4,8 +4,9 @@ Pose estimation + keypoint reliability. Logic lives in components/c1_pose.
 
 Endpoints (all under /pose)
     GET  /pose/ping                       health check
-    POST /pose/process                    upload one bowling video + bowling arm
-                                          -> run_pipeline -> detection rate, overlay URL, keypoints URL
+    POST /pose/process                    upload one bowling video + bowling arm (+ camera angle, distance)
+                                          -> run_pipeline -> detection rate, overlay URL, keypoints URL,
+                                          reliability summary for the matched camera setup
     GET  /pose/runs/{run_id}/overlay      skeleton overlay video (H.264 MP4, plays in the app)
     GET  /pose/runs/{run_id}/keypoints    C1 -> C2 contract JSON (contracts/c1_keypoints.schema.json)
     GET  /pose/reliability                ICC per keypoint and per body region for each camera setup
@@ -91,6 +92,7 @@ def process(
     distance_m: Optional[float] = Form(None, description="camera distance in metres"),
 ):
     from pipeline import PipelineError, run_pipeline
+    from reliability_lookup import summary as reliability_summary
 
     suffix = Path(video.filename or "").suffix.lower()
     if suffix not in VIDEO_TYPES:
@@ -118,17 +120,18 @@ def process(
     (run_dir / "result.json").write_text(json.dumps({**result, "overlay_path": str(overlay)}))
 
     with open(result["json_path"]) as f:
-        frames = len(json.load(f).get("frames", []))
+        c1_json = json.load(f)
 
     return {
         "run_id": run_id,
         "clip_id": result["clip_id"],
         "bowling_arm": bowling_arm.strip().lower(),
-        "frames": frames,
+        "frames": len(c1_json.get("frames", [])),
         "detection_rate": round(result["detection_rate"], 3),
         "processing_seconds": round(result["processing_seconds"], 1),
         "overlay_url": f"/pose/runs/{run_id}/overlay",
         "keypoints_url": f"/pose/runs/{run_id}/keypoints",
+        "reliability": reliability_summary(c1_json.get("reliability")),
     }
 
 

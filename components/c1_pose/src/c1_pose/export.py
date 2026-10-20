@@ -21,7 +21,11 @@ What goes into the JSON:
   normalisation       origin/scale from normalise.py; filter "none" - C1 does
                       not smooth, C2 applies the Butterworth filter
   window              {} - back-foot contact and release are detected by C2
-  reliability         {} - filled in later by the reliability study (reliability.py)
+  reliability         ICC tags per keypoint for the camera setup (angle + distance)
+                      from the pilot study, via reliability_lookup.py, plus
+                      setup_matched / gate / source. Keypoints are only tagged,
+                      never removed from frames - C2 decides. No study for the
+                      setup -> {"setup_matched": null, "note": ...}
 
 Safety check: if the stable report shows the old filtered stabilise.py was used,
 the export stops instead of labelling smoothed data as "none".
@@ -39,6 +43,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+from reliability_lookup import lookup as reliability_lookup
 
 ANGLES = {"front", "rear", "semi_side", "side"}
 LIGHTING = {"daylight", "overcast", "indoor"}
@@ -149,11 +155,12 @@ def export_from_row(clip_id, processed_dir, row, out_dir, bowling_arm=None):
     if not fps:
         raise ValueError(f"frame rate unknown for {clip_id} (no summary JSON and no fps in metadata)")
 
+    conditions = build_conditions(row)
     out = {
         "video_id": clip_id,
         "fps": fps,
         "bowling_arm": arm,
-        "conditions": build_conditions(row),
+        "conditions": conditions,
         "window": {},
         "normalisation": {
             "origin": norm_info["origin"],
@@ -161,7 +168,7 @@ def export_from_row(clip_id, processed_dir, row, out_dir, bowling_arm=None):
             "filter": "none",
         },
         "frames": build_frames(pd.read_csv(norm_csv)),
-        "reliability": {},
+        "reliability": reliability_lookup(conditions.get("angle"), conditions.get("distance_m")),
     }
     if summary.get("model"):
         out["model"] = Path(summary["model"]).stem   # "pose_landmarker_lite.task" -> "pose_landmarker_lite"

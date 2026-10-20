@@ -115,3 +115,20 @@ def test_clip_missing_from_metadata_is_an_error(processed):
     sheet.to_csv(meta, index=False)
     with pytest.raises(ValueError, match="not in"):
         export_clip(CLIP, processed, meta, processed / "handoff")
+
+
+def test_export_fills_reliability_for_camera_setup(processed):
+    """side 5 m -> nearest studied setup side 4 m; keypoints are tagged, not removed."""
+    path, out = export_clip(CLIP, processed, write_metadata(processed), processed / "handoff")
+    rel = out["reliability"]
+    assert rel["setup_matched"] == "side 4 m"
+    assert rel["gate"] == 0.75 and rel["source"].startswith("pilot ICC study")
+    assert rel["left_knee"]["usable"] in (True, False) and "icc" in rel["left_knee"]
+    assert all(len(fr["landmarks"]) == 33 for fr in out["frames"])
+    assert json.loads(path.read_text())["reliability"] == rel
+
+
+def test_export_without_study_for_setup_says_so(processed):
+    path, out = export_clip(CLIP, processed, write_metadata(processed, angle="front"), processed / "handoff")
+    jsonschema.validate(json.loads(path.read_text()), json.loads(SCHEMA.read_text()))
+    assert out["reliability"] == {"setup_matched": None, "note": "no reliability study for this setup yet"}
