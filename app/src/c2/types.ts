@@ -27,11 +27,14 @@ export type Feature = {
   view_suitability: ViewSuitability;
   keypoints: string[];
   unusable_keypoints?: string[]; // keypoints C1's ICC study marked unreliable
+  label?: string; // plain name for coaches, e.g. "Shoulder twist"
+  note?: string; // extra advice, e.g. front knee judged together with twist and lean
 };
 
 export type EventName = 'bfc_frame' | 'ffc_frame' | 'release_frame';
 export type Events = Partial<Record<EventName, number>>;
-export type EventMethod = 'manual' | 'c1_window' | 'auto' | 'not_detected';
+// estimated = from foot movement relative to the hips (no image position from C1), about +/- 2-4 frames
+export type EventMethod = 'manual' | 'c1_window' | 'auto' | 'estimated' | 'not_detected';
 
 /** Per-frame angles for a chart later (column name -> one value per frame). */
 export type Series = Record<string, (number | null)[]>;
@@ -58,6 +61,8 @@ export type Threshold = {
   amber_band: number | null;
   source: string;
   meaning: string;
+  evidence?: string; // the numbers behind the limit (injured vs uninjured groups)
+  label?: string; // plain name for coaches
 };
 
 export type Thresholds = Record<FeatureName, Threshold>;

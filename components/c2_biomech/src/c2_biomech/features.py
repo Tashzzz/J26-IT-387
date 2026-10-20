@@ -38,7 +38,7 @@ from .events import arm_elevation, detect_events
 from .filtering import filter_delivery, max_cutoff, residual_analysis
 from .c1_reliability import reliability_for
 from .quality import gate
-from .thresholds import THRESHOLDS, classify
+from .thresholds import THRESHOLDS, classify, knee_release_level
 
 EVENT_TOLERANCE = 1     # if a keypoint is missing exactly at an event, look +/- this many frames
 DEFAULT_CUTOFF_HZ = 8.0  # agreed with C1 (stabilise.py used 8 Hz); must stay below fps / 2
@@ -193,8 +193,19 @@ def compute_features(delivery, overrides=None, thresholds=None, filter_mode="aut
             features[name]["unusable_keypoints"] = unusable
         if unchecked and reliability:
             features[name]["unchecked_keypoints"] = unchecked
+        if t.get("label"):
+            features[name]["label"] = t["label"]
         if value is None:
             warnings.append(f"{name}: no value (event or keypoints missing)")
+
+    # Front knee at release is judged together with twist and lean (thresholds.knee_release_level).
+    knee_f = features["front_knee_flexion_release_deg"]
+    breach, level, note = knee_release_level(
+        knee_f["value"], features["shoulder_counter_rotation_deg"]["value"],
+        features["trunk_lateral_flexion_deg"]["value"], thresholds)
+    knee_f.update(breach=breach, level=level)
+    if note:
+        knee_f["note"] = note
 
     row = {
         "video_id": delivery.video_id,
