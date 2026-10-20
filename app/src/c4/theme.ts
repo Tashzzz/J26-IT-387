@@ -3,27 +3,27 @@ import type { Category, Tier } from './types';
 // Dark theme based on the Prevention Plan wireframe (Proposal Fig. 4.3.4.1).
 // Text colours meet WCAG AA contrast on the card background (NFR accessibility).
 export const colors = {
-  bg: '#0A1120',
-  card: '#111B2E',
-  cardAlt: '#16223A',
-  border: '#22314F',
-  text: '#E8EEF8',
-  muted: '#93A3BF',
+  bg: '#0A0E1A',
+  card: '#121829',
+  cardAlt: '#1A2238',
+  border: '#263052',
+  text: '#F2F5FF',
+  muted: '#9AA6C7',
   accent: '#22D3EE',
   accentDim: '#0E3A47',
   danger: '#F87171',
   dangerBg: '#2A1218',
   dangerBorder: '#7F1D2D',
-  ok: '#4ADE80',
+  ok: '#22C55E',
   okBg: '#0F2A1C',
   okBorder: '#166534',
-  warn: '#FBBF24',
+  warn: '#FACC15',
 };
 
 export const tierColor: Record<Tier, string> = {
-  Low: '#4ADE80',
-  Moderate: '#FBBF24',
-  High: '#FB923C',
+  Low: '#22C55E',
+  Moderate: '#FACC15',
+  High: '#F97316',
   Critical: '#F87171',
 };
 
