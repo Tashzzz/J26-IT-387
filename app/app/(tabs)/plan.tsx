@@ -5,6 +5,8 @@ import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Category, Recommendation } from '../../src/c4/types';
+import { WhatIfCard } from '../../src/c4/WhatIfCard';
+import { pts, useWhatIf } from '../../src/c4/useWhatIf';
 import { useApp } from '../../src/state/AppContext';
 import { Banner, Body, Button, Card, EmptyState, List, ListItem, Loading, Screen, Section, Small, TierBadge, Tile } from '../../src/ui/components';
 import { categoryMeta, colors, radius, tierColor, tierSoft, type as t } from '../../src/ui/theme';
@@ -14,6 +16,7 @@ const ORDER: Category[] = ['rehabilitation', 'workload', 'training', 'recovery',
 export default function PlanScreen() {
   const router = useRouter();
   const { athlete, plan, planIsCached, planLoading, planError, online, generatePlan } = useApp();
+  const whatif = useWhatIf(athlete?.id, plan && !planIsCached ? (plan.id ?? plan.generated_at) : null);
 
   const subtitle = athlete ? `${athlete.bowler_id}${plan ? ` · updated ${new Date(plan.generated_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}` : ''}` : undefined;
 
@@ -80,10 +83,17 @@ export default function PlanScreen() {
         </View>
       </Section>
 
+      {/* ---- model-guided check (C3 model tests each action) ---- */}
+      <WhatIfCard data={whatif.data} loading={whatif.loading} unavailable={whatif.unavailable} onOpen={() => router.push('/whatif')} />
+
       {/* ---- actions ---- */}
       {grouped.map(({ c, recs }) => (
         <Section key={c} title={categoryMeta[c].label}>
-          {recs.map((r) => <RecCard key={r.rule_id} rec={r} onPress={() => router.push({ pathname: '/why/[ruleId]', params: { ruleId: r.rule_id } })} />)}
+          {recs.map((r) => {
+            const eff = whatif.data?.rule_effect[r.rule_id];
+            const effect = eff != null && eff >= (whatif.data?.min_effect ?? 0.02) ? eff : undefined;
+            return <RecCard key={r.rule_id} rec={r} effect={effect} onPress={() => router.push({ pathname: '/why/[ruleId]', params: { ruleId: r.rule_id } })} />;
+          })}
         </Section>
       ))}
 
@@ -106,7 +116,7 @@ export default function PlanScreen() {
   );
 }
 
-function RecCard({ rec, onPress }: { rec: Recommendation; onPress: () => void }) {
+function RecCard({ rec, onPress, effect }: { rec: Recommendation; onPress: () => void; effect?: number }) {
   const meta = categoryMeta[rec.category];
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityHint="Shows why this was recommended"
@@ -116,6 +126,12 @@ function RecCard({ rec, onPress }: { rec: Recommendation; onPress: () => void })
       </View>
       <View style={{ flex: 1, gap: 4 }}>
         <Text style={s.recTitle}>{rec.title}</Text>
+        {effect != null && (
+          <View style={s.effect}>
+            <Ionicons name="trending-down" size={14} color={colors.ok} />
+            <Text style={s.effectText}>Model predicts −{pts(effect)} risk points</Text>
+          </View>
+        )}
         <Text style={s.recAction}>{rec.action}</Text>
         {rec.exercises.map((e) => (
           <View key={e.name} style={s.exercise}>
@@ -145,4 +161,6 @@ const s = StyleSheet.create({
   exercise: { flexDirection: 'row', gap: 6, alignItems: 'center' },
   exerciseText: { color: colors.muted, fontSize: 13, flex: 1 },
   why: { color: colors.primary, fontSize: 14, fontWeight: '700', marginTop: 4 },
+  effect: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.okSoft, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 3 },
+  effectText: { color: colors.ok, fontSize: 12, fontWeight: '700' },
 });

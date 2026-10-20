@@ -149,3 +149,32 @@ export interface Feedback extends FeedbackInput {
   plan_id: number;
   created_at: string;
 }
+
+// ---- model-guided what-if check (POST /recommend/athletes/{id}/whatif) ----
+export interface WhatIfScenario {
+  id: string;
+  title: string;
+  category: 'workload' | 'technique' | 'recovery';
+  change: string;
+  linked_rules: string[];
+  risk: number;
+  effect: number;
+  tier: Tier;
+  meaningful: boolean;
+}
+
+export interface WhatIfResult {
+  bowler_id: string;
+  model: string;
+  base_risk: number;
+  base_tier: Tier;
+  scenarios: WhatIfScenario[];
+  best_plan: { steps: { id: string; title: string; risk_after: number; gain: number }[]; risk: number; effect: number; tier: Tier };
+  rule_effect: Record<string, number>;
+  min_effect: number;
+  notes: string[];
+  model_calls: number;
+  latency_ms: number;
+  plan_tier: Tier;
+  referral_required: boolean;
+}
