@@ -25,9 +25,31 @@
     }
   ],
   "reliability": {
-    "right_shoulder": { "icc": 0.91, "band": "excellent", "usable": true },
-    "right_elbow": { "icc": 0.82, "band": "good", "usable": true },
-    "left_knee": { "icc": 0.61, "band": "moderate", "usable": false },
-    "left_ankle": { "icc": 0.44, "band": "poor", "usable": false }
+    "setup_matched": "side 10 m",
+    "gate": 0.75,
+    "source": "pilot ICC study (3 deliveries per setup)",
+    "nose": { "icc": 0.687, "band": "moderate", "usable": false },
+    "left_shoulder": { "icc": 0.447, "band": "poor", "usable": false },
+    "right_shoulder": { "icc": 0.807, "band": "good", "usable": true },
+    "left_elbow": { "icc": 0.717, "band": "moderate", "usable": false },
+    "right_elbow": { "icc": 0.852, "band": "good", "usable": true },
+    "left_wrist": { "icc": 0.86, "band": "good", "usable": true },
+    "right_wrist": { "icc": 0.844, "band": "good", "usable": true },
+    "left_pinky": { "icc": 0.873, "band": "good", "usable": true },
+    "right_pinky": { "icc": 0.85, "band": "good", "usable": true },
+    "left_index": { "icc": 0.877, "band": "good", "usable": true },
+    "right_index": { "icc": 0.849, "band": "good", "usable": true },
+    "left_thumb": { "icc": 0.875, "band": "good", "usable": true },
+    "right_thumb": { "icc": 0.844, "band": "good", "usable": true },
+    "left_hip": { "icc": 0.711, "band": "moderate", "usable": false },
+    "right_hip": { "icc": 0.711, "band": "moderate", "usable": false },
+    "left_knee": { "icc": 0.453, "band": "poor", "usable": false },
+    "right_knee": { "icc": 0.44, "band": "poor", "usable": false },
+    "left_ankle": { "icc": 0.431, "band": "poor", "usable": false },
+    "right_ankle": { "icc": 0.519, "band": "moderate", "usable": false },
+    "left_heel": { "icc": 0.42, "band": "poor", "usable": false },
+    "right_heel": { "icc": 0.536, "band": "moderate", "usable": false },
+    "left_foot_index": { "icc": 0.453, "band": "poor", "usable": false },
+    "right_foot_index": { "icc": 0.465, "band": "poor", "usable": false }
   }
 }

@@ -2,6 +2,18 @@
 
 export type BowlingArm = 'left' | 'right';
 export type CameraAngle = 'front' | 'semi_side' | 'side';
+export type CameraDistance = 4 | 5 | 6 | 10; // metres; the distances used in the ICC study
+
+/** Reliability of this clip's keypoints, from the ICC study of the matching camera setup. */
+export type ReliabilitySummary = {
+  setup_matched: string | null; // e.g. "side 4 m"; null = no study for this setup yet
+  usable: number;
+  total: number;
+  reliable_regions: string[]; // e.g. ["elbows", "wrists", "hips"]
+  less_reliable_regions: string[];
+  gate?: number; // ICC needed to count as reliable (0.75)
+  note?: string;
+};
 
 export type ProcessResult = {
   run_id: string;
@@ -12,6 +24,7 @@ export type ProcessResult = {
   processing_seconds: number;
   overlay_url: string; // relative to the API base
   keypoints_url: string;
+  reliability: ReliabilitySummary;
 };
 
 export type Band = 'excellent' | 'good' | 'moderate' | 'poor';

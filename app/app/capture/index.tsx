@@ -5,7 +5,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { useState } from 'react';
 
 import { c1, type PickedVideo } from '../../src/api/c1';
-import type { BowlingArm, CameraAngle, ProcessResult } from '../../src/c1/types';
+import type { BowlingArm, CameraAngle, CameraDistance, ProcessResult, ReliabilitySummary } from '../../src/c1/types';
 import { Banner, Body, Button, Card, Chips, H, Row, Screen, Tile } from '../../src/c4/ui';
 
 // Below this share of frames, joint angles downstream (C2) have many gaps.
@@ -16,6 +16,7 @@ export default function Capture() {
   const [video, setVideo] = useState<PickedVideo | null>(null);
   const [arm, setArm] = useState<BowlingArm | null>(null);
   const [angle, setAngle] = useState<CameraAngle | null>(null);
+  const [distance, setDistance] = useState<CameraDistance | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ProcessResult | null>(null);
@@ -36,7 +37,7 @@ export default function Capture() {
     setError(null);
     setResult(null);
     try {
-      setResult(await c1.process(video, arm, angle ?? undefined));
+      setResult(await c1.process(video, arm, angle ?? undefined, distance ?? undefined));
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -66,6 +67,8 @@ export default function Capture() {
           options={[{ label: 'Right arm', value: 'right' }, { label: 'Left arm', value: 'left' }]} />
         <Chips label="Camera angle (optional)" value={angle} onChange={setAngle}
           options={[{ label: 'Side', value: 'side' }, { label: 'Semi-side', value: 'semi_side' }, { label: 'Front', value: 'front' }]} />
+        <Chips label="Camera distance (optional)" value={distance} onChange={setDistance}
+          options={[{ label: '4 m', value: 4 }, { label: '5 m', value: 5 }, { label: '6 m', value: 6 }, { label: '10 m', value: 10 }]} />
       </Card>
 
       <Button title={busy ? 'Finding keypoints… (1–2 min)' : 'Process video'} icon="scan-outline"
@@ -111,6 +114,27 @@ function ResultView({ result }: { result: ProcessResult }) {
           <Body muted>Gaps of up to 5 frames are filled; longer gaps stay empty. Film closer or in better light for more reliable angles.</Body>
         </Banner>
       )}
+      {result.reliability && <SetupReliability r={result.reliability} />}
     </>
+  );
+}
+
+// Which body regions can be trusted for this camera setup (C1 ICC study). Keypoints are only tagged, never removed.
+function SetupReliability({ r }: { r: ReliabilitySummary }) {
+  if (!r.setup_matched) {
+    return (
+      <Card>
+        <Body muted>No reliability study yet for this setup — keypoints passed on without a reliability check.</Body>
+      </Card>
+    );
+  }
+  const list = (regions: string[]) => (regions.length ? regions.join(', ') : 'none');
+  return (
+    <Card>
+      <Body>
+        Camera setup: {r.setup_matched} — reliable: {list(r.reliable_regions)} · less reliable: {list(r.less_reliable_regions)} (ICC &lt; {r.gate ?? 0.75})
+      </Body>
+      <Body muted>{r.usable} of {r.total} keypoints passed the reliability check.</Body>
+    </Card>
   );
 }
