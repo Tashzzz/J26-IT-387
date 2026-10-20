@@ -26,6 +26,11 @@ Endpoints (all under /recommend)
     POST /plans/{pid}/feedback              coach / physio feedback or override (FR11)
     POST /from-c3                           stateless: profile + workload + C3/C2 JSON -> plan
 
+    Model-guided check (research extension)
+    POST /athletes/{id}/whatif              ask C3's risk model how much each plan action would
+                                            lower the risk; ranks actions + best combination.
+                                            503 when the C3 model is not available.
+
     POST /demo/reset                        reseed the 3 synthetic demo bowlers
 """
 
@@ -45,6 +50,7 @@ except ImportError:
 
 from c4_recommend import store  # noqa: E402
 from c4_recommend.engine import generate_plan, load_kb  # noqa: E402
+from c4_recommend.whatif import simulate  # noqa: E402
 from c4_recommend.models import (  # noqa: E402
     Athlete, AthleteCreate, Feedback, FeedbackCreate, PreventionPlan,
     StatelessRequest, UpstreamInput, Workload, WorkloadCreate,
@@ -192,3 +198,47 @@ def demo_reset():
     from c4_recommend.seed import seed
     seed()
     return {"reset": True, "athletes": len(store.list_athletes())}
+
+
+# --- model-guided what-if (counterfactual check with C3's model) --------------
+C3_SRC = Path(__file__).resolve().parents[3] / "components" / "c3_risk" / "src"
+
+
+def _c3_scorer():
+    """C3's risk model as a scorer(athlete, workloads, c2_rows) -> 0-1. Loaded lazily so C4 never
+    depends on C3 being installed: if it is missing the endpoint answers 503 and nothing else breaks."""
+    try:
+        import c3_risk  # noqa: F401
+    except ImportError:
+        if str(C3_SRC) not in sys.path:
+            sys.path.insert(0, str(C3_SRC))
+    try:
+        from c3_risk.model import ModelNotReady, get_model
+        from c3_risk.service import run
+    except ImportError as e:
+        raise HTTPException(503, f"The what-if check needs C3's risk model (pip install -e components/c3_risk): {e}")
+    try:
+        model = get_model()
+    except ModelNotReady as e:
+        raise HTTPException(503, str(e))
+    name = getattr(model, "name", None) or getattr(model, "version", None) or "c3_model"
+    return (lambda a, w, c: float(run(a, w, c)["risk_score"])), str(name)
+
+
+@router.post("/athletes/{aid}/whatif")
+def whatif(aid: int):
+    """For each action in the current plan, how much would C3's model say the risk drops?"""
+    a = _athlete_or_404(aid)
+    scorer, model_name = _c3_scorer()
+    workloads = [{k: v for k, v in w.items() if k not in ("id", "athlete_id")}
+                 for w in store.list_workloads(aid) if date.fromisoformat(str(w["session_date"])) <= date.today()]
+    upstream = store.get_upstream(aid) or {}
+    c2_rows = [r for r in (upstream.get("c2") or []) if r.get("bowler_id") == a["bowler_id"]]
+    plan = _build(aid, None).model_dump(mode="json")
+    try:
+        result = simulate(a, workloads, c2_rows, scorer, plan=plan, kb=KB, model_name=model_name)
+    except Exception as e:  # a model failure must never break the plan screen
+        raise HTTPException(503, f"The risk model could not score the what-if scenarios: {e}")
+    result["plan_tier"] = plan["risk_tier"]
+    result["referral_required"] = plan["referral"]["required"]
+    return result
