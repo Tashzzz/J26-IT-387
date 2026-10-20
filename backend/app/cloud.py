@@ -16,13 +16,15 @@ Firestore layout
     risk_assessments/{id}                    C3 assessments (with athlete_id, bowler_id)
 
 Bowler videos are NOT uploaded (ethics: footage stays on the processing computer).
-Set FIREBASE_SYNC=0 in .env (or the environment) to switch syncing off, e.g. for tests.
+Set FIREBASE_SYNC=0 in .env (or the environment) to switch syncing off. It is always off under
+pytest, so no test (backend or component) ever writes to the real project.
 """
 
 import json
 import logging
 import math
 import os
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Any, Callable
@@ -37,6 +39,8 @@ _warned = False
 
 
 def enabled() -> bool:
+    if "pytest" in sys.modules:
+        return False
     return os.getenv("FIREBASE_SYNC", "1").strip().lower() not in ("0", "false", "no", "off")
 
 
