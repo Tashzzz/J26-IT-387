@@ -1,0 +1,24 @@
+{
+  "c3": {
+    "bowler_id": "DEMO02",
+    "session_id": "DEMO02_demo",
+    "model": "sample - waiting for C3 model",
+    "risk_score": 0.18,
+    "risk_level": "low",
+    "top_factors": [
+      { "feature": "weekly_overs", "modality": "workload", "value": 24, "shap": 0.02 },
+      { "feature": "age", "modality": "metadata", "value": 24, "shap": 0.01 }
+    ]
+  },
+  "c2": [
+    {
+      "video_id": "DEMO02_D01_side_10m",
+      "bowler_id": "DEMO02",
+      "events": {},
+      "features": {
+        "shoulder_counter_rotation_deg": { "value": 21.0, "threshold": 30.0, "breach": false, "reliable": true },
+        "trunk_lateral_flexion_deg": { "value": 29.0, "threshold": 40.0, "breach": false, "reliable": true }
+      }
+    }
+  ]
+}

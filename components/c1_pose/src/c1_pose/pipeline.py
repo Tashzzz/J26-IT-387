@@ -12,7 +12,8 @@ Writes into out_dir:
   <clip>_stable.csv, <clip>_stable_report.json   stabilise.py
   <clip>_norm.csv, <clip>_norm_info.json         normalise.py
   <clip>_overlay.mp4                             overlay.py
-  <clip>.json                                    export.py (C1 -> C2 contract)
+  <clip>.json                                    export.py (C1 -> C2 contract, with reliability
+                                                 tags for the camera angle + distance in conditions)
 
 Usage (run from components/c1_pose):
   python src/c1_pose/pipeline.py ../../data/raw/B03_D02_side_4m.mp4 --out out --bowling-arm left

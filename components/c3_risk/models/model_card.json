@@ -1,0 +1,196 @@
+{
+  "model": "xgboost_fusion_v0.2.0_synthetic",
+  "package_version": "0.2.0",
+  "created": "2026-10-19",
+  "synthetic": true,
+  "training_data": {
+    "source": "data",
+    "sessions": 2544,
+    "bowlers": 197,
+    "positive_rate": 0.0798,
+    "label": "time-loss injury onset within 28 days of the session",
+    "augmentation": "3 delivery subsets per training session; 15% missing C2 features; 12% short logs"
+  },
+  "features": [
+    "scr_mean",
+    "scr_peak",
+    "scr_slope",
+    "scr_breach_share",
+    "tlf_mean",
+    "tlf_peak",
+    "tlf_slope",
+    "tlf_breach_share",
+    "knee_ffc_mean",
+    "knee_rel_mean",
+    "knee_rel_breach_share",
+    "deliveries_7d",
+    "deliveries_28d_weekly",
+    "acwr_7_28",
+    "ewma_ratio",
+    "differential_load_7d",
+    "bowling_days_7d",
+    "matches_14d",
+    "max_daily_deliveries_7d",
+    "rest_days_7d",
+    "consecutive_bowling_days",
+    "age",
+    "level_school",
+    "level_club",
+    "level_higher",
+    "lumbar_12m",
+    "hamstring_12m",
+    "side_strain_12m",
+    "injuries_12m",
+    "injuries_6m",
+    "months_since_last_injury",
+    "days_since_return"
+  ],
+  "modality": {
+    "scr_mean": "kinematics",
+    "scr_peak": "kinematics",
+    "scr_slope": "kinematics",
+    "scr_breach_share": "kinematics",
+    "tlf_mean": "kinematics",
+    "tlf_peak": "kinematics",
+    "tlf_slope": "kinematics",
+    "tlf_breach_share": "kinematics",
+    "knee_ffc_mean": "kinematics",
+    "knee_rel_mean": "kinematics",
+    "knee_rel_breach_share": "kinematics",
+    "deliveries_7d": "workload",
+    "deliveries_28d_weekly": "workload",
+    "acwr_7_28": "workload",
+    "ewma_ratio": "workload",
+    "differential_load_7d": "workload",
+    "bowling_days_7d": "workload",
+    "matches_14d": "workload",
+    "max_daily_deliveries_7d": "workload",
+    "rest_days_7d": "workload",
+    "consecutive_bowling_days": "workload",
+    "age": "metadata",
+    "level_school": "metadata",
+    "level_club": "metadata",
+    "level_higher": "metadata",
+    "lumbar_12m": "metadata",
+    "hamstring_12m": "metadata",
+    "side_strain_12m": "metadata",
+    "injuries_12m": "metadata",
+    "injuries_6m": "metadata",
+    "months_since_last_injury": "metadata",
+    "days_since_return": "metadata"
+  },
+  "feature_medians": {
+    "scr_mean": 28.804375,
+    "scr_peak": 32.42,
+    "scr_slope": 0.22754545454545455,
+    "scr_breach_share": 0.3333333333333333,
+    "tlf_mean": 38.086,
+    "tlf_peak": 41.04,
+    "tlf_slope": 0.4074642857142854,
+    "tlf_breach_share": 0.2,
+    "knee_ffc_mean": 27.464714285714287,
+    "knee_rel_mean": 34.187083333333334,
+    "knee_rel_breach_share": 0.14285714285714285,
+    "deliveries_7d": 121.02,
+    "deliveries_28d_weekly": 118.755,
+    "acwr_7_28": 1.0425947635795232,
+    "ewma_ratio": 1.1298213320661712,
+    "differential_load_7d": 5.020096569536204,
+    "bowling_days_7d": 4.0,
+    "matches_14d": 2.0,
+    "max_daily_deliveries_7d": 45.0,
+    "rest_days_7d": 2.0,
+    "consecutive_bowling_days": 1.0,
+    "age": 18.0,
+    "level_school": 1.0,
+    "level_club": 0.0,
+    "level_higher": 0.0,
+    "lumbar_12m": 0.0,
+    "hamstring_12m": 0.0,
+    "side_strain_12m": 0.0,
+    "injuries_12m": 0.0,
+    "injuries_6m": 0.0,
+    "months_since_last_injury": 24.0,
+    "days_since_return": 365.0
+  },
+  "xgb_params": {
+    "max_depth": 1,
+    "eta": 0.03,
+    "subsample": 0.7,
+    "colsample_bytree": 0.6,
+    "min_child_weight": 25,
+    "reg_lambda": 10.0,
+    "gamma": 1.0,
+    "objective": "binary:logistic",
+    "eval_metric": "logloss",
+    "monotone_constraints": "(1,1,1,1,1,1,1,1,-1,-1,1,0,0,1,1,1,1,1,1,-1,1,0,0,0,0,1,1,1,1,1,-1,-1)",
+    "num_boost_round": 250,
+    "class_weighting": "scale_pos_weight"
+  },
+  "calibration": {
+    "method": "platt",
+    "a": 0.7947346568107605,
+    "b": -2.3973872661590576,
+    "slope_fallback_used": false
+  },
+  "base_rate": 0.08080808080808081,
+  "thresholds": {
+    "probability": {
+      "alert": 0.055152565240859985,
+      "high": 0.16161616161616163,
+      "critical": 0.32323232323232326
+    },
+    "score": {
+      "medium": 0.3,
+      "high": 0.55,
+      "critical": 0.75
+    },
+    "rule": "alert = lowest probability that still flags >= 80% of injured validation sessions; high = 2 x squad base rate; critical = 4 x squad base rate (each at least 1.5 x the previous)"
+  },
+  "metrics": {
+    "cv_auc_mean": 0.7653116246181775,
+    "cv_auc_sd": 0.07069185021969382,
+    "cv_pr_auc_mean": 0.3364263213332118,
+    "cv_folds": [
+      0.684332884097035,
+      0.6899071765031864,
+      0.7642029784886928,
+      0.831014668078028,
+      0.8571004159239453
+    ],
+    "test": {
+      "auc": 0.8835354528569868,
+      "pr_auc": 0.5033899536887816,
+      "recall": 0.8888888888888888,
+      "precision": 0.16,
+      "f1": 0.2711864406779661,
+      "flagged_share": 0.4098360655737705
+    },
+    "test_ci95": {
+      "auc": [
+        0.7516401785433678,
+        0.9641711615978561
+      ],
+      "recall": [
+        0.6874177631578947,
+        1.0
+      ],
+      "precision": [
+        0.0576844262295082,
+        0.3043780193236715
+      ],
+      "f1": [
+        0.10835447051363349,
+        0.4627860696517412
+      ]
+    },
+    "test_sessions": 366,
+    "test_bowlers": 29,
+    "test_positive_sessions": 27,
+    "shap_modality_share_test": {
+      "kinematics": 0.408,
+      "workload": 0.142,
+      "metadata": 0.45
+    }
+  }
+}

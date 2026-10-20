@@ -36,8 +36,12 @@ GoogleService-Info.plist
 venv/
 __pycache__/
 *.pyc
+*.egg-info/
 .ipynb_checkpoints/
 .pytest_cache/
+*.egg-info/
+build/
+.venv*/
 
 # --- Node / Expo ---
 node_modules/

@@ -58,13 +58,19 @@
     },
     "reliability": {
       "type": "object",
-      "description": "Per keypoint name: ICC under this recording condition and whether it passes the 0.75 gate",
+      "description": "Per keypoint name (top level, e.g. reliability.left_knee): ICC for the camera setup (angle + distance) the clip was filmed with and whether it passes the gate. Keypoints are only tagged, never removed from frames; C2 decides. Setup matched by the same angle and the exact distance, else the nearest studied distance within 2 m. No match: {\"setup_matched\": null, \"note\": \"no reliability study for this setup yet\"}",
+      "properties": {
+        "setup_matched": { "type": ["string", "null"], "description": "Studied camera setup the tags come from, null when none matches", "examples": ["side 4 m", "semi-side 5 m"] },
+        "gate": { "type": "number", "description": "ICC needed for usable = true", "examples": [0.75] },
+        "source": { "type": "string", "examples": ["pilot ICC study (3 deliveries per setup)"] },
+        "note": { "type": "string", "examples": ["no reliability study for this setup yet"] }
+      },
       "additionalProperties": {
         "type": "object",
         "required": ["icc", "usable"],
         "properties": {
           "icc": { "type": ["number", "null"] },
-          "band": { "enum": ["poor", "moderate", "good", "excellent"] },
+          "band": { "enum": ["poor", "moderate", "good", "excellent", "not_enough_data"], "description": "not_enough_data = keypoint missing in too many deliveries to compute an ICC (icc null, usable false)" },
           "usable": { "type": "boolean" }
         }
       }

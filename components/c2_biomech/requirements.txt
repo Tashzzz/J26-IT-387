@@ -1,0 +1,8 @@
+numpy
+scipy
+pandas
+matplotlib
+pytest
+jsonschema
+fastapi
+httpx
