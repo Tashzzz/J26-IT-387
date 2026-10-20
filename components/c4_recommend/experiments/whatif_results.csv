@@ -1,0 +1,12 @@
+case,description,plan_tier,base_risk,category,action,change,risk_after,effect_points,meaningful
+C03,"U19, ACWR ~1.8 spike, model risk 48%",Moderate,32.6,workload,Bring this week's overs into the safe range,last 7 days 24 -> 11 overs (ACWR 1.78 -> 1.1),30.9,1.8,False
+C04,"U19, ACWR > 2 spike, model risk 30%",High,32.6,workload,Bring this week's overs into the safe range,last 7 days 40 -> 11 overs (ACWR 2.29 -> 1.1),30.9,1.8,False
+C04,"U19, ACWR > 2 spike, model risk 30%",High,32.6,workload,Keep to the daily limit of 7 overs,every day in the last 7 days capped at 7 overs,30.9,1.8,False
+C05,"U15, SCR 38 deg (moderate), model risk 52%",Moderate,30.2,technique,Fix shoulder counter-rotation (mixed action),38° -> 28° (limit 30°),27.8,2.4,True
+C06,"U19, trunk side-bend 52 deg + SCR 42 deg (both severe), risk 66%",Moderate,35.1,technique,Reduce trunk side-bend at release,52° -> 35° (limit 40°),22.4,12.7,True
+C06,"U19, trunk side-bend 52 deg + SCR 42 deg (both severe), risk 66%",Moderate,35.1,technique,Fix shoulder counter-rotation (mixed action),42° -> 28° (limit 30°),32.0,3.1,True
+C09,"U19, model risk 79%, front knee flag",Moderate,30.3,technique,Correct the front-knee action at release,22° -> 32° (limit 30°),30.3,0.0,False
+C10,"U19, C3 offline, spike + SCR breach",Moderate,33.2,technique,Fix shoulder counter-rotation (mixed action),40° -> 28° (limit 30°),31.1,2.1,True
+C10,"U19, C3 offline, spike + SCR breach",Moderate,33.2,workload,Bring this week's overs into the safe range,last 7 days 24 -> 11 overs (ACWR 1.78 -> 1.1),31.4,1.8,False
+C12,"U13, 4 days in a row bowling, model risk 33%",Moderate,32.1,workload,Bring this week's overs into the safe range,last 7 days 12 -> 7 overs (ACWR 1.60 -> 1.1),30.5,1.6,False
+C12,"U13, 4 days in a row bowling, model risk 33%",Moderate,32.1,recovery,Add a rest day inside the run of bowling days,1 bowling day(s) turned into rest (2026-10-18),30.9,1.2,False
