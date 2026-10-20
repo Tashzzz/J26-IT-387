@@ -1,19 +1,40 @@
 # CricShield mobile app (Expo / React Native)
 
-Expo SDK 58 · Expo Router · TypeScript. Generated with `create-expo-app --template tabs`, then trimmed:
-one tab per component.
+Expo SDK 58 · Expo Router · TypeScript.
 
-| Folder | Screen | Owner | Status |
-|--------|--------|-------|--------|
-| `app/capture/` | Upload / record video → skeleton overlay | C1 – Nethmi | placeholder |
-| `app/reliability/` | Reliability dashboard grouped by body region | C1 – Nethmi | placeholder (hidden tab) |
-| `app/features/` | Feature detail with threshold breach indicators | C2 – Samarasinghe | placeholder |
-| `app/risk/` | Risk gauge, narrative, two-level SHAP, all factors, history, hand-off to the plan | C3 – Rizma | working |
-| `app/plan/` | Recommendation dashboard, why-screen, workload log, profile, history, coach feedback | C4 – Rathnayaka | working |
+## User flow
 
-All calls to the backend go through `src/api/client.ts`, so the API address is set in one place.
-Each component adds its own module next to it (`src/api/c4.ts` for C4, `src/api/risk.ts` for C3). Component-specific UI code lives in
-`src/<component>/` (e.g. `src/c4/`), so screens can be replaced without touching other members' code.
+```
+Welcome → Create bowler profile (3 steps) → Home
+Tabs:  Home · Analyse · Risk · Plan · Profile
+```
+
+The coach chooses **one current bowler** (Home → tap the bowler name), and every tab works on that bowler.
+**Analyse** is one guided flow: video → camera setup → processing → results. One button,
+*Save & check injury risk*, saves the joint angles for the bowler, runs the risk model and updates the
+prevention plan, then opens the risk report. Component codes (C1–C4) are never shown to users.
+
+## Screens and owners
+
+| Route | Screen | Component (owner) |
+|-------|--------|-------------------|
+| `app/welcome.tsx`, `app/onboarding.tsx` | First launch, bowler profile set-up | shared / C4 athlete registry |
+| `app/(tabs)/index.tsx` | Home: risk status, today's limits, next steps | shared |
+| `app/(tabs)/analyse.tsx` | Video → pose → joint angles → save & assess | C1 Nethmi (pose) + C2 Samarasinghe (angles) |
+| `app/reliability.tsx` | Camera setup guide (ICC per body region) | C1 Nethmi |
+| `app/(tabs)/risk.tsx` | Risk score, reasons, two-level SHAP, history | C3 Rizma |
+| `app/(tabs)/plan.tsx`, `app/why/[ruleId].tsx`, `app/workload.tsx`, `app/plan-history.tsx`, `app/feedback.tsx` | Prevention plan and its tools | C4 Rathnayaka |
+| `app/(tabs)/profile.tsx`, `app/bowler.tsx`, `app/bowlers.tsx` | Bowler profile, add / edit / switch | C4 athlete registry |
+| `app/settings.tsx` | Server connection, demo data, about, research diagnostics | shared |
+
+## Code layout
+
+- `src/ui/theme.ts` + `src/ui/components.tsx`: the design system. Every screen uses only these, so the
+  look can be changed in one place. (`src/c4/theme.ts` and `src/c4/ui.tsx` re-export them for older code.)
+- `src/state/AppContext.tsx`: app-wide state (server address, current bowler, latest plan, onboarding).
+- `src/api/*`: one module per component, all through `src/api/client.ts` (the API address is set in one place).
+- `src/<component>/`: component-specific types and UI pieces (e.g. `src/c2/ui.tsx` joint-angle cards,
+  `src/c3/ui.tsx` risk meter and SHAP bars, `src/c4/BowlerForm.tsx` profile form).
 
 ## Run
 
@@ -29,4 +50,4 @@ npm run typecheck
 ```
 
 On a phone the app finds the backend automatically on your PC's IP (same Wi-Fi). If not, set it in
-**Plan → Profile & inputs → Server** (e.g. `http://192.168.1.23:8000`). Windows Firewall must allow port 8000.
+**Profile → Settings → Server connection** (e.g. `http://192.168.1.23:8000`). Windows Firewall must allow port 8000.

@@ -1,7 +1,7 @@
 // C1 (Nethmi) - shapes returned by /pose on the shared backend (backend/app/routers/pose.py).
 
 export type BowlingArm = 'left' | 'right';
-export type CameraAngle = 'front' | 'semi_side' | 'side';
+export type CameraAngle = 'front' | 'rear' | 'semi_side' | 'side'; // camera position relative to the pitch (decisions.md 18 Oct)
 export type CameraDistance = 4 | 5 | 6 | 10; // metres; the distances used in the ICC study
 
 /** Reliability of this clip's keypoints, from the ICC study of the matching camera setup. */

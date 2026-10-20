@@ -1,15 +1,19 @@
-// C4 FR10 - log of every generated plan, with the feedback it received.
+// C4 FR10 - every plan made for the current bowler, with the feedback it received.
+import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { c4 } from '../../src/api/c4';
-import { useC4 } from '../../src/c4/C4Context';
-import { colors, tierColor } from '../../src/c4/theme';
-import type { Feedback, PreventionPlan } from '../../src/c4/types';
-import { Body, Card, Loading, Row, Screen, TierBadge } from '../../src/c4/ui';
+import { c4 } from '../src/api/c4';
+import type { Feedback, PreventionPlan } from '../src/c4/types';
+import { useApp } from '../src/state/AppContext';
+import { EmptyState, Loading, Screen, Small, TierBadge } from '../src/ui/components';
+import { colors, radius, tierColor } from '../src/ui/theme';
+
+const DECISION: Record<Feedback['decision'], string> = { accept: 'Accepted', modify: 'Changed', reject: 'Rejected' };
+const ROLE: Record<Feedback['role'], string> = { coach: 'Coach', physiotherapist: 'Physio', sports_scientist: 'Sports scientist' };
 
 export default function HistoryScreen() {
-  const { athlete } = useC4();
+  const { athlete } = useApp();
   const [plans, setPlans] = useState<PreventionPlan[] | null>(null);
   const [open, setOpen] = useState<number | null>(null);
   const [fb, setFb] = useState<Record<number, Feedback[]>>({});
@@ -28,31 +32,37 @@ export default function HistoryScreen() {
     }
   }
 
-  if (err) return <Screen><Card><Body muted>{err}</Body></Card></Screen>;
+  if (err) return <Screen><EmptyState icon="cloud-offline-outline" title="Could not load the history" text={err} action="Try again" onAction={load} /></Screen>;
   if (!plans) return <Screen><Loading /></Screen>;
+  if (plans.length === 0) return <Screen><EmptyState icon="time-outline" title="No plans yet" text={`Plans made for ${athlete?.bowler_id ?? 'this bowler'} will appear here.`} /></Screen>;
 
   return (
     <Screen>
-      <Text style={s.head}>{athlete?.bowler_id} · {plans.length} plan{plans.length === 1 ? '' : 's'}</Text>
-      {plans.length === 0 && <Card><Body muted>No plans generated yet.</Body></Card>}
+      <Small>{plans.length} plan{plans.length === 1 ? '' : 's'} for {athlete?.bowler_id}</Small>
       {plans.map((p) => (
-        <Pressable key={p.id} onPress={() => p.id && toggle(p.id)} accessibilityRole="button"
+        <Pressable key={p.id} onPress={() => p.id && toggle(p.id)} accessibilityRole="button" accessibilityState={{ expanded: open === p.id }}
           style={[s.item, { borderLeftColor: tierColor[p.risk_tier] }]}>
-          <Row style={{ alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={s.date}>{new Date(p.generated_at).toLocaleString()}</Text>
-            <TierBadge tier={p.risk_tier} />
-          </Row>
-          <Text style={s.sub}>
-            {p.risk_score != null ? `${Math.round(p.risk_score * 100)}% risk` : 'fallback estimate'} · {p.recommendations.length} actions
-            {p.referral.required ? ' · referral' : ''} · ACWR {p.metrics.acwr ?? '—'}
-          </Text>
+          <View style={s.between}>
+            <Text style={s.date}>{new Date(p.generated_at).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</Text>
+            <TierBadge tier={p.risk_tier} size="sm" />
+          </View>
+          <Small>
+            {p.risk_score != null ? `Score ${Math.round(p.risk_score * 100)}` : 'Guideline estimate'} · {p.recommendations.length} actions
+            {p.referral.required ? ' · physio referral' : ''} · workload ratio {p.metrics.acwr ?? '—'}
+          </Small>
           {open === p.id && (
-            <View style={{ marginTop: 8, gap: 4 }}>
-              {p.plan.map((x, i) => <Text key={i} style={s.line}>• [{x.type}] {x.action}</Text>)}
+            <View style={{ marginTop: 8, gap: 6 }}>
+              {p.plan.map((x, i) => (
+                <View key={i} style={{ flexDirection: 'row', gap: 8 }}>
+                  <Ionicons name="checkmark" size={16} color={colors.primary} style={{ marginTop: 2 }} />
+                  <Text style={s.line}>{x.action}</Text>
+                </View>
+              ))}
               {(fb[p.id!] ?? []).map((f) => (
-                <Text key={f.id} style={s.fb}>
-                  {f.role} {f.reviewer}: {f.decision}{f.usefulness ? ` · usefulness ${f.usefulness}/5` : ''}{f.rule_id ? ` · ${f.rule_id}` : ''}{f.comment ? ` - "${f.comment}"` : ''}
-                </Text>
+                <View key={f.id} style={s.fb}>
+                  <Text style={s.fbHead}>{ROLE[f.role]} {f.reviewer} · {DECISION[f.decision]}{f.usefulness ? ` · ${f.usefulness}/5` : ''}</Text>
+                  {f.comment ? <Small>“{f.comment}”</Small> : null}
+                </View>
               ))}
             </View>
           )}
@@ -63,10 +73,10 @@ export default function HistoryScreen() {
 }
 
 const s = StyleSheet.create({
-  head: { color: colors.text, fontSize: 18, fontWeight: '800' },
-  item: { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderLeftWidth: 4, borderRadius: 12, padding: 14 },
-  date: { color: colors.text, fontWeight: '700' },
-  sub: { color: colors.muted, fontSize: 13, marginTop: 4 },
-  line: { color: colors.text, fontSize: 13, lineHeight: 19 },
-  fb: { color: colors.accent, fontSize: 13, lineHeight: 19 },
+  item: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderLeftWidth: 4, borderRadius: radius.md, padding: 14, gap: 4 },
+  between: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  date: { color: colors.text, fontWeight: '700', fontSize: 15 },
+  line: { color: colors.textSoft, fontSize: 14, lineHeight: 20, flex: 1 },
+  fb: { backgroundColor: colors.primarySoft, borderRadius: radius.sm, padding: 10, gap: 2 },
+  fbHead: { color: colors.primary, fontWeight: '700', fontSize: 13 },
 });

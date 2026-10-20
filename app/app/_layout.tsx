@@ -1,29 +1,44 @@
-// Root navigator: one tab per component (app/README.md). Owners replace their placeholder screens.
-import { Ionicons } from '@expo/vector-icons';
-import { DarkTheme, Tabs, ThemeProvider } from 'expo-router';
+// Root navigator. One app-wide state (current bowler, plan, server) around a stack:
+//   welcome -> onboarding (create bowler profile)  ->  (tabs): Home · Analyse · Risk · Plan · Profile
+// Detail screens (workload log, why-this, plan history, feedback, bowlers, settings) are pushed on top.
+import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import type { ColorValue } from 'react-native';
 
-import { colors } from '../src/c4/theme';
+import { AppProvider } from '../src/state/AppContext';
+import { colors } from '../src/ui/theme';
 
-const theme = { ...DarkTheme, colors: { ...DarkTheme.colors, background: colors.bg, card: colors.card, border: colors.border, primary: colors.accent, text: colors.text } };
-
-type IconName = keyof typeof Ionicons.glyphMap;
-const icon = (name: IconName) => ({ color, size }: { color: ColorValue; size: number }) => <Ionicons name={name} color={color as string} size={size} />;
+const theme = {
+  ...DefaultTheme,
+  colors: { ...DefaultTheme.colors, background: colors.bg, card: colors.surface, border: colors.border, primary: colors.primary, text: colors.text },
+};
 
 export default function RootLayout() {
   return (
     <ThemeProvider value={theme}>
-      <StatusBar style="light" />
-      <Tabs screenOptions={{ tabBarActiveTintColor: colors.accent, tabBarInactiveTintColor: colors.muted, headerStyle: { backgroundColor: colors.card }, headerTintColor: colors.text }}>
-        <Tabs.Screen name="index" options={{ title: 'CricShield', tabBarLabel: 'Home', tabBarIcon: icon('shield-checkmark-outline') }} />
-        <Tabs.Screen name="capture/index" options={{ title: 'Capture (C1)', tabBarLabel: 'Capture', tabBarIcon: icon('videocam-outline') }} />
-        <Tabs.Screen name="features/index" options={{ title: 'Biomechanics (C2)', tabBarLabel: 'Features', tabBarIcon: icon('body-outline') }} />
-        <Tabs.Screen name="risk/index" options={{ title: 'Risk (C3)', tabBarLabel: 'Risk', tabBarIcon: icon('pulse-outline') }} />
-        <Tabs.Screen name="plan" options={{ headerShown: false, title: 'Prevention plan', tabBarLabel: 'Plan', tabBarIcon: icon('clipboard-outline') }} />
-        {/* Hidden from the tab bar but still reachable (SDK 58: href: null now redirects away). */}
-        <Tabs.Screen name="reliability/index" options={{ tabBarItemStyle: { display: 'none' }, title: 'Reliability (C1)' }} />
-      </Tabs>
+      <AppProvider>
+        <StatusBar style="dark" />
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: colors.bg },
+            headerShadowVisible: false,
+            headerTintColor: colors.primary,
+            headerTitleStyle: { color: colors.text, fontWeight: '700' },
+            headerBackTitle: 'Back',
+            contentStyle: { backgroundColor: colors.bg },
+          }}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="welcome" options={{ headerShown: false, animation: 'fade' }} />
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="bowlers" options={{ title: 'Bowlers' }} />
+          <Stack.Screen name="bowler" options={{ title: 'Bowler profile' }} />
+          <Stack.Screen name="workload" options={{ title: 'Workload log' }} />
+          <Stack.Screen name="why/[ruleId]" options={{ title: 'Why this action?' }} />
+          <Stack.Screen name="plan-history" options={{ title: 'Plan history' }} />
+          <Stack.Screen name="feedback" options={{ title: 'Review this plan', presentation: 'modal' }} />
+          <Stack.Screen name="reliability" options={{ title: 'Camera setup guide' }} />
+          <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+        </Stack>
+      </AppProvider>
     </ThemeProvider>
   );
 }

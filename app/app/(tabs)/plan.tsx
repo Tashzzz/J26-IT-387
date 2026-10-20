@@ -1,109 +1,107 @@
-// C4 key function 2 - recommendation dashboard (Proposal Fig. 4.3.4.1 "Prevention plan").
+// Prevention plan (C4 - Rathnayaka): bowling limits, referral, and actions grouped by type,
+// each with a "why". Uses the app-wide current bowler.
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { useC4 } from '../../src/c4/C4Context';
-import { categoryMeta, colors, tierColor } from '../../src/c4/theme';
 import type { Category, Recommendation } from '../../src/c4/types';
-import { Banner, Body, Button, Card, Chips, H, Loading, Row, Screen, TierBadge, Tile } from '../../src/c4/ui';
+import { useApp } from '../../src/state/AppContext';
+import { Banner, Body, Button, Card, EmptyState, List, ListItem, Loading, Screen, Section, Small, TierBadge, Tile } from '../../src/ui/components';
+import { categoryMeta, colors, radius, tierColor, tierSoft, type as t } from '../../src/ui/theme';
 
-const ORDER: Category[] = ['rehabilitation', 'training', 'workload', 'recovery', 'preventive_exercise'];
+const ORDER: Category[] = ['rehabilitation', 'workload', 'training', 'recovery', 'preventive_exercise'];
 
-export default function PlanDashboard() {
+export default function PlanScreen() {
   const router = useRouter();
-  const { athletes, athlete, plan, planIsCached, loading, online, error, selectAthlete, generatePlan, refreshAthletes } = useC4();
+  const { athlete, plan, planIsCached, planLoading, planError, online, generatePlan } = useApp();
 
-  if (online === null) return <Screen><Loading text="Connecting to the C4 engine…" /></Screen>;
+  const subtitle = athlete ? `${athlete.bowler_id}${plan ? ` · updated ${new Date(plan.generated_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}` : ''}` : undefined;
 
-  if (online === false && !plan) {
+  if (!athlete) {
+    return <Screen title="Prevention plan"><EmptyState icon="person-add-outline" title="Set up a bowler first" text="Plans are made for one bowler at a time." action="Create bowler profile" onAction={() => router.push({ pathname: '/bowler', params: { mode: 'new' } })} /></Screen>;
+  }
+
+  const update = <Button title={plan ? 'Update plan' : 'Create prevention plan'} icon="refresh" onPress={generatePlan} loading={planLoading} />;
+
+  if (!plan) {
     return (
-      <Screen>
-        <Banner tone="danger" icon="cloud-offline-outline" title="Engine not reachable">
-          <Body muted>{error}</Body>
-        </Banner>
-        <Button title="Try again" icon="refresh" onPress={refreshAthletes} />
-        <Button title="Server settings" variant="secondary" icon="settings-outline" onPress={() => router.push('/plan/profile')} />
+      <Screen title="Prevention plan" subtitle={subtitle} footer={update}>
+        {planLoading ? <Loading text="Building the plan…" /> : (
+          <EmptyState icon="clipboard-outline" title="No plan yet"
+            text={`Get safe daily overs, spell limits, rest days and exercises for ${athlete.bowler_id}. It uses the latest risk check, workload log and injury history.`} />
+        )}
+        {planError && <Banner tone="danger" icon="alert-circle-outline" title="Could not create the plan"><Body muted>{planError}</Body></Banner>}
       </Screen>
     );
   }
 
-  const grouped = ORDER.map((c) => ({ c, recs: plan?.recommendations.filter((r) => r.category === c) ?? [] }))
-    .filter((g) => g.recs.length);
-  const hot = plan && (plan.risk_tier === 'High' || plan.risk_tier === 'Critical');
+  const grouped = ORDER.map((c) => ({ c, recs: plan.recommendations.filter((r) => r.category === c) })).filter((g) => g.recs.length);
+  const stop = plan.limits.daily_limit_overs === 0;
 
   return (
-    <Screen>
-      {athletes.length > 0 && (
-        <Chips label="Bowler" value={athlete?.id ?? null} onChange={selectAthlete}
-          options={athletes.map((a) => ({ label: a.bowler_id, value: a.id }))} />
+    <Screen title="Prevention plan" subtitle={subtitle} footer={update}>
+      {planIsCached && online === false && (
+        <Banner tone="warn" icon="cloud-offline-outline" title="Offline — showing the last saved plan" />
       )}
+      {planError && <Banner tone="danger" icon="alert-circle-outline" title="Could not update the plan"><Body muted>{planError}</Body></Banner>}
 
-      {planIsCached && (
-        <Banner tone="info" icon="time-outline" title="Showing the last saved plan">
-          <Body muted>Generate a new plan to include the latest workload and C3 results.</Body>
+      {/* ---- summary ---- */}
+      <View style={[s.hero, { backgroundColor: tierSoft[plan.risk_tier] }]}>
+        <View style={s.between}>
+          <TierBadge tier={plan.risk_tier} />
+          {plan.risk_score != null && <Text style={[s.score, { color: tierColor[plan.risk_tier] }]}>{Math.round(plan.risk_score * 100)}<Text style={s.scoreOf}> / 100</Text></Text>}
+        </View>
+        <Text style={s.summary}>{plan.summary}</Text>
+        <Small>{plan.risk_source === 'c3' ? 'Based on the latest risk check, workload and history.' : 'No risk check yet — based on workload guidelines and history.'}</Small>
+        {plan.risk_source !== 'c3' && <Button title="Check injury risk" size="sm" variant="secondary" icon="pulse-outline" onPress={() => router.push('/risk')} style={{ alignSelf: 'flex-start' }} />}
+      </View>
+
+      {plan.referral.required && (
+        <Banner tone="danger" icon="medkit-outline" title={`See a ${plan.referral.to ?? 'physiotherapist'} before bowling hard again`}>
+          {plan.referral.reasons.map((r) => <Body key={r} muted>• {r}</Body>)}
         </Banner>
       )}
-      {error && online === false && plan && (
-        <Banner tone="warn" icon="cloud-offline-outline" title="Offline - showing saved plan"><Body muted>{error}</Body></Banner>
+
+      {/* ---- limits ---- */}
+      <Section title="Bowling limits">
+        <View style={s.tiles}>
+          <Tile icon="baseball-outline" label="Per day" value={stop ? 'No bowling' : `${plan.limits.daily_limit_overs} overs`} tone={stop ? 'danger' : 'neutral'} />
+          <Tile icon="repeat-outline" label="Per spell" value={plan.limits.spell_cap_overs === 0 ? '—' : `${plan.limits.spell_cap_overs} overs`} tone={stop ? 'danger' : 'neutral'} />
+        </View>
+        <View style={s.tiles}>
+          <Tile icon="calendar-outline" label="Days a week" value={`${plan.limits.max_bowling_days_per_week} max`} />
+          <Tile icon="speedometer-outline" label="Workload ratio" value={plan.metrics.acwr != null ? String(plan.metrics.acwr) : '—'}
+            tone={plan.metrics.acwr != null && plan.metrics.acwr > 1.5 ? 'danger' : plan.metrics.acwr != null && (plan.metrics.acwr > 1.3 || plan.metrics.acwr < 0.8) ? 'warn' : 'neutral'}
+            caption="0.8–1.3 is safest" />
+        </View>
+        <View style={s.rest}>
+          <Ionicons name="bed-outline" size={18} color={colors.ok} />
+          <Text style={s.restText}>{plan.limits.rest_window}</Text>
+        </View>
+      </Section>
+
+      {/* ---- actions ---- */}
+      {grouped.map(({ c, recs }) => (
+        <Section key={c} title={categoryMeta[c].label}>
+          {recs.map((r) => <RecCard key={r.rule_id} rec={r} onPress={() => router.push({ pathname: '/why/[ruleId]', params: { ruleId: r.rule_id } })} />)}
+        </Section>
+      ))}
+
+      {plan.data_quality.length > 0 && (
+        <Card>
+          <Text style={t.overline}>Data notes</Text>
+          {plan.data_quality.map((n) => <Small key={n}>• {n}</Small>)}
+        </Card>
       )}
 
-      <Button title={plan ? 'Generate new plan' : 'Generate prevention plan'} icon="sparkles-outline"
-        onPress={generatePlan} loading={loading} disabled={!athlete} />
-
-      {!plan ? (
-        <Card><Body muted>No plan yet for {athlete?.bowler_id ?? 'this bowler'}. Generate one to see limits, actions and reasons.</Body></Card>
-      ) : (
-        <>
-          <Card style={{ borderColor: tierColor[plan.risk_tier] }}>
-            <Row style={{ alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={s.code}>{plan.bowler_id} · {plan.metrics.age_group}</Text>
-              <TierBadge tier={plan.risk_tier} />
-            </Row>
-            <Text style={[s.score, { color: tierColor[plan.risk_tier] }]}>
-              {plan.risk_score != null ? `${Math.round(plan.risk_score * 100)}%` : '—'}
-              <Text style={s.scoreLabel}>  {plan.risk_source === 'c3' ? 'predicted injury risk (C3)' : 'C3 unavailable - guideline estimate'}</Text>
-            </Text>
-            <Body>{plan.summary}</Body>
-          </Card>
-
-          {plan.referral.required && (
-            <Banner tone="danger" icon="medkit-outline" title={`Refer to ${plan.referral.to}`}>
-              {plan.referral.reasons.map((r) => <Body key={r} muted>• {r}</Body>)}
-            </Banner>
-          )}
-
-          <Row>
-            <Tile label="Daily limit" value={plan.limits.daily_limit_overs === 0 ? 'No bowling' : `${plan.limits.daily_limit_overs} overs`} tone={hot ? 'danger' : 'neutral'} />
-            <Tile label="Spell cap" value={plan.limits.spell_cap_overs === 0 ? '—' : `${plan.limits.spell_cap_overs} overs`} tone={hot ? 'danger' : 'neutral'} />
-            <Tile label="Rest window" value={plan.limits.rest_window} tone="ok" wide />
-          </Row>
-
-          <Row>
-            <NavPill icon="stats-chart-outline" label={`Workload · ACWR ${plan.metrics.acwr ?? '—'}`} onPress={() => router.push('/plan/workload')} />
-            <NavPill icon="person-outline" label="Profile & inputs" onPress={() => router.push('/plan/profile')} />
-            <NavPill icon="time-outline" label="History" onPress={() => router.push('/plan/history')} />
-          </Row>
-
-          {grouped.map(({ c, recs }) => (
-            <View key={c} style={{ gap: 10 }}>
-              <H>{categoryMeta[c].label}</H>
-              {recs.map((r) => <RecCard key={r.rule_id} rec={r} onPress={() => router.push(`/plan/why/${r.rule_id}`)} />)}
-            </View>
-          ))}
-
-          {plan.data_quality.length > 0 && (
-            <Card>
-              <Text style={s.small}>DATA NOTES</Text>
-              {plan.data_quality.map((n) => <Text key={n} style={s.note}>• {n}</Text>)}
-            </Card>
-          )}
-
-          <Button title="Coach / physio feedback on this plan" variant="secondary" icon="chatbox-ellipses-outline"
-            onPress={() => router.push('/plan/feedback')} disabled={!plan.id} />
-          <Text style={s.footer}>Engine {plan.engine_version} · generated in {plan.latency_ms} ms · {new Date(plan.generated_at).toLocaleString()}</Text>
-        </>
-      )}
+      <Section title="More">
+        <List>
+          <ListItem icon="calendar-outline" title="Workload log" subtitle={`${plan.metrics.acute_overs} overs in the last 7 days`} onPress={() => router.push('/workload')} />
+          <ListItem icon="time-outline" title="Plan history" subtitle="Earlier plans and their feedback" onPress={() => router.push('/plan-history')} />
+          <ListItem icon="chatbox-ellipses-outline" title="Coach or physio review" subtitle="Accept, change or reject this plan" onPress={() => router.push('/feedback')} last />
+        </List>
+      </Section>
+      <Small style={{ textAlign: 'center' }}>Rules engine {plan.engine_version} · decision support, not a diagnosis</Small>
     </Screen>
   );
 }
@@ -112,44 +110,39 @@ function RecCard({ rec, onPress }: { rec: Recommendation; onPress: () => void })
   const meta = categoryMeta[rec.category];
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityHint="Shows why this was recommended"
-      style={({ pressed }) => [s.rec, pressed && { opacity: 0.75 }]}>
-      <View style={[s.recIcon, { backgroundColor: `${meta.color}22` }]}>
+      style={({ pressed }) => [s.rec, pressed && { opacity: 0.85 }]}>
+      <View style={[s.recIcon, { backgroundColor: `${meta.color}14` }]}>
         <Ionicons name={meta.icon as keyof typeof Ionicons.glyphMap} size={20} color={meta.color} />
       </View>
       <View style={{ flex: 1, gap: 4 }}>
         <Text style={s.recTitle}>{rec.title}</Text>
         <Text style={s.recAction}>{rec.action}</Text>
         {rec.exercises.map((e) => (
-          <Text key={e.name} style={s.exercise}>• {e.name} — {e.dose}</Text>
+          <View key={e.name} style={s.exercise}>
+            <Ionicons name="barbell-outline" size={14} color={colors.muted} />
+            <Text style={s.exerciseText}><Text style={{ fontWeight: '700', color: colors.textSoft }}>{e.name}</Text> · {e.dose}</Text>
+          </View>
         ))}
-        <Text style={s.why}>Why? ›</Text>
+        <Text style={s.why}>Why this? ›</Text>
       </View>
     </Pressable>
   );
 }
 
-function NavPill({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [s.pill, pressed && { opacity: 0.7 }]}>
-      <Ionicons name={icon} size={16} color={colors.accent} />
-      <Text style={s.pillText}>{label}</Text>
-    </Pressable>
-  );
-}
-
 const s = StyleSheet.create({
-  code: { color: colors.text, fontSize: 16, fontWeight: '700' },
-  score: { fontSize: 34, fontWeight: '800' },
-  scoreLabel: { fontSize: 13, fontWeight: '500', color: colors.muted },
-  rec: { flexDirection: 'row', gap: 12, backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 14, padding: 14 },
-  recIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  recTitle: { color: colors.text, fontSize: 15, fontWeight: '700' },
-  recAction: { color: colors.text, fontSize: 14, lineHeight: 20, opacity: 0.92 },
-  exercise: { color: colors.muted, fontSize: 13 },
-  why: { color: colors.accent, fontSize: 13, fontWeight: '700', marginTop: 2 },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, minHeight: 40 },
-  pillText: { color: colors.text, fontSize: 13, fontWeight: '600' },
-  small: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
-  note: { color: colors.muted, fontSize: 13, lineHeight: 19 },
-  footer: { color: colors.muted, fontSize: 12, textAlign: 'center' },
+  hero: { borderRadius: radius.xl, padding: 18, gap: 10 },
+  between: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  score: { fontSize: 28, fontWeight: '800' },
+  scoreOf: { fontSize: 14, fontWeight: '600', color: colors.muted },
+  summary: { color: colors.text, fontSize: 17, lineHeight: 24, fontWeight: '600' },
+  tiles: { flexDirection: 'row', gap: 10 },
+  rest: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.okSoft, borderRadius: radius.md, padding: 12 },
+  restText: { color: colors.ok, fontWeight: '600', fontSize: 14, flex: 1 },
+  rec: { flexDirection: 'row', gap: 12, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.lg, padding: 16 },
+  recIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  recTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  recAction: { color: colors.textSoft, fontSize: 15, lineHeight: 21 },
+  exercise: { flexDirection: 'row', gap: 6, alignItems: 'center' },
+  exerciseText: { color: colors.muted, fontSize: 13, flex: 1 },
+  why: { color: colors.primary, fontSize: 14, fontWeight: '700', marginTop: 4 },
 });

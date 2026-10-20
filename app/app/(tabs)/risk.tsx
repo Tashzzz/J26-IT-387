@@ -1,34 +1,28 @@
-// C3 - Risk classifier + two-level SHAP explanation screen (proposal: risk gauge, attribution charts, narrative).
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// Injury risk report (C3 - Rizma): risk score, plain-language reasons, two-level SHAP explanation,
+// what it was based on, and history. Uses the app-wide current bowler.
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { ApiError, setApiBase } from '../../src/api/client';
+import { ApiError } from '../../src/api/client';
 import { c3 } from '../../src/api/risk';
-import type { Assessment, Factor, HistoryItem, ModelCard, RiskAthlete } from '../../src/c3/types';
-import { BowlerPicker, FactorDetail, FactorRow, HistoryStrip, LevelBadge, ModalityBars, RiskMeter } from '../../src/c3/ui';
-import { colors } from '../../src/c4/theme';
-import { Banner, Body, Button, Card, H, Loading, Row, Screen, Tile } from '../../src/c4/ui';
+import type { Assessment, Factor, HistoryItem, ModelCard } from '../../src/c3/types';
+import { FactorDetail, FactorRow, HistoryStrip, ModalityBars, RiskMeter } from '../../src/c3/ui';
+import { useApp } from '../../src/state/AppContext';
+import { Banner, Body, Button, Card, EmptyState, Loading, Screen, Section, Small, TierBadge, Tile } from '../../src/ui/components';
+import { colors, type as t } from '../../src/ui/theme';
 
-const KEY_API = 'cricshield.apiBase';               // shared server setting (Plan -> Profile -> Server)
-const KEY_SELECTED = 'cricshield.c3.selectedAthlete';
-
-async function load(key: string) {
-  try { return await AsyncStorage.getItem(key); } catch { return null; }
-}
-async function save(key: string, value: string) {
-  try { await AsyncStorage.setItem(key, value); } catch { /* storage can be unavailable - ignore */ }
-}
 const pctText = (v: number) => `${(v * 100).toFixed(v < 0.1 ? 1 : 0)}%`;
+const dateText = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+
+type Status = 'loading' | 'ready' | 'offline' | 'no-model';
 
 export default function RiskScreen() {
   const router = useRouter();
-  const [online, setOnline] = useState<boolean | null>(null);
-  const [modelMsg, setModelMsg] = useState<string | null>(null);
-  const [athletes, setAthletes] = useState<RiskAthlete[]>([]);
-  const [selected, setSelected] = useState<number | null>(null);
+  const { athlete, generatePlan } = useApp();
+  const [status, setStatus] = useState<Status>('loading');
+  const [message, setMessage] = useState<string | null>(null);
   const [result, setResult] = useState<Assessment | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [card, setCard] = useState<ModelCard | null>(null);
@@ -38,233 +32,212 @@ export default function RiskScreen() {
   const [showModel, setShowModel] = useState(false);
   const [detail, setDetail] = useState<Factor | null>(null);
 
-  const connect = useCallback(async () => {
+  const load = useCallback(async () => {
+    if (!athlete) return;
     setError(null);
     try {
       const p = await c3.ping();
-      setOnline(true);
-      if (!p.model_loaded) { setModelMsg(p.detail ?? 'The C3 model is not trained yet.'); return; }
-      setModelMsg(null);
-      const [list, mc] = await Promise.all([c3.athletes(), c3.model()]);
-      setAthletes(list);
+      if (!p.model_loaded) { setStatus('no-model'); setMessage(p.detail ?? null); return; }
+      const [h, mc] = await Promise.all([c3.history(athlete.id), c3.model().catch(() => null)]);
+      setHistory(h);
       setCard(mc);
-      const saved = Number(await load(KEY_SELECTED));
-      setSelected((cur) => [cur, saved].find((id) => id && list.some((a) => a.athlete_id === id)) ?? list[0]?.athlete_id ?? null);
+      setResult(h[0] ? await c3.assessment(h[0].id) : null);
+      setStatus('ready');
     } catch (e) {
-      setOnline(false);
-      setError((e as Error).message);
+      setStatus('offline');
+      setMessage((e as Error).message);
     }
-  }, []);
+  }, [athlete]);
 
-  useEffect(() => {
-    (async () => {
-      const base = await load(KEY_API);
-      if (base) setApiBase(base);
-      await connect();
-    })();
-  }, [connect]);
-
-  // On bowler change: show the last saved assessment straight away.
-  useEffect(() => {
-    if (selected == null) return;
-    save(KEY_SELECTED, String(selected));
-    setShowAll(false);
-    (async () => {
-      try {
-        const h = await c3.history(selected);
-        setHistory(h);
-        setResult(h[0] ? await c3.assessment(h[0].id) : null);
-      } catch (e) {
-        setError((e as Error).message);
-      }
-    })();
-  }, [selected]);
+  useFocusEffect(useCallback(() => { setShowAll(false); load(); }, [load]));
 
   async function assess() {
-    if (selected == null) return;
+    if (!athlete) return;
     setBusy(true);
     setError(null);
     try {
-      const r = await c3.assess(selected);
+      const r = await c3.assess(athlete.id);
       setResult(r);
-      const [h, list] = await Promise.all([c3.history(selected), c3.athletes()]);
-      setHistory(h);
-      setAthletes(list);
+      setHistory(await c3.history(athlete.id));
+      generatePlan(); // keep the prevention plan in step with the new score
     } catch (e) {
-      if (!(e instanceof ApiError && e.status)) setOnline(false);
+      if (!(e instanceof ApiError && e.status)) setStatus('offline');
       setError((e as Error).message);
     } finally {
       setBusy(false);
     }
   }
 
-  const bowler = athletes.find((a) => a.athlete_id === selected);
   const factors = useMemo(() => {
     if (!result) return [];
     const measured = result.all_factors.filter((f) => f.measured !== false);
     const unmeasured = result.all_factors.filter((f) => f.measured === false);
-    // top_factors carry only the contract fields; show the full record (components, squad typical) for each.
     return showAll ? [...measured, ...unmeasured]
-      : result.top_factors.map((t) => result.all_factors.find((f) => f.feature === t.feature) ?? t);
+      : result.top_factors.map((tf) => result.all_factors.find((f) => f.feature === tf.feature) ?? tf);
   }, [result, showAll]);
   const maxShap = Math.max(...(result?.all_factors ?? []).map((f) => Math.abs(f.shap)), 1e-6);
 
-  if (online === null) return <Screen><Loading text="Connecting to the C3 risk model…" /></Screen>;
+  const subtitle = athlete ? `${athlete.bowler_id}${result ? ` · checked ${dateText(result.inputs.as_of)}` : ''}` : undefined;
 
-  if (online === false) {
+  if (!athlete) {
+    return <Screen title="Injury risk"><EmptyState icon="person-add-outline" title="Set up a bowler first" text="Risk is worked out for one bowler at a time." action="Create bowler profile" onAction={() => router.push({ pathname: '/bowler', params: { mode: 'new' } })} /></Screen>;
+  }
+  if (status === 'loading') return <Screen title="Injury risk" subtitle={subtitle}><Loading text="Loading the risk report…" /></Screen>;
+  if (status === 'offline') {
     return (
-      <Screen>
-        <Banner tone="danger" icon="cloud-offline-outline" title="Backend not reachable"><Body muted>{error}</Body></Banner>
-        <Button title="Try again" icon="refresh" onPress={connect} />
-        <Button title="Server settings" variant="secondary" icon="settings-outline" onPress={() => router.push('/plan/profile')} />
+      <Screen title="Injury risk" subtitle={subtitle}>
+        <EmptyState icon="cloud-offline-outline" title="Can’t reach the risk model" text={message ?? 'Check the connection and try again.'}
+          action="Try again" onAction={load} secondary="Connection settings" onSecondary={() => router.push('/settings')} />
+      </Screen>
+    );
+  }
+  if (status === 'no-model') {
+    return (
+      <Screen title="Injury risk" subtitle={subtitle}>
+        <EmptyState icon="construct-outline" title="Risk model not set up yet" text={message ?? 'The risk model has not been trained on this server. The prevention plan still works from workload guidelines.'}
+          action="Check again" onAction={load} secondary="Open prevention plan" onSecondary={() => router.push('/plan')} />
       </Screen>
     );
   }
 
-  if (modelMsg) {
+  const assessButton = (
+    <Button title={result ? 'Re-check with the latest data' : `Check ${athlete.bowler_id}’s injury risk`} icon="pulse-outline" onPress={assess} loading={busy} />
+  );
+
+  if (!result) {
     return (
-      <Screen>
-        <Banner tone="warn" icon="construct-outline" title="C3 model not ready">
-          <Body muted>{modelMsg}</Body>
-        </Banner>
-        <Button title="Check again" icon="refresh" onPress={connect} />
+      <Screen title="Injury risk" subtitle={subtitle} footer={assessButton}>
+        <EmptyState icon="pulse-outline" title="No risk check yet"
+          text="CricShield combines the bowling action, recent workload and injury history into one risk score — and shows what drove it." />
+        <Card>
+          <Text style={t.heading}>For the best result</Text>
+          <Ingredient icon="videocam-outline" title="Analyse at least one delivery" onPress={() => router.push('/analyse')} />
+          <Ingredient icon="calendar-outline" title="Log 3 weeks of bowling sessions" onPress={() => router.push('/workload')} />
+          <Ingredient icon="person-outline" title="Keep the injury history up to date" onPress={() => router.push('/profile')} />
+        </Card>
+        {error && <Banner tone="danger" icon="alert-circle-outline" title="Could not check the risk"><Body muted>{error}</Body></Banner>}
       </Screen>
     );
   }
 
   return (
-    <Screen>
-      {athletes.length === 0 ? (
-        <Card><Body muted>No bowlers yet. Add one in Plan → Profile & inputs (anonymised code only).</Body></Card>
-      ) : (
-        <BowlerPicker athletes={athletes} value={selected} onChange={setSelected} />
+    <Screen title="Injury risk" subtitle={subtitle} footer={assessButton}>
+      {error && <Banner tone="danger" icon="alert-circle-outline" title="Could not check the risk"><Body muted>{error}</Body></Banner>}
+      {result.synthetic_model && (
+        <Banner tone="info" icon="flask-outline" title="Research prototype">
+          <Body muted>The model is trained on synthetic development data. It shows how the system works — not a validated clinical prediction.</Body>
+        </Banner>
       )}
 
-      <Button title={result ? 'Assess again with the latest data' : 'Assess injury risk'} icon="pulse-outline"
-        onPress={assess} loading={busy} disabled={selected == null} />
-      {error && <Banner tone="danger" icon="alert-circle-outline" title="Could not assess"><Body muted>{error}</Body></Banner>}
+      {/* ---- score ---- */}
+      <Card>
+        <View style={s.between}>
+          <Text style={t.overline}>Risk score</Text>
+          <TierBadge tier={result.risk_tier} />
+        </View>
+        <RiskMeter score={result.risk_score} tier={result.risk_tier} />
+        <Text style={s.prob}>
+          About <Text style={s.probStrong}>{pctText(result.probability_28d)}</Text> chance of an injury that stops bowling in the next 4 weeks
+          {' '}(squad average {pctText(result.base_probability_28d)}{result.relative_risk != null ? `, ${result.relative_risk.toFixed(1)}× average` : ''}).
+        </Text>
+      </Card>
 
-      {!result ? (
+      {result.alert && (
+        <Banner tone={result.risk_level === 'high' ? 'danger' : 'warn'} icon="notifications-outline" title="Above the alert level"
+          action="See the prevention plan" onAction={() => router.push('/plan')}>
+          <Body muted>The alert catches at least 8 in 10 injuries, so some alerts will be false alarms. Follow the plan and watch for soreness.</Body>
+        </Banner>
+      )}
+
+      {/* ---- narrative ---- */}
+      <Section title="Why this score">
         <Card>
-          <Body muted>No assessment yet for {bowler?.bowler_id ?? 'this bowler'}. The model combines the C2 joint angles, the workload log and the athlete profile into a risk score, then explains which factors drove it.</Body>
+          <Body>{result.explanation}</Body>
+          {result.factor_lines.map((l) => (
+            <View key={l} style={s.bulletRow}>
+              <View style={s.bullet} />
+              <Text style={s.line}>{l}</Text>
+            </View>
+          ))}
         </Card>
-      ) : (
-        <>
-          {result.synthetic_model && (
-            <Banner tone="warn" icon="flask-outline" title="Development model – synthetic training data">
-              <Body muted>Shows how the system works; not a validated clinical prediction.</Body>
-            </Banner>
-          )}
+      </Section>
 
-          {/* ---- risk gauge ---- */}
+      {/* ---- level 1 ---- */}
+      <Section title="What pushes the score">
+        <Card>
+          <ModalityBars items={result.modality_attribution} />
+          <Small>Points on the 0–100 score compared with an average squad member ({Math.round(result.base_score * 100)}).</Small>
+        </Card>
+      </Section>
+
+      {/* ---- level 2 ---- */}
+      <Section title={showAll ? 'All factors' : 'Top factors'} action={showAll ? 'Top 3 only' : `All ${result.all_factors.length}`} onAction={() => setShowAll((v) => !v)}>
+        <Card style={{ gap: 0, paddingVertical: 6 }}>
+          {factors.map((f, i) => <FactorRow key={f.feature} f={f} max={maxShap} onPress={() => setDetail(f)} last={i === factors.length - 1} />)}
+        </Card>
+        <Small>Tap a factor to see how it was measured.</Small>
+      </Section>
+
+      {/* ---- inputs ---- */}
+      <Section title="Based on">
+        <View style={s.tiles}>
+          <Tile icon="videocam-outline" label="Deliveries" value={String(result.inputs.kinematics.deliveries)} tone={result.inputs.kinematics.deliveries ? 'neutral' : 'warn'}
+            caption={result.inputs.kinematics.deliveries ? 'analysed' : 'none yet'} />
+          <Tile icon="calendar-outline" label="Workload" value={`${result.inputs.workload.history_days} d`} tone={result.inputs.workload.history_days >= 21 ? 'neutral' : 'warn'}
+            caption={result.inputs.workload.history_days >= 21 ? 'of history' : '21 days advised'} />
+        </View>
+        {result.data_quality.length > 0 && (
           <Card>
-            <Row style={{ alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={s.code}>{result.bowler_id} · {result.inputs.as_of}</Text>
-              <LevelBadge level={result.risk_level} tier={result.risk_tier} />
-            </Row>
-            <RiskMeter score={result.risk_score} tier={result.risk_tier} />
-            <Text style={s.prob}>
-              <Text style={s.probStrong}>≈{pctText(result.probability_28d)}</Text> chance of a time-loss injury in the next 4 weeks
-              {' '}· squad average {pctText(result.base_probability_28d)}
-              {result.relative_risk != null ? ` · ${result.relative_risk.toFixed(1)}× average` : ''}
-            </Text>
+            <Text style={t.overline}>Data notes</Text>
+            {result.data_quality.map((n) => <Small key={n}>• {n}</Small>)}
           </Card>
+        )}
+      </Section>
 
-          {result.alert && (
-            <Banner tone={result.risk_level === 'high' ? 'danger' : 'warn'} icon="notifications-outline" title="Above the alert level">
-              <Body muted>The alert is set so that at least 80% of injuries are caught, so some alerts will be false alarms. Check the prevention plan.</Body>
-            </Banner>
-          )}
+      <Card onPress={() => router.push('/plan')} style={s.planLink} accessibilityLabel="Open the prevention plan">
+        <View style={s.planIcon}><Ionicons name="clipboard" size={20} color={colors.onPrimary} /></View>
+        <View style={{ flex: 1 }}>
+          <Text style={s.planTitle}>Prevention plan</Text>
+          <Small>Safe overs, rest and exercises based on this score</Small>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={colors.muted} />
+      </Card>
 
-          {/* ---- narrative ---- */}
-          <H>Why</H>
+      {/* ---- history ---- */}
+      {history.length > 1 && (
+        <Section title="Risk over time">
           <Card>
-            <Body>{result.explanation}</Body>
-            {result.factor_lines.map((l) => (
-              <View key={l} style={s.bulletRow}>
-                <Text style={s.bullet}>•</Text>
-                <Text style={s.line}>{l}</Text>
+            <HistoryStrip items={history} />
+            {history.slice(0, 4).map((h) => (
+              <View key={h.id} style={s.histItem}>
+                <Text style={s.histDate}>{dateText(h.as_of)}</Text>
+                <Text style={s.histScore}>{Math.round(h.risk_score * 100)}</Text>
+                {h.risk_tier && <TierBadge tier={h.risk_tier} size="sm" />}
               </View>
             ))}
           </Card>
+        </Section>
+      )}
 
-          {/* ---- level 1 ---- */}
-          <H>What drives the score</H>
-          <Card>
-            <ModalityBars items={result.modality_attribution} />
-            <Text style={s.note}>Points on the 0–100 risk score, compared with an average squad member ({Math.round(result.base_score * 100)}).</Text>
-          </Card>
-
-          {/* ---- level 2 ---- */}
-          <H>{showAll ? 'All factors' : 'Top factors'}</H>
-          <Card style={{ gap: 0 }}>
-            {factors.map((f) => <FactorRow key={f.feature} f={f} max={maxShap} onPress={() => setDetail(f)} />)}
-            <Pressable onPress={() => setShowAll((v) => !v)} accessibilityRole="button" style={s.toggle}>
-              <Ionicons name={showAll ? 'chevron-up' : 'chevron-down'} size={16} color={colors.accent} />
-              <Text style={s.toggleText}>{showAll ? 'Show top 3 only' : `Show all ${result.all_factors.length} factors`}</Text>
-            </Pressable>
-          </Card>
-
-          {/* ---- inputs ---- */}
-          <H>Based on</H>
-          <Row>
-            <Tile label="Deliveries (C2)" value={String(result.inputs.kinematics.deliveries)} tone={result.inputs.kinematics.deliveries ? 'neutral' : 'danger'} />
-            <Tile label="Workload log" value={`${result.inputs.workload.history_days} days`} tone={result.inputs.workload.history_days >= 21 ? 'neutral' : 'danger'} />
-            <Tile label="Profile" value={`${result.inputs.athlete.age} y · ${result.inputs.athlete.playing_level}`} wide />
-          </Row>
-          {result.data_quality.length > 0 && (
-            <Card>
-              <Text style={s.small}>DATA NOTES</Text>
-              {result.data_quality.map((n) => <Text key={n} style={s.noteLine}>• {n}</Text>)}
-            </Card>
+      {/* ---- model card ---- */}
+      <Pressable onPress={() => setShowModel((v) => !v)} accessibilityRole="button" accessibilityState={{ expanded: showModel }} style={s.toggle}>
+        <Ionicons name={showModel ? 'chevron-up' : 'information-circle-outline'} size={18} color={colors.primary} />
+        <Text style={s.toggleText}>{showModel ? 'Hide model details' : 'About this model'}</Text>
+      </Pressable>
+      {showModel && card && (
+        <Card>
+          <Text style={s.kv}>Model <Text style={s.v}>{card.model}</Text> · trained {card.created}</Text>
+          <Text style={s.kv}>Training data <Text style={s.v}>{card.synthetic ? 'synthetic' : card.training_data.source}</Text>
+            {card.training_data.sessions ? ` · ${card.training_data.sessions} sessions, ${card.training_data.bowlers} bowlers` : ''}</Text>
+          <Text style={s.kv}>Cross-validated AUC <Text style={s.v}>{card.metrics.cv_auc_mean.toFixed(2)}{card.metrics.cv_auc_sd != null ? ` ± ${card.metrics.cv_auc_sd.toFixed(2)}` : ''}</Text> (grouped by bowler)</Text>
+          {card.metrics.test?.auc != null && (
+            <Text style={s.kv}>Held-out test <Text style={s.v}>AUC {card.metrics.test.auc.toFixed(2)} · recall {card.metrics.test.recall?.toFixed(2)} · precision {card.metrics.test.precision?.toFixed(2)}</Text>
+              {card.metrics.test_bowlers ? ` (${card.metrics.test_bowlers} bowlers)` : ''}</Text>
           )}
-
-          {/* ---- hand-off to C4 ---- */}
-          {result.sent_to_c4 !== false && (
-            <Banner tone="info" icon="git-merge-outline" title="Sent to the prevention plan (C4)">
-              <Body muted>Generate a new plan to turn this risk score and its top factors into actions.</Body>
-            </Banner>
-          )}
-          <Button title="Open prevention plan" variant="secondary" icon="clipboard-outline" onPress={() => router.push('/plan')} />
-
-          {/* ---- history ---- */}
-          {history.length > 1 && (
-            <>
-              <H>Risk history</H>
-              <Card>
-                <HistoryStrip items={history} />
-                {history.slice(0, 4).map((h) => (
-                  <View key={h.id} style={s.histItem}>
-                    <Text style={s.histDate}>{h.as_of}</Text>
-                    <Text style={s.histScore}>{Math.round(h.risk_score * 100)}</Text>
-                    <LevelBadge level={h.risk_level} tier={h.risk_tier ?? undefined} />
-                  </View>
-                ))}
-              </Card>
-            </>
-          )}
-
-          {/* ---- model card ---- */}
-          <Pressable onPress={() => setShowModel((v) => !v)} accessibilityRole="button" style={s.toggle}>
-            <Ionicons name={showModel ? 'chevron-up' : 'information-circle-outline'} size={16} color={colors.accent} />
-            <Text style={s.toggleText}>{showModel ? 'Hide model details' : 'About this model'}</Text>
-          </Pressable>
-          {showModel && card && (
-            <Card>
-              <Text style={s.kv}>Model <Text style={s.v}>{card.model}</Text> · trained {card.created}</Text>
-              <Text style={s.kv}>Training data <Text style={s.v}>{card.synthetic ? 'synthetic' : card.training_data.source}</Text>
-                {card.training_data.sessions ? ` · ${card.training_data.sessions} sessions, ${card.training_data.bowlers} bowlers` : ''}</Text>
-              <Text style={s.kv}>Cross-validated AUC <Text style={s.v}>{card.metrics.cv_auc_mean.toFixed(2)}{card.metrics.cv_auc_sd != null ? ` ± ${card.metrics.cv_auc_sd.toFixed(2)}` : ''}</Text> (grouped by bowler)</Text>
-              {card.metrics.test?.auc != null && (
-                <Text style={s.kv}>Held-out test <Text style={s.v}>AUC {card.metrics.test.auc.toFixed(2)} · recall {card.metrics.test.recall?.toFixed(2)} · precision {card.metrics.test.precision?.toFixed(2)}</Text>
-                  {card.metrics.test_bowlers ? ` (${card.metrics.test_bowlers} bowlers)` : ''}</Text>
-              )}
-              <Text style={s.kv}>Alert at <Text style={s.v}>{pctText(card.thresholds.probability.alert)}</Text> 4-week probability (score 30) · squad average {pctText(card.base_rate)}</Text>
-              <Body muted>XGBoost with clinically agreed directions of effect, calibrated to a probability; each factor's contribution is computed with TreeSHAP. Decision support only – not a diagnosis.</Body>
-            </Card>
-          )}
-          <Text style={s.footer}>{result.model} · {result.latency_ms} ms · {new Date(result.generated_at).toLocaleString()}</Text>
-        </>
+          <Text style={s.kv}>Alert at <Text style={s.v}>{pctText(card.thresholds.probability.alert)}</Text> 4-week probability (score 30) · squad average {pctText(card.base_rate)}</Text>
+          <Small>XGBoost with clinically agreed directions of effect, calibrated to a probability; each factor’s contribution is computed with TreeSHAP. Decision support only — not a diagnosis.</Small>
+          <Small>{result.model} · {result.latency_ms} ms · {new Date(result.generated_at).toLocaleString()}</Small>
+        </Card>
       )}
 
       <FactorDetail f={detail} onClose={() => setDetail(null)} />
@@ -272,22 +245,33 @@ export default function RiskScreen() {
   );
 }
 
+function Ingredient({ icon, title, onPress }: { icon: keyof typeof Ionicons.glyphMap; title: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [s.ing, pressed && { opacity: 0.7 }]}>
+      <Ionicons name={icon} size={20} color={colors.primary} />
+      <Text style={[t.body, { flex: 1, color: colors.text }]}>{title}</Text>
+      <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+    </Pressable>
+  );
+}
+
 const s = StyleSheet.create({
-  code: { color: colors.text, fontSize: 16, fontWeight: '700' },
-  prob: { color: colors.muted, fontSize: 13, lineHeight: 19 },
-  probStrong: { color: colors.text, fontWeight: '800', fontSize: 15 },
-  bulletRow: { flexDirection: 'row', gap: 8 },
-  bullet: { color: colors.accent, fontSize: 14, lineHeight: 20 },
-  line: { color: colors.text, fontSize: 14, lineHeight: 20, flex: 1, opacity: 0.92 },
-  note: { color: colors.muted, fontSize: 12, marginTop: 4 },
-  toggle: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 12, minHeight: 44 },
-  toggleText: { color: colors.accent, fontWeight: '700', fontSize: 14 },
-  small: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
-  noteLine: { color: colors.muted, fontSize: 13, lineHeight: 19 },
+  between: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  prob: { color: colors.muted, fontSize: 14, lineHeight: 20 },
+  probStrong: { color: colors.text, fontWeight: '800' },
+  bulletRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
+  bullet: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.primary, marginTop: 8 },
+  line: { color: colors.textSoft, fontSize: 15, lineHeight: 22, flex: 1 },
+  tiles: { flexDirection: 'row', gap: 10 },
+  planLink: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  planIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  planTitle: { color: colors.text, fontWeight: '700', fontSize: 16 },
   histItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 4 },
-  histDate: { color: colors.muted, fontSize: 13, width: 92 },
-  histScore: { color: colors.text, fontSize: 15, fontWeight: '800', width: 34 },
-  kv: { color: colors.muted, fontSize: 13, lineHeight: 19 },
+  histDate: { color: colors.muted, fontSize: 14, width: 110 },
+  histScore: { color: colors.text, fontSize: 16, fontWeight: '800', width: 34 },
+  toggle: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, minHeight: 44, alignSelf: 'center' },
+  toggleText: { color: colors.primary, fontWeight: '700', fontSize: 15 },
+  kv: { color: colors.muted, fontSize: 14, lineHeight: 20 },
   v: { color: colors.text, fontWeight: '700' },
-  footer: { color: colors.muted, fontSize: 12, textAlign: 'center' },
+  ing: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 48 },
 });

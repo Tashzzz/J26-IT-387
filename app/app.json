@@ -6,8 +6,8 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "cricshield",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#0A1120",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F4F6FB",
     "ios": {
       "supportsTablet": true
     },
