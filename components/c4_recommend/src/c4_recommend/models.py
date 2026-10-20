@@ -204,6 +204,65 @@ class Feedback(FeedbackCreate):
     created_at: datetime
 
 
+# ---------------------------------------------------------------------------
+# Week planner (weekplan.py - research layer 2: model-guided next-week plan)
+# ---------------------------------------------------------------------------
+class WeekPlanDay(BaseModel):
+    session_date: date
+    weekday: str
+    session_type: str
+    overs: float
+
+
+class WeekPlanOption(BaseModel):
+    label: str
+    days: list[WeekPlanDay]
+    total_overs: float
+    bowling_days: int
+    matches: int
+    overs_kept_pct: float
+    peak_risk: float = Field(description="Highest predicted daily risk score (0-1) during the week")
+    end_risk: float
+    daily_risk: list[float]
+    risk_14d: float = Field(description="Predicted chance of injury over this week + the usual week after (0-1)")
+
+
+class WeekPlanTechnique(BaseModel):
+    feature: str
+    label: str
+    limit: float
+    current: float
+    breached_deliveries: int
+    deliveries: int
+    risk_now: float
+    risk_if_corrected: float
+    change: float
+
+
+class WeekPlanResult(BaseModel):
+    bowler_id: str
+    as_of: date
+    model: str
+    synthetic_model: bool
+    risk_now: float
+    tier: Tier
+    mode: Literal["tradeoff", "keep_bowling", "lower_risk", "state"] = "tradeoff"
+    over_value: float = Field(description="tradeoff mode: predicted 14-day risk one over must buy to be cut")
+    status: Literal["no_change", "rule_plan_kept", "optimised", "safety_stop"]
+    usual: WeekPlanOption
+    rule_plan: WeekPlanOption
+    recommended: WeekPlanOption
+    risk_reduction: float = Field(description="Usual minus recommended 14-day risk (probability points)")
+    overs_saved_vs_rules: float = Field(description="Recommended minus rule-plan overs this week")
+    alternatives: list[WeekPlanOption]
+    technique: list[WeekPlanTechnique]
+    explanation: str
+    referral_advised: bool
+    candidates_evaluated: int
+    assumptions: list[str]
+    latency_ms: float
+
+
 class StatelessRequest(BaseModel):
     """Everything inline - used by tests, experiments and teammates."""
     athlete: AthleteCreate
