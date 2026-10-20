@@ -10,7 +10,8 @@ import { c3 } from '../../src/api/risk';
 import type { HistoryItem } from '../../src/c3/types';
 import type { PreventionPlan, Upstream, Workload } from '../../src/c4/types';
 import { PACE_LABEL, useApp } from '../../src/shell/AppContext';
-import { openAnalysis, openPlan, openRisk } from '../../src/shell/links';
+import { useAnalysis } from '../../src/analysis/AnalysisContext';
+import { openPlan, openRisk } from '../../src/shell/links';
 import { QuickLogCard } from '../../src/shell/QuickLogCard';
 import { RiskHistoryChart } from '../../src/shell/RiskHistoryChart';
 import { ageOf, ago, levelOf, useSquad } from '../../src/shell/squad';
@@ -38,6 +39,7 @@ export default function BowlerProfile() {
   const id = Number(useLocalSearchParams<{ id: string }>().id);
   const { byId, loading: squadLoading, refresh: refreshSquad } = useSquad();
   const { extras } = useApp();
+  const { begin } = useAnalysis();
   const row = byId(id);
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -124,7 +126,7 @@ export default function BowlerProfile() {
           )}
       </Card>
 
-      <PrimaryButton title="▶  New analysis" onPress={() => openAnalysis(router, a.id)} style={{ minHeight: 64 }} />
+      <PrimaryButton title="▶  New analysis" onPress={() => { begin(a); router.push('/analyse/setup'); }} style={{ minHeight: 64 }} />
 
       <QuickLogCard athleteId={a.id} onLogged={reload} />
 

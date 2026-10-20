@@ -4,6 +4,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar, color, font, glow, radius, RiskBadge, sp, Tag } from '../ui';
+import { useApp } from './AppContext';
 import { ageOf, ago, type SquadRow } from './squad';
 
 const LEVEL: Record<string, string> = { school: 'School', club: 'Club', provincial: 'Provincial', national: 'National' };
@@ -15,7 +16,8 @@ export function BowlerCard({ row, onPress, selected, right }: {
   right?: React.ReactNode;
 }) {
   const a = row.athlete;
-  const status = row.latest ? `Assessed ${ago(row.latest.created_at)}` : 'No risk assessment yet';
+  const analysed = useApp().extras[a.id]?.lastAnalysedAt;
+  const status = analysed ? `Analysed ${ago(analysed)}` : row.latest ? `Assessed ${ago(row.latest.created_at)}` : 'No risk assessment yet';
   const deliveries = row.deliveries == null ? null
     : row.deliveries === 0 ? 'Not analysed yet' : `${row.deliveries} ${row.deliveries === 1 ? 'delivery' : 'deliveries'} analysed`;
   return (

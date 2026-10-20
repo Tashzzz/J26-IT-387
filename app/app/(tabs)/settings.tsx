@@ -2,7 +2,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Switch, Text, View } from 'react-native';
 
 import { c1 } from '../../src/api/c1';
 import { c2 } from '../../src/api/c2';
@@ -11,7 +11,7 @@ import { c3 } from '../../src/api/risk';
 import { useApp } from '../../src/shell/AppContext';
 import { useSquad } from '../../src/shell/squad';
 import {
-  Card, color, COMPONENT, COMPONENT_KEYS, font, GradientHeader, PrimaryButton, RISK, Screen, SecondaryButton, sp, TextField,
+  Card, color, COMPONENT, COMPONENT_KEYS, font, GradientHeader, gradient, PrimaryButton, RISK, Screen, SecondaryButton, sp, TextField,
   type ComponentKey,
 } from '../../src/ui';
 
@@ -20,7 +20,7 @@ const PINGS: Record<ComponentKey, () => Promise<unknown>> = { c1: c1.ping, c2: c
 
 export default function Settings() {
   const router = useRouter();
-  const { coach, saveCoach, apiBase, changeApiBase, resetOnboarding } = useApp();
+  const { coach, saveCoach, apiBase, changeApiBase, resetOnboarding, researchMode, setResearchMode } = useApp();
   const { refresh } = useSquad();
   const [name, setName] = useState(coach.name);
   const [team, setTeam] = useState(coach.team);
@@ -83,6 +83,17 @@ export default function Settings() {
       </Card>
 
       <Card>
+        <View style={s.switchRow}>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={s.h2}>Research mode</Text>
+            <Text style={s.muted}>Shows which team member owns each result screen (C1 Nethmi · C2 Tashini · C3 Rizma · C4 Rashmi).</Text>
+          </View>
+          <Switch value={researchMode} onValueChange={setResearchMode} accessibilityLabel="Research mode"
+            trackColor={{ true: gradient.brand[1], false: color.surface2 }} thumbColor={color.text} />
+        </View>
+      </Card>
+
+      <Card>
         <Text style={s.h2}>Data</Text>
         <SecondaryButton title="Reset demo bowlers" icon="refresh" onPress={resetDemo} loading={busy} />
         {msg && <Text style={s.muted}>{msg}</Text>}
@@ -101,6 +112,7 @@ export default function Settings() {
 const s = StyleSheet.create({
   h2: { ...font.h2, color: color.text },
   muted: { ...font.body, color: color.muted },
+  switchRow: { flexDirection: 'row', alignItems: 'center', gap: sp(2) },
   ping: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
   pingName: { ...font.body, fontWeight: '700', width: 140 },
   pingText: { ...font.caption, color: color.muted, flex: 1 },

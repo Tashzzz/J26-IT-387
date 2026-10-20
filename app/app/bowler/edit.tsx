@@ -1,13 +1,16 @@
 // Add a bowler (no id) or edit one (?id=). Same payload as C4's profile screen.
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
+import { useAnalysis } from '../../src/analysis/AnalysisContext';
 import { BowlerForm } from '../../src/shell/BowlerForm';
 import { nextCode, useSquad } from '../../src/shell/squad';
 import { EmptyState, Screen, Skeleton } from '../../src/ui';
 
 export default function EditBowler() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  // then=analyse: added from analysis step 1 -> continue to camera setup with the new bowler.
+  const { id, then } = useLocalSearchParams<{ id?: string; then?: string }>();
+  const { begin } = useAnalysis();
   const { rows, loading, refresh, byId } = useSquad();
   const row = id ? byId(Number(id)) : undefined;
   const codes = rows.map((r) => r.athlete.bowler_id);
@@ -22,6 +25,7 @@ export default function EditBowler() {
             onSaved={async (a) => {
               await refresh();
               if (id) router.back();
+              else if (then === 'analyse') { begin(a); router.replace('/analyse/setup'); }
               else router.replace({ pathname: '/bowler/[id]', params: { id: String(a.id) } });
             }} />
         )}

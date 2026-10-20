@@ -3,6 +3,7 @@
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
+import { AnalysisProvider } from '../src/analysis/AnalysisContext';
 import { AppProvider } from '../src/shell/AppContext';
 import { SquadProvider } from '../src/shell/squad';
 import { color, gradient } from '../src/ui';
@@ -15,20 +16,27 @@ export default function RootLayout() {
       <StatusBar style="light" />
       <AppProvider>
         <SquadProvider>
-          <Stack screenOptions={{
-            headerStyle: { backgroundColor: color.surface }, headerTintColor: color.text, headerShadowVisible: false,
-            contentStyle: { backgroundColor: color.bg }, headerBackTitle: 'Back',
-          }}>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
-            <Stack.Screen name="bowler/[id]" options={{ title: 'Bowler' }} />
-            <Stack.Screen name="bowler/edit" options={{ title: 'Bowler details', presentation: 'modal' }} />
-            <Stack.Screen name="capture/index" options={{ title: 'Capture (C1)' }} />
-            <Stack.Screen name="reliability/index" options={{ title: 'Reliability (C1)' }} />
-            <Stack.Screen name="features/index" options={{ title: 'Biomechanics (C2)' }} />
-            <Stack.Screen name="risk/index" options={{ title: 'Risk (C3)' }} />
-            <Stack.Screen name="plan" options={{ headerShown: false }} />
-          </Stack>
+          <AnalysisProvider>
+            <Stack screenOptions={{
+              headerStyle: { backgroundColor: color.surface }, headerTintColor: color.text, headerShadowVisible: false,
+              contentStyle: { backgroundColor: color.bg }, headerBackTitle: 'Back',
+            }}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
+              <Stack.Screen name="bowler/[id]" options={{ title: 'Bowler' }} />
+              <Stack.Screen name="bowler/edit" options={{ title: 'Bowler details', presentation: 'modal' }} />
+              <Stack.Screen name="analyse/setup" options={{ title: 'Camera setup' }} />
+              <Stack.Screen name="analyse/video" options={{ title: 'Video' }} />
+              <Stack.Screen name="analyse/run" options={{ title: 'Analysing' }} />
+              <Stack.Screen name="analyse/results" options={{ title: 'Results', headerBackVisible: false, gestureEnabled: false }} />
+              <Stack.Screen name="analyse/details" options={{ title: 'Full results' }} />
+              <Stack.Screen name="capture/index" options={{ title: 'Capture (C1)' }} />
+              <Stack.Screen name="reliability/index" options={{ title: 'Reliability (C1)' }} />
+              <Stack.Screen name="features/index" options={{ title: 'Biomechanics (C2)' }} />
+              <Stack.Screen name="risk/index" options={{ title: 'Risk (C3)' }} />
+              <Stack.Screen name="plan" options={{ headerShown: false }} />
+            </Stack>
+          </AnalysisProvider>
         </SquadProvider>
       </AppProvider>
     </ThemeProvider>

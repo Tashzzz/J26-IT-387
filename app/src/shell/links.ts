@@ -19,9 +19,3 @@ export async function openRisk(router: Router, athleteId: number) {
   await select(athleteId);
   router.push('/risk');
 }
-
-/** Start a new analysis (C1 capture for now; Phase 4 replaces this with the guided flow). */
-export async function openAnalysis(router: Router, athleteId?: number) {
-  if (athleteId != null) await select(athleteId);
-  router.push('/capture');
-}
