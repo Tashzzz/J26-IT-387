@@ -1,0 +1,548 @@
+{
+  "split": "test",
+  "sessions": 366,
+  "bowlers": 29,
+  "flagged_sessions": 134,
+  "oracle_check": {
+    "terms_checked": 1800,
+    "max_abs_error": 0.010905105054355824,
+    "mean_abs_error": 6.824904038706024e-05
+  },
+  "tiers": {
+    "Low": 232,
+    "Moderate": 93,
+    "High": 35,
+    "Critical": 6
+  },
+  "whatif_status": {
+    "no_change": 290,
+    "optimised": 70,
+    "safety_stop": 6
+  },
+  "whatif_keep_status": {
+    "no_change": 306,
+    "rule_plan_kept": 32,
+    "optimised": 22,
+    "safety_stop": 6
+  },
+  "policies": {
+    "all": {
+      "usual": {
+        "true_risk_28d_mean": 0.06351932254281002,
+        "expected_injuries_per_100": 6.351932254281002,
+        "true_risk_week1_mean": 0.021912557394346138,
+        "c3_peak_risk_mean": 0.2815793471320704,
+        "share_below_alert_c3": 0.6038251366120219,
+        "overs_kept_pct": 100.0,
+        "bowling_days_mean": 3.73224043715847,
+        "matches_kept_pct": 100.0
+      },
+      "ecb": {
+        "true_risk_28d_mean": 0.05887381144419264,
+        "expected_injuries_per_100": 5.887381144419264,
+        "true_risk_week1_mean": 0.016801977008569145,
+        "c3_peak_risk_mean": 0.2756879972255475,
+        "share_below_alert_c3": 0.6120218579234973,
+        "overs_kept_pct": 89.76547275048719,
+        "bowling_days_mean": 3.3114754098360657,
+        "matches_kept_pct": 92.42902208201893,
+        "relative_risk_reduction_pct": 7.31354005780911,
+        "injuries_prevented_per_1000_overs_removed": 2.232773554949392
+      },
+      "rules": {
+        "true_risk_28d_mean": 0.05771472355174453,
+        "expected_injuries_per_100": 5.771472355174453,
+        "true_risk_week1_mean": 0.015365726735136177,
+        "c3_peak_risk_mean": 0.2748182872148246,
+        "share_below_alert_c3": 0.6120218579234973,
+        "overs_kept_pct": 86.76164236274444,
+        "bowling_days_mean": 3.139344262295082,
+        "matches_kept_pct": 92.42902208201893,
+        "relative_risk_reduction_pct": 9.138320055528581,
+        "injuries_prevented_per_1000_overs_removed": 2.1568357672385496
+      },
+      "whatif": {
+        "true_risk_28d_mean": 0.05556451283030539,
+        "expected_injuries_per_100": 5.556451283030539,
+        "true_risk_week1_mean": 0.012395428783485344,
+        "c3_peak_risk_mean": 0.27390245609527913,
+        "share_below_alert_c3": 0.6174863387978142,
+        "overs_kept_pct": 81.88965795309456,
+        "bowling_days_mean": 2.9234972677595628,
+        "matches_kept_pct": 88.9589905362776,
+        "relative_risk_reduction_pct": 12.523448604388594,
+        "injuries_prevented_per_1000_overs_removed": 2.16063848220905
+      },
+      "whatif_keep": {
+        "true_risk_28d_mean": 0.05772741670113332,
+        "expected_injuries_per_100": 5.772741670113332,
+        "true_risk_week1_mean": 0.015388648149850966,
+        "c3_peak_risk_mean": 0.2745337528803445,
+        "share_below_alert_c3": 0.6120218579234973,
+        "overs_kept_pct": 86.81540219071299,
+        "bowling_days_mean": 3.1830601092896176,
+        "matches_kept_pct": 92.42902208201893,
+        "relative_risk_reduction_pct": 9.118336924599816,
+        "injuries_prevented_per_1000_overs_removed": 2.16089453420354
+      },
+      "whatif_state": {
+        "true_risk_28d_mean": 0.05813850013205682,
+        "expected_injuries_per_100": 5.813850013205682,
+        "true_risk_week1_mean": 0.015483257490579242,
+        "c3_peak_risk_mean": 0.27233538211816166,
+        "share_below_alert_c3": 0.644808743169399,
+        "overs_kept_pct": 87.85027887910759,
+        "bowling_days_mean": 3.2868852459016393,
+        "matches_kept_pct": 92.42902208201893,
+        "relative_risk_reduction_pct": 8.471158374094275,
+        "injuries_prevented_per_1000_overs_removed": 2.1785188078934428
+      },
+      "rest": {
+        "true_risk_28d_mean": 0.054232114035328675,
+        "expected_injuries_per_100": 5.423211403532868,
+        "true_risk_week1_mean": 0.00680463495179377,
+        "c3_peak_risk_mean": 0.2744049570086073,
+        "share_below_alert_c3": 0.6065573770491803,
+        "overs_kept_pct": 66.56138700356159,
+        "bowling_days_mean": 2.401639344262295,
+        "matches_kept_pct": 66.8769716088328,
+        "relative_risk_reduction_pct": 14.62107613194719,
+        "injuries_prevented_per_1000_overs_removed": 1.3662051100233814
+      }
+    },
+    "flagged": {
+      "usual": {
+        "true_risk_28d_mean": 0.1165132769566743,
+        "expected_injuries_per_100": 11.65132769566743,
+        "true_risk_week1_mean": 0.04126492249234453,
+        "c3_peak_risk_mean": 0.46714267606019577,
+        "share_below_alert_c3": 0.022388059701492536,
+        "overs_kept_pct": 100.0,
+        "bowling_days_mean": 3.6343283582089554,
+        "matches_kept_pct": 100.0
+      },
+      "ecb": {
+        "true_risk_28d_mean": 0.1052677533176725,
+        "expected_injuries_per_100": 10.52677533176725,
+        "true_risk_week1_mean": 0.029134246926875614,
+        "c3_peak_risk_mean": 0.4561859906478466,
+        "share_below_alert_c3": 0.029850746268656716,
+        "overs_kept_pct": 82.47588424437299,
+        "bowling_days_mean": 2.962686567164179,
+        "matches_kept_pct": 80.0,
+        "relative_risk_reduction_pct": 9.651710030594591,
+        "injuries_prevented_per_1000_overs_removed": 3.4561930450143112
+      },
+      "rules": {
+        "true_risk_28d_mean": 0.10210188638755305,
+        "expected_injuries_per_100": 10.210188638755305,
+        "true_risk_week1_mean": 0.02521135438899154,
+        "c3_peak_risk_mean": 0.45381051405139455,
+        "share_below_alert_c3": 0.029850746268656716,
+        "overs_kept_pct": 73.4927652733119,
+        "bowling_days_mean": 2.4925373134328357,
+        "matches_kept_pct": 80.0,
+        "relative_risk_reduction_pct": 12.368882710663224,
+        "injuries_prevented_per_1000_overs_removed": 2.9281673028995403
+      },
+      "whatif": {
+        "true_risk_28d_mean": 0.09623272674936942,
+        "expected_injuries_per_100": 9.623272674936942,
+        "true_risk_week1_mean": 0.01710295232466377,
+        "c3_peak_risk_mean": 0.4521934542843536,
+        "share_below_alert_c3": 0.029850746268656716,
+        "overs_kept_pct": 59.08360128617363,
+        "bowling_days_mean": 1.9179104477611941,
+        "matches_kept_pct": 69.52380952380952,
+        "relative_risk_reduction_pct": 17.406213898563887,
+        "injuries_prevented_per_1000_overs_removed": 2.669541972277852
+      },
+      "whatif_keep": {
+        "true_risk_28d_mean": 0.10213655573588361,
+        "expected_injuries_per_100": 10.21365557358836,
+        "true_risk_week1_mean": 0.02527396064112298,
+        "c3_peak_risk_mean": 0.45303335310796367,
+        "share_below_alert_c3": 0.029850746268656716,
+        "overs_kept_pct": 73.65353697749197,
+        "bowling_days_mean": 2.611940298507463,
+        "matches_kept_pct": 80.0,
+        "relative_risk_reduction_pct": 12.339127004501556,
+        "injuries_prevented_per_1000_overs_removed": 2.938948350245541
+      },
+      "whatif_state": {
+        "true_risk_28d_mean": 0.10386544862867887,
+        "expected_injuries_per_100": 10.386544862867888,
+        "true_risk_week1_mean": 0.027101442991404656,
+        "c3_peak_risk_mean": 0.45035460386394893,
+        "share_below_alert_c3": 0.029850746268656716,
+        "overs_kept_pct": 78.61736334405144,
+        "bowling_days_mean": 2.917910447761194,
+        "matches_kept_pct": 80.0,
+        "relative_risk_reduction_pct": 10.85526787878307,
+        "injuries_prevented_per_1000_overs_removed": 3.1857311953973437
+      },
+      "rest": {
+        "true_risk_28d_mean": 0.09114672237653865,
+        "expected_injuries_per_100": 9.114672237653865,
+        "true_risk_week1_mean": 0.0,
+        "c3_peak_risk_mean": 0.447546953782677,
+        "share_below_alert_c3": 0.029850746268656716,
+        "overs_kept_pct": 0.0,
+        "bowling_days_mean": 0.0,
+        "matches_kept_pct": 0.0,
+        "relative_risk_reduction_pct": 21.7713854100664,
+        "injuries_prevented_per_1000_overs_removed": 1.3662051100233827
+      }
+    }
+  },
+  "ecb_vs_rules": {
+    "true_risk_diff_mean": 0.003165866930119463,
+    "true_risk_diff_ci95": [
+      0.0006827963417449037,
+      0.006743536580692505
+    ],
+    "overs_kept_diff_pct_points": 8.983118971061094,
+    "overs_kept_diff_ci95": [
+      5.251922238636088,
+      13.13715711497559
+    ],
+    "sessions_lower_true_risk_pct": 5.223880597014925,
+    "sessions_higher_true_risk_pct": 37.3134328358209,
+    "sessions_more_overs_pct": 42.53731343283582
+  },
+  "whatif_vs_rules": {
+    "true_risk_diff_mean": -0.0058691596381836185,
+    "true_risk_diff_ci95": [
+      -0.014246961477415951,
+      -0.00024867385139324874
+    ],
+    "overs_kept_diff_pct_points": -14.409163987138264,
+    "overs_kept_diff_ci95": [
+      -24.59844483206779,
+      -5.049485560024224
+    ],
+    "sessions_lower_true_risk_pct": 34.32835820895522,
+    "sessions_higher_true_risk_pct": 28.35820895522388,
+    "sessions_more_overs_pct": 14.17910447761194
+  },
+  "whatif_keep_vs_rules": {
+    "true_risk_diff_mean": 3.4669348330587034e-05,
+    "true_risk_diff_ci95": [
+      -1.1226592004001026e-05,
+      8.596771283054403e-05
+    ],
+    "overs_kept_diff_pct_points": 0.1607717041800643,
+    "overs_kept_diff_ci95": [
+      0.0410469163729903,
+      0.31026565597640315
+    ],
+    "sessions_lower_true_risk_pct": 8.208955223880597,
+    "sessions_higher_true_risk_pct": 8.208955223880597,
+    "sessions_more_overs_pct": 5.223880597014925
+  },
+  "whatif_state_vs_rules": {
+    "true_risk_diff_mean": 0.0017635622411258478,
+    "true_risk_diff_ci95": [
+      -0.00010011597916348686,
+      0.004309310675675708
+    ],
+    "overs_kept_diff_pct_points": 5.12459807073955,
+    "overs_kept_diff_ci95": [
+      0.6787672259933291,
+      9.004756873021428
+    ],
+    "sessions_lower_true_risk_pct": 11.940298507462686,
+    "sessions_higher_true_risk_pct": 32.83582089552239,
+    "sessions_more_overs_pct": 38.80597014925373
+  },
+  "counterfactual_validity": {
+    "plan_pairs_compared": 1684,
+    "pairwise_ordering_agreement_pct": 73.15914489311164,
+    "spearman_pred_vs_true_reduction": 0.5386487096417507
+  },
+  "c3_on_usual_vs_label_auc": 0.8745220146400088,
+  "oracle_usual_vs_label_auc": 0.7499726865508576,
+  "latency_ms": {
+    "mean": 83.95218579234972,
+    "p95": 160.875,
+    "candidates_mean": 51.31147540983606
+  },
+  "by_tier": {
+    "Critical": {
+      "usual": {
+        "true_risk_28d_mean": 0.07891528570708468,
+        "overs_kept_pct": 100.0
+      },
+      "ecb": {
+        "true_risk_28d_mean": 0.07891528570708468,
+        "overs_kept_pct": 100.0
+      },
+      "rules": {
+        "true_risk_28d_mean": 0.05973329358937731,
+        "overs_kept_pct": 0.0
+      },
+      "whatif": {
+        "true_risk_28d_mean": 0.05973329358937731,
+        "overs_kept_pct": 0.0
+      },
+      "whatif_keep": {
+        "true_risk_28d_mean": 0.05973329358937731,
+        "overs_kept_pct": 0.0
+      },
+      "whatif_state": {
+        "true_risk_28d_mean": 0.05973329358937731,
+        "overs_kept_pct": 0.0
+      },
+      "rest": {
+        "true_risk_28d_mean": 0.05973329358937731,
+        "overs_kept_pct": 0.0
+      },
+      "sessions": 6
+    },
+    "High": {
+      "usual": {
+        "true_risk_28d_mean": 0.09615620518927859,
+        "overs_kept_pct": 100.0
+      },
+      "ecb": {
+        "true_risk_28d_mean": 0.08853040224493652,
+        "overs_kept_pct": 61.755485893416925
+      },
+      "rules": {
+        "true_risk_28d_mean": 0.08540907972073283,
+        "overs_kept_pct": 47.02194357366771
+      },
+      "whatif": {
+        "true_risk_28d_mean": 0.07242838129784017,
+        "overs_kept_pct": 6.374085684430512
+      },
+      "whatif_keep": {
+        "true_risk_28d_mean": 0.08540938004683424,
+        "overs_kept_pct": 47.02194357366771
+      },
+      "whatif_state": {
+        "true_risk_28d_mean": 0.08822324272955949,
+        "overs_kept_pct": 60.91954022988506
+      },
+      "rest": {
+        "true_risk_28d_mean": 0.06989782543229572,
+        "overs_kept_pct": 0.0
+      },
+      "sessions": 35
+    },
+    "Low": {
+      "usual": {
+        "true_risk_28d_mean": 0.0329107454244574,
+        "overs_kept_pct": 100.0
+      },
+      "ecb": {
+        "true_risk_28d_mean": 0.0320773105345103,
+        "overs_kept_pct": 93.42756183745583
+      },
+      "rules": {
+        "true_risk_28d_mean": 0.0320773105345103,
+        "overs_kept_pct": 93.42756183745583
+      },
+      "whatif": {
+        "true_risk_28d_mean": 0.03207511341153564,
+        "overs_kept_pct": 93.34679454820798
+      },
+      "whatif_keep": {
+        "true_risk_28d_mean": 0.0320773105345103,
+        "overs_kept_pct": 93.42756183745583
+      },
+      "whatif_state": {
+        "true_risk_28d_mean": 0.03172724539693889,
+        "overs_kept_pct": 92.48864209994952
+      },
+      "rest": {
+        "true_risk_28d_mean": 0.0329107454244574,
+        "overs_kept_pct": 100.0
+      },
+      "sessions": 232
+    },
+    "Moderate": {
+      "usual": {
+        "true_risk_28d_mean": 0.12660021737986127,
+        "overs_kept_pct": 100.0
+      },
+      "ecb": {
+        "true_risk_28d_mean": 0.11326691561024547,
+        "overs_kept_pct": 87.28643216080403
+      },
+      "rules": {
+        "true_risk_28d_mean": 0.11111758305559348,
+        "overs_kept_pct": 80.57788944723617
+      },
+      "whatif": {
+        "true_risk_28d_mean": 0.1075461535210197,
+        "overs_kept_pct": 72.33668341708542
+      },
+      "whatif_keep": {
+        "true_risk_28d_mean": 0.1111674237143327,
+        "overs_kept_pct": 80.77889447236181
+      },
+      "whatif_state": {
+        "true_risk_28d_mean": 0.11259953612013038,
+        "overs_kept_pct": 83.64321608040201
+      },
+      "rest": {
+        "true_risk_28d_mean": 0.10117029190096304,
+        "overs_kept_pct": 0.0
+      },
+      "sessions": 93
+    }
+  },
+  "examples": [
+    {
+      "spell": "CS008-W05",
+      "tier": "High",
+      "explanation": "Bowl 0 overs this week (no bowling) instead of your usual 5 (Mon 2, Wed 3). The model predicts your chance of injury over the next 2 weeks falls from 2.4% to 1.2%. The rule plan would be 5 overs (2.4%).",
+      "usual": [
+        "Mon 2",
+        "Wed 3"
+      ],
+      "rules": [
+        "Mon 2",
+        "Wed 3"
+      ],
+      "whatif": [],
+      "true28": {
+        "usual": 0.0024,
+        "ecb": 0.0022,
+        "rules": 0.0022,
+        "whatif": 0.0022,
+        "whatif_keep": 0.0022,
+        "whatif_state": 0.0022,
+        "rest": 0.0022
+      }
+    },
+    {
+      "spell": "CS008-W17",
+      "tier": "Low",
+      "explanation": "Bowl 14.5 overs this week (Wed 3, Sat 9, Mon 2.5) instead of your usual 16.5 (Wed 3, Fri 2, Sat 9, Mon 2.5). The model predicts your chance of injury over the next 2 weeks falls from 2.6% to 2.3%. The rule plan would be 16.5 overs (2.6%).",
+      "usual": [
+        "Wed 3",
+        "Fri 2",
+        "Sat 9",
+        "Mon 2.5"
+      ],
+      "rules": [
+        "Wed 3",
+        "Fri 2",
+        "Sat 9",
+        "Mon 2.5"
+      ],
+      "whatif": [
+        "Wed 3",
+        "Sat 9",
+        "Mon 2.5"
+      ],
+      "true28": {
+        "usual": 0.0063,
+        "ecb": 0.0063,
+        "rules": 0.0063,
+        "whatif": 0.0062,
+        "whatif_keep": 0.0063,
+        "whatif_state": 0.0062,
+        "rest": 0.0063
+      }
+    },
+    {
+      "spell": "CS044-W05",
+      "tier": "High",
+      "explanation": "Bowl 0 overs this week (no bowling) instead of your usual 11.5 (Fri 3.5, Mon 3.5, Wed 4.5). The model predicts your chance of injury over the next 2 weeks falls from 7.3% to 3.7%. The rule plan would be 8 overs (6.2%).",
+      "usual": [
+        "Fri 3.5",
+        "Mon 3.5",
+        "Wed 4.5"
+      ],
+      "rules": [
+        "Fri 3.5",
+        "Wed 4.5"
+      ],
+      "whatif": [],
+      "true28": {
+        "usual": 0.2792,
+        "ecb": 0.2612,
+        "rules": 0.2478,
+        "whatif": 0.2104,
+        "whatif_keep": 0.2485,
+        "whatif_state": 0.2612,
+        "rest": 0.2104
+      }
+    },
+    {
+      "spell": "CS044-W06",
+      "tier": "Moderate",
+      "explanation": "Bowl 0 overs this week (no bowling) instead of your usual 13 (Thu 5.5, Mon 3, Wed 4.5). The model predicts your chance of injury over the next 2 weeks falls from 7.2% to 3.7%. The rule plan would be 13 overs (7.2%).",
+      "usual": [
+        "Thu 5.5",
+        "Mon 3",
+        "Wed 4.5"
+      ],
+      "rules": [
+        "Thu 5.5",
+        "Mon 3",
+        "Wed 4.5"
+      ],
+      "whatif": [],
+      "true28": {
+        "usual": 0.2835,
+        "ecb": 0.2652,
+        "rules": 0.2652,
+        "whatif": 0.2084,
+        "whatif_keep": 0.2652,
+        "whatif_state": 0.2652,
+        "rest": 0.2084
+      }
+    },
+    {
+      "spell": "CS044-W07",
+      "tier": "High",
+      "explanation": "Bowl 0 overs this week (no bowling) instead of your usual 7 (Mon 3, Wed 4). The model predicts your chance of injury over the next 2 weeks falls from 8.6% to 4.4%. The rule plan would be 7 overs (8.6%).",
+      "usual": [
+        "Mon 3",
+        "Wed 4"
+      ],
+      "rules": [
+        "Mon 3",
+        "Wed 4"
+      ],
+      "whatif": [],
+      "true28": {
+        "usual": 0.2568,
+        "ecb": 0.2244,
+        "rules": 0.2244,
+        "whatif": 0.1918,
+        "whatif_keep": 0.2244,
+        "whatif_state": 0.2244,
+        "rest": 0.1918
+      }
+    },
+    {
+      "spell": "CS044-W08",
+      "tier": "High",
+      "explanation": "Bowl 0 overs this week (no bowling) instead of your usual 12.5 (Sat 9, Mon 3.5). The model predicts your chance of injury over the next 2 weeks falls from 7.7% to 4.0%. The rule plan would be 10.5 overs (7.1%).",
+      "usual": [
+        "Sat 9",
+        "Mon 3.5"
+      ],
+      "rules": [
+        "Sat 7",
+        "Mon 3.5"
+      ],
+      "whatif": [],
+      "true28": {
+        "usual": 0.4233,
+        "ecb": 0.3593,
+        "rules": 0.3512,
+        "whatif": 0.3141,
+        "whatif_keep": 0.3512,
+        "whatif_state": 0.3593,
+        "rest": 0.3141
+      }
+    }
+  ],
+  "runtime_s": 138.6
+}
