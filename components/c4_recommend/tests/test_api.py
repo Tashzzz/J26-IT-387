@@ -114,3 +114,19 @@ def test_stateless_from_c3_with_team_sample():
         "athlete": {"bowler_id": "B03", "birth_year": 2009, "dominant_arm": "right", "playing_level": "club"},
         "upstream": {"c3": c3}})
     assert r.status_code == 200 and r.json()["risk_source"] == "c3"
+
+
+def test_whatif_endpoint_ranks_actions_or_fails_safely():
+    """200 with ranked scenarios when C3's model is available, otherwise a clear 503 - never a crash."""
+    r = client.post(f"{R}/athletes/3/whatif")
+    assert r.status_code in (200, 503)
+    if r.status_code == 503:
+        assert "C3" in r.json()["detail"] or "model" in r.json()["detail"]
+        return
+    body = r.json()
+    assert body["bowler_id"] == "DEMO03"
+    effects = [s["effect"] for s in body["scenarios"]]
+    assert effects == sorted(effects, reverse=True)
+    assert body["best_plan"]["risk"] <= body["base_risk"]
+    assert body["referral_required"] is True          # what-if never removes a referral
+    assert client.post(f"{R}/athletes/9999/whatif").status_code == 404
