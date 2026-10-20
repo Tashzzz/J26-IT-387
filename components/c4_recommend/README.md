@@ -43,6 +43,49 @@ profile ────────┘
 - **Critical means stop.** At Critical tier, volume advice is suppressed (no "bowl 12 overs" next to "do not bowl") and technique work is deferred until clearance.
 - **Status:** thresholds are DRAFT, anchored to published guidelines, pending the physiotherapist validation session (see `docs/decisions.md`).
 
+## Research extension – model-guided "what-if" check (counterfactual simulation)
+
+The rules decide **what is safe and evidence-based** to recommend. The what-if check asks
+**C3's risk model how much each action would lower the risk for this bowler**, so the plan is
+ranked by predicted effect instead of only by rule priority.
+
+```
+bowler's real inputs ──► C3 model ──► risk now (63)
+      │
+      ├─ copy + "side-bend 52° → 35°"        ──► C3 model ──► 47   effect −15
+      ├─ copy + "SCR 41° → 28°"              ──► C3 model ──► 59   effect −4
+      ├─ copy + "week's overs to ACWR 1.1"   ──► C3 model ──► 59   effect −3
+      └─ greedy best combination             ──► C3 model ──► 40   (High → Moderate)
+```
+
+| | |
+|---|---|
+| Code | `src/c4_recommend/whatif.py` · API `POST /recommend/athletes/{id}/whatif` · app: Plan tab card + **Model check** screen |
+| Changes only actionable inputs | overs (to the safe ACWR band / daily limit), rest days, technique angles (just inside the C2 limit). Age, level and injury history are never changed |
+| Safety | the what-if only **ranks** actions; referrals and "no bowling" decisions from the rules always stay |
+| Model-agnostic | C3 is passed in as a `scorer(athlete, workloads, c2_rows)` function – works with today's XGBoost and later with the XGBoost–LSTM hybrid |
+| Honest limits | retrospective ("if this week had followed the action"); a statistical model shows association, not proven cause; effects < 2 points are flagged as too small; C3 is trained on synthetic data |
+| Method background | counterfactual explanations – Wachter, Mittelstadt & Russell (2018); DiCE – Mothilal, Sharma & Tan (2020) |
+
+### Research questions (one-year scope)
+
+| RQ | Question | How it is measured | Script |
+|---|---|---|---|
+| RQ1 | Do physiotherapists agree with C4's tier and referral decisions? | Cohen's κ on 12 labelled cases | `experiments/evaluate.py` |
+| RQ-W1 | Does model-guided ranking change the plan order vs rule priority? | Kendall's τ per case | `experiments/whatif_study.py` |
+| RQ-W2 | Is the model's behaviour clinically plausible (a fix never raises risk)? | share of plausible scenarios | `experiments/whatif_study.py` |
+| RQ-W3 | Do experts prefer the model-guided plan? | blinded A/B sheet (`whatif_ab_sheet.csv`, key kept separately) + usefulness 1–5 | `experiments/whatif_study.py` |
+| RQ3 | Do plain-language explanations raise coach trust and usability? | SUS ≥ 68, Likert trust questions | app feedback + questionnaire |
+
+First run (20 Oct 2026, synthetic C3 model, 12 cases): τ = 0.50 (the model re-orders half of the
+multi-action plans), 11/11 scenarios plausible, technique fixes had the largest mean effect
+(+4.1 points) while load reductions moved the synthetic model little (+1.8) – a finding to discuss
+with C3 (literature says load spikes matter strongly, Hulin et al. 2014).
+
+```bash
+python experiments/whatif_study.py      # needs C3's model (components/c3_risk/README.md)
+```
+
 ## Run
 
 ```bash
@@ -52,7 +95,7 @@ python -m venv .venv
 pip install -r requirements.txt
 pip install -e .
 
-python -m pytest                    # 373 tests: unit, rule coverage, contracts, API, bad input
+python -m pytest                    # 389 tests: unit, rule coverage, contracts, API, bad input, what-if
 python -m c4_recommend --c3 ../../contracts/samples/c3_sample.json --c2 ../../contracts/samples/c2_sample.json
 python experiments/evaluate.py      # expert-agreement sheet + latency
 ```
