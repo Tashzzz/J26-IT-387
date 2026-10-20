@@ -27,6 +27,8 @@ from typing import Optional
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
+from app import cloud
+
 ROOT = Path(__file__).resolve().parents[3]
 C1_DIR = ROOT / "components" / "c1_pose"
 RUNS_DIR = ROOT / "data" / "c1_runs"
@@ -122,7 +124,7 @@ def process(
     with open(result["json_path"]) as f:
         c1_json = json.load(f)
 
-    return {
+    response = {
         "run_id": run_id,
         "clip_id": result["clip_id"],
         "bowling_arm": bowling_arm.strip().lower(),
@@ -133,6 +135,8 @@ def process(
         "keypoints_url": f"/pose/runs/{run_id}/keypoints",
         "reliability": reliability_summary(c1_json.get("reliability")),
     }
+    cloud.c1_run(run_id, response, c1_json)
+    return response
 
 
 @router.get("/runs/{run_id}/overlay")

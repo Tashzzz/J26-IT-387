@@ -19,6 +19,8 @@ from typing import Optional
 
 from fastapi import APIRouter, Body, HTTPException
 
+from app import cloud
+
 # Use the installed package (pip install -e components/c2_biomech); fall back to the
 # monorepo source folder so the API also runs without installing it.
 try:
@@ -64,7 +66,9 @@ def compute(
     include_series: bool = True,
 ):
     overrides = {"bfc_frame": bfc_frame, "ffc_frame": ffc_frame, "release_frame": release_frame}
-    return _run(c1, overrides, include_series)
+    row = _run(c1, overrides, include_series)
+    cloud.c2_row(row)
+    return row
 
 
 @router.get("/demo")

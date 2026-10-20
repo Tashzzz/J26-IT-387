@@ -4,9 +4,12 @@ Run from the backend folder:
   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 """
 
-from fastapi import FastAPI
+from datetime import datetime, timezone
+
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.firebase import FirebaseNotConfigured, db
 from app.routers import features, pose, recommend, risk
 
 app = FastAPI(title="CricShield API", version="0.1.0")
@@ -28,3 +31,16 @@ app.include_router(recommend.router, prefix="/recommend", tags=["C4 recommend"])
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/health/firebase")
+def firebase_health():
+    """Writes and reads back one Firestore document to prove the connection works."""
+    try:
+        ref = db().collection("_health").document("ping")
+        ref.set({"at": datetime.now(timezone.utc)})
+        return {"status": "ok", "firestore": ref.get().to_dict()}
+    except FirebaseNotConfigured as e:
+        raise HTTPException(503, str(e))
+    except Exception as e:  # e.g. Firestore not created yet in the console
+        raise HTTPException(502, f"Firebase error: {e}")

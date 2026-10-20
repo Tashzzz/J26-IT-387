@@ -41,6 +41,8 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 
+from app import cloud
+
 # Use the installed package (pip install -e components/c4_recommend); fall back to the
 # monorepo source folder so the API also runs without installing it.
 try:
@@ -92,6 +94,7 @@ def create_athlete(body: AthleteCreate):
     if any(a["bowler_id"] == body.bowler_id for a in store.list_athletes()):
         raise HTTPException(409, f"Bowler {body.bowler_id} already exists")
     aid = store.create_athlete(body.model_dump(mode="json"))
+    cloud.c4_athlete(aid)
     return {"id": aid, **body.model_dump()}
 
 
@@ -104,6 +107,7 @@ def get_athlete(aid: int):
 def update_athlete(aid: int, body: AthleteCreate):
     _athlete_or_404(aid)
     store.update_athlete(aid, body.model_dump(mode="json"))
+    cloud.c4_athlete(aid)
     return {"id": aid, **body.model_dump()}
 
 
@@ -118,13 +122,17 @@ def list_workloads(aid: int):
 def add_workload(aid: int, body: WorkloadCreate):
     _athlete_or_404(aid)
     wid = store.add_workload(aid, body.model_dump(mode="json"))
+    cloud.c4_workload(aid, {"id": wid, "athlete_id": aid, **body.model_dump(mode="json")})
     return {"id": wid, "athlete_id": aid, **body.model_dump()}
 
 
 @router.delete("/workloads/{wid}", status_code=204)
 def delete_workload(wid: int):
+    with store.conn() as c:
+        row = c.execute("SELECT athlete_id FROM workloads WHERE id=?", (wid,)).fetchone()
     if not store.delete_workload(wid):
         raise HTTPException(404, "Workload entry not found")
+    cloud.c4_workload_deleted(wid, row["athlete_id"])
 
 
 # --- integration -------------------------------------------------------------
@@ -135,6 +143,7 @@ def receive_upstream(aid: int, body: UpstreamInput):
         if code != a["bowler_id"]:
             raise HTTPException(422, f"Input is for bowler {code}, but athlete {aid} is {a['bowler_id']}")
     store.save_upstream(aid, body.model_dump(mode="json"))
+    cloud.c4_upstream(aid)
     return {"accepted": True}
 
 
@@ -161,6 +170,7 @@ def _build(aid: int, upstream: Optional[UpstreamInput]) -> PreventionPlan:
 def create_plan(aid: int):
     plan = _build(aid, None)
     plan.id = store.save_plan(aid, plan.model_dump(mode="json"))
+    cloud.c4_plan(aid, store.get_plan(plan.id))
     return plan
 
 
@@ -184,7 +194,11 @@ def add_feedback(pid: int, body: FeedbackCreate):
         raise HTTPException(404, "Plan not found")
     if body.decision == "modify" and not body.modified_action:
         raise HTTPException(422, "modified_action is required when decision is 'modify'")
-    return store.add_feedback(pid, body.model_dump())
+    feedback = store.add_feedback(pid, body.model_dump())
+    with store.conn() as c:
+        aid = c.execute("SELECT athlete_id FROM plans WHERE id=?", (pid,)).fetchone()["athlete_id"]
+    cloud.c4_feedback(aid, feedback)
+    return feedback
 
 
 @router.post("/from-c3", response_model=PreventionPlan)
@@ -197,6 +211,8 @@ def from_c3(body: StatelessRequest):
 def demo_reset():
     from c4_recommend.seed import seed
     seed()
+    cloud.delete_collection("athletes")  # same ids are reused, so clear the old copies first
+    cloud.c4_everything()
     return {"reset": True, "athletes": len(store.list_athletes())}
 
 

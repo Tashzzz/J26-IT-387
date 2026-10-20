@@ -90,6 +90,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     })();
   }, [refreshAthletes]);
 
+  // Offline: keep retrying so the app recovers once the backend comes up.
+  useEffect(() => {
+    if (online !== false) return;
+    const id = setInterval(refreshAthletes, 5000);
+    return () => clearInterval(id);
+  }, [online, refreshAthletes]);
+
   // Switching bowler: show their last saved plan straight away (also the offline fallback).
   useEffect(() => {
     if (selectedId == null) return;
