@@ -28,6 +28,7 @@ export default function Features() {
   const [error, setError] = useState<string | null>(null);
   const [frames, setFrames] = useState({ bfc: '', ffc: '', release: '' });
   const [showNotes, setShowNotes] = useState(false);
+  const [showFrames, setShowFrames] = useState(false); // frame boxes are hidden unless the user wants to correct them
 
   // Limits + meanings: loaded once. Not fatal if it fails (the cards still show value and limit).
   useEffect(() => {
@@ -71,6 +72,7 @@ export default function Features() {
   useEffect(() => {
     setRow(null);
     setFrames({ bfc: '', ffc: '', release: '' });
+    setShowFrames(false);
     if (runId) analyseRun(runId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId]);
@@ -123,16 +125,22 @@ export default function Features() {
           <EventsCard events={row.events} method={row.event_method} fps={row.fps} />
 
           {source === 'capture' && runId && (
-            <Card>
-              <Body muted>BFC and FFC cannot be found automatically yet. Type the frames from the video to get shoulder counter-rotation. Leave a box empty to let C2 find it.</Body>
-              <Row>
-                <Field half label="BFC frame" keyboardType="number-pad" value={frames.bfc} onChangeText={(t) => setFrames({ ...frames, bfc: t })} />
-                <Field half label="FFC frame" keyboardType="number-pad" value={frames.ffc} onChangeText={(t) => setFrames({ ...frames, ffc: t })} />
-                <Field half label="Release frame" keyboardType="number-pad" value={frames.release} onChangeText={(t) => setFrames({ ...frames, release: t })} />
-              </Row>
-              <Button title="Recompute with these frames" icon="refresh-outline" variant="secondary"
-                onPress={() => analyseRun(runId, { bfc_frame: toFrame(frames.bfc), ffc_frame: toFrame(frames.ffc), release_frame: toFrame(frames.release) })} />
-            </Card>
+            <>
+              <Button title={showFrames ? 'Hide event frames' : 'Correct event frames (optional)'} icon="create-outline"
+                variant="secondary" onPress={() => setShowFrames(!showFrames)} />
+              {showFrames && (
+                <Card>
+                  <Body muted>Only if an event above is wrong: type the right frame from the video and recompute. Leave a box empty to keep the automatic frame.</Body>
+                  <Row>
+                    <Field half label="BFC frame" placeholder={String(row.events.bfc_frame ?? '')} keyboardType="number-pad" value={frames.bfc} onChangeText={(t) => setFrames({ ...frames, bfc: t })} />
+                    <Field half label="FFC frame" placeholder={String(row.events.ffc_frame ?? '')} keyboardType="number-pad" value={frames.ffc} onChangeText={(t) => setFrames({ ...frames, ffc: t })} />
+                    <Field half label="Release frame" placeholder={String(row.events.release_frame ?? '')} keyboardType="number-pad" value={frames.release} onChangeText={(t) => setFrames({ ...frames, release: t })} />
+                  </Row>
+                  <Button title="Recompute with these frames" icon="refresh-outline" variant="secondary"
+                    onPress={() => analyseRun(runId, { bfc_frame: toFrame(frames.bfc), ffc_frame: toFrame(frames.ffc), release_frame: toFrame(frames.release) })} />
+                </Card>
+              )}
+            </>
           )}
 
           <H>Joint angles</H>

@@ -33,7 +33,8 @@ const EVENT_LABEL: Record<EventName, string> = {
 
 const METHOD_LABEL: Record<EventMethod, string> = {
   auto: 'found automatically',
-  manual: 'typed by hand',
+  estimated: 'found automatically · check on video',
+  manual: 'corrected by hand',
   c1_window: 'from C1',
   not_detected: 'not found',
 };

@@ -130,15 +130,17 @@ def test_view_decides_2d_or_3d():
     assert f["shoulder_counter_rotation_deg"]["reliable"] is False  # depth-based from one camera
 
 
-def test_without_image_position_contacts_are_not_guessed():
-    """No origin_px from C1: release is still automatic, BFC/FFC are left for manual entry."""
+def test_without_image_position_contacts_are_estimated_and_labelled():
+    """No origin_px from C1 (today's files): BFC/FFC are estimated, labelled as such, and can be overridden."""
     data = make_delivery(with_origin=False)
     row, _ = compute_features(from_c1_json(data))
-    assert row["events"] == {"release_frame": 42}
-    assert row["event_method"]["ffc_frame"] == "not_detected"
-    assert any("origin_px" in w for w in row["warnings"])
-    row, _ = compute_features(from_c1_json(data), overrides={"bfc_frame": 15, "ffc_frame": 30})
+    assert row["event_method"]["ffc_frame"] == "estimated"
+    assert row["event_method"]["bfc_frame"] == "estimated"
+    assert row["events"]["bfc_frame"] < row["events"]["ffc_frame"] <= row["events"]["release_frame"]
+    assert any("estimated" in w for w in row["warnings"])
     assert row["features"]["shoulder_counter_rotation_deg"]["value"] is not None
+    row, _ = compute_features(from_c1_json(data), overrides={"bfc_frame": 15, "ffc_frame": 30})
+    assert row["event_method"]["ffc_frame"] == "manual" and row["events"]["bfc_frame"] == 15
 
 
 def test_c1_icc_result_flags_knee_in_side_clips():

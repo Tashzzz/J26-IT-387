@@ -31,7 +31,8 @@ export type Feature = {
 
 export type EventName = 'bfc_frame' | 'ffc_frame' | 'release_frame';
 export type Events = Partial<Record<EventName, number>>;
-export type EventMethod = 'manual' | 'c1_window' | 'auto' | 'not_detected';
+// estimated = from foot movement relative to the hips (no image position from C1), about +/- 2-4 frames
+export type EventMethod = 'manual' | 'c1_window' | 'auto' | 'estimated' | 'not_detected';
 
 /** Per-frame angles for a chart later (column name -> one value per frame). */
 export type Series = Record<string, (number | null)[]>;

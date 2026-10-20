@@ -55,10 +55,14 @@ C1 track those joints reliably (ICC).
 trunk length (so it doesn't change as the bowler gets closer to the camera); release is the
 **first** arm peak reaching 60 % of the highest one, because bowlers often lift the arm again after
 the follow-through. Checked against release frames marked by hand on 13 clips: within 1 frame
-(mean error 0.08 frames). BFC and FFC need the hip centre's position in the image (`origin_px` per
-frame and `normalisation.scale_px` from C1); until then they are entered by hand (`--events`, see
-`experiments/events_manual_2026-10-19.csv` for the 13 current clips).
-Priority: manual > C1 window > automatic.
+(mean error 0.08 frames). BFC and FFC are found automatically too: with the hip centre's image
+position from C1 (`origin_px`, `normalisation.scale_px`) from foot landing; without it (today's C1
+files) they are **estimated** - timing gives the search window, the foot movement relative to the
+hips picks the frame (front foot furthest forward = FFC, back foot lowest = BFC). Against the hand-
+marked frames of 13 clips: FFC mean 1.4 / max 3 frames, BFC mean 1.3 / max 4 frames
+(`python experiments/validate_events.py ../../data/handoff`). Estimated events are labelled
+`estimated` and can be corrected by hand (`--events`, `--bfc/--ffc`, or the app's "Correct event
+frames"). Priority: manual > C1 window > image position > estimated.
 
 ## Run
 
