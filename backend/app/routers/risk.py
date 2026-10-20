@@ -24,6 +24,8 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
+from app import cloud
+
 # Use the installed package (pip install -e components/c3_risk); fall back to the
 # monorepo source folder so the API also runs without installing it.
 try:
@@ -88,11 +90,16 @@ def assess(athlete_id: int, body: AssessRequest | None = None):
     body = body or AssessRequest()
     c2 = [r.model_dump(mode="json") for r in body.c2] if body.c2 is not None else None
     try:
-        return service.assess_athlete(athlete_id, c2, body.as_of, body.session_id, body.drop_unreliable, body.send_to_c4)
+        result = service.assess_athlete(athlete_id, c2, body.as_of, body.session_id, body.drop_unreliable,
+                                        body.send_to_c4)
     except KeyError:
         raise HTTPException(404, f"Athlete {athlete_id} not found")
     except service.C4Unavailable as e:
         raise HTTPException(503, str(e))
+    cloud.c3_assessment(store.get(result["id"]) or result)
+    if result.get("sent_to_c4"):
+        cloud.c4_upstream(athlete_id)
+    return result
 
 
 @router.get("/athletes/{athlete_id}/history")
