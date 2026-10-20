@@ -1,0 +1,536 @@
+{
+  "chosen_over_value": 0.0015,
+  "val": {
+    "sessions": 382,
+    "bowlers": 29
+  },
+  "test": {
+    "sessions": 366,
+    "bowlers": 29
+  },
+  "test_points": {
+    "ecb": {
+      "overs_kept_pct": 89.76547275048719,
+      "injuries_per_100": 5.887381144419264
+    },
+    "rest": {
+      "overs_kept_pct": 62.186681002620794,
+      "injuries_per_100": 5.370381650946056
+    },
+    "rules": {
+      "overs_kept_pct": 86.76164236274444,
+      "injuries_per_100": 5.771472355174453
+    },
+    "usual": {
+      "overs_kept_pct": 100.0,
+      "injuries_per_100": 6.351932254281002
+    }
+  },
+  "test_model_at_chosen": {
+    "overs_kept_pct": 81.88965795309456,
+    "injuries_per_100": 5.556451283030539
+  },
+  "test_model_vs_rules_paired": {
+    "injuries_per_100_diff": -0.21502107214391372,
+    "injuries_per_100_diff_ci95": [
+      -0.5718965929179477,
+      -0.009688958468006947
+    ],
+    "overs_kept_diff_pct": -4.871984409649889,
+    "overs_kept_diff_ci95": [
+      -9.424623367066046,
+      -1.5489202200252055
+    ]
+  },
+  "test_model_curve_at_rules_overs": 5.765239033702152,
+  "test_uniform_curve_at_rules_overs": 5.76909537764849,
+  "curves_test": [
+    {
+      "policy": "ecb",
+      "param": 0.0,
+      "overs": 6679.0,
+      "risk": 0.05887381144419264,
+      "overs_kept_pct": 89.76547275048719,
+      "injuries_per_100": 5.887381144419264
+    },
+    {
+      "policy": "model",
+      "param": 0.0,
+      "overs": 20.5,
+      "risk": 0.05706522457273096,
+      "overs_kept_pct": 0.2755191183388213,
+      "injuries_per_100": 5.7065224572730955
+    },
+    {
+      "policy": "model",
+      "param": 5e-05,
+      "overs": 50.5,
+      "risk": 0.05689386189923128,
+      "overs_kept_pct": 0.6787178281029501,
+      "injuries_per_100": 5.689386189923128
+    },
+    {
+      "policy": "model",
+      "param": 0.0001,
+      "overs": 268.0,
+      "risk": 0.05639147182893061,
+      "overs_kept_pct": 3.6019084738928835,
+      "injuries_per_100": 5.639147182893061
+    },
+    {
+      "policy": "model",
+      "param": 0.0002,
+      "overs": 1104.0,
+      "risk": 0.05555286047275862,
+      "overs_kept_pct": 14.837712519319938,
+      "injuries_per_100": 5.555286047275862
+    },
+    {
+      "policy": "model",
+      "param": 0.0003,
+      "overs": 2057.5,
+      "risk": 0.054419541381304906,
+      "overs_kept_pct": 27.652711511323165,
+      "injuries_per_100": 5.441954138130491
+    },
+    {
+      "policy": "model",
+      "param": 0.0004,
+      "overs": 2942.0,
+      "risk": 0.053609537987445895,
+      "overs_kept_pct": 39.540353470868894,
+      "injuries_per_100": 5.36095379874459
+    },
+    {
+      "policy": "model",
+      "param": 0.0005,
+      "overs": 3832.0,
+      "risk": 0.05338155169781955,
+      "overs_kept_pct": 51.501915193871376,
+      "injuries_per_100": 5.338155169781955
+    },
+    {
+      "policy": "model",
+      "param": 0.0006,
+      "overs": 4376.0,
+      "risk": 0.053175209212492976,
+      "overs_kept_pct": 58.81325179759425,
+      "injuries_per_100": 5.317520921249297
+    },
+    {
+      "policy": "model",
+      "param": 0.0008,
+      "overs": 5106.0,
+      "risk": 0.053262315041364215,
+      "overs_kept_pct": 68.62442040185472,
+      "injuries_per_100": 5.326231504136421
+    },
+    {
+      "policy": "model",
+      "param": 0.001,
+      "overs": 5515.0,
+      "risk": 0.05353915886556855,
+      "overs_kept_pct": 74.121362811639,
+      "injuries_per_100": 5.353915886556855
+    },
+    {
+      "policy": "model",
+      "param": 0.00125,
+      "overs": 5812.5,
+      "risk": 0.054210412136546315,
+      "overs_kept_pct": 78.11975001679994,
+      "injuries_per_100": 5.4210412136546315
+    },
+    {
+      "policy": "model",
+      "param": 0.0015,
+      "overs": 6093.0,
+      "risk": 0.05556451283030539,
+      "overs_kept_pct": 81.88965795309456,
+      "injuries_per_100": 5.556451283030539
+    },
+    {
+      "policy": "model",
+      "param": 0.002,
+      "overs": 6334.5,
+      "risk": 0.05682155014523485,
+      "overs_kept_pct": 85.13540756669579,
+      "injuries_per_100": 5.682155014523485
+    },
+    {
+      "policy": "model",
+      "param": 0.003,
+      "overs": 6457.0,
+      "risk": 0.05766269000882053,
+      "overs_kept_pct": 86.78180229823265,
+      "injuries_per_100": 5.766269000882053
+    },
+    {
+      "policy": "model",
+      "param": 0.005,
+      "overs": 6535.5,
+      "risk": 0.05779654132912467,
+      "overs_kept_pct": 87.83683892211545,
+      "injuries_per_100": 5.7796541329124675
+    },
+    {
+      "policy": "model",
+      "param": 1.0,
+      "overs": 6659.5,
+      "risk": 0.05855935255701711,
+      "overs_kept_pct": 89.50339358914052,
+      "injuries_per_100": 5.855935255701711
+    },
+    {
+      "policy": "rest",
+      "param": 0.0,
+      "overs": 4627.0,
+      "risk": 0.053703816509460565,
+      "overs_kept_pct": 62.186681002620794,
+      "injuries_per_100": 5.370381650946056
+    },
+    {
+      "policy": "rules",
+      "param": 0.0,
+      "overs": 6455.5,
+      "risk": 0.05771472355174453,
+      "overs_kept_pct": 86.76164236274444,
+      "injuries_per_100": 5.771472355174453
+    },
+    {
+      "policy": "uniform",
+      "param": 0.0,
+      "overs": 4627.0,
+      "risk": 0.053703816509460565,
+      "overs_kept_pct": 62.186681002620794,
+      "injuries_per_100": 5.370381650946056
+    },
+    {
+      "policy": "uniform",
+      "param": 0.2,
+      "overs": 4973.0,
+      "risk": 0.053536580557163274,
+      "overs_kept_pct": 66.83690612190041,
+      "injuries_per_100": 5.353658055716328
+    },
+    {
+      "policy": "uniform",
+      "param": 0.3,
+      "overs": 5213.0,
+      "risk": 0.053862981562446864,
+      "overs_kept_pct": 70.06249580001344,
+      "injuries_per_100": 5.3862981562446866
+    },
+    {
+      "policy": "uniform",
+      "param": 0.4,
+      "overs": 5439.5,
+      "risk": 0.05427297786238385,
+      "overs_kept_pct": 73.10664605873261,
+      "injuries_per_100": 5.427297786238385
+    },
+    {
+      "policy": "uniform",
+      "param": 0.5,
+      "overs": 5647.0,
+      "risk": 0.05478407194775827,
+      "overs_kept_pct": 75.89543713460117,
+      "injuries_per_100": 5.478407194775827
+    },
+    {
+      "policy": "uniform",
+      "param": 0.6,
+      "overs": 5845.5,
+      "risk": 0.055344503540223154,
+      "overs_kept_pct": 78.56326859754049,
+      "injuries_per_100": 5.534450354022315
+    },
+    {
+      "policy": "uniform",
+      "param": 0.7,
+      "overs": 6061.0,
+      "risk": 0.056037715296805415,
+      "overs_kept_pct": 81.45957932934614,
+      "injuries_per_100": 5.603771529680541
+    },
+    {
+      "policy": "uniform",
+      "param": 0.8,
+      "overs": 6253.0,
+      "risk": 0.05685534213879046,
+      "overs_kept_pct": 84.04005107183657,
+      "injuries_per_100": 5.685534213879047
+    },
+    {
+      "policy": "uniform",
+      "param": 0.9,
+      "overs": 6447.0,
+      "risk": 0.057654770493962726,
+      "overs_kept_pct": 86.64740272831126,
+      "injuries_per_100": 5.765477049396273
+    },
+    {
+      "policy": "uniform",
+      "param": 1.0,
+      "overs": 6659.5,
+      "risk": 0.05855935255701711,
+      "overs_kept_pct": 89.50339358914052,
+      "injuries_per_100": 5.855935255701711
+    },
+    {
+      "policy": "usual",
+      "param": 0.0,
+      "overs": 7440.5,
+      "risk": 0.06351932254281002,
+      "overs_kept_pct": 100.0,
+      "injuries_per_100": 6.351932254281002
+    }
+  ],
+  "curves_val": [
+    {
+      "policy": "ecb",
+      "param": 0.0,
+      "overs": 7083.0,
+      "risk": 0.058481471168860356,
+      "overs_kept_pct": 88.59841140784289,
+      "injuries_per_100": 5.848147116886036
+    },
+    {
+      "policy": "model",
+      "param": 0.0,
+      "overs": 15.5,
+      "risk": 0.0681796996953593,
+      "overs_kept_pct": 0.19388329476515104,
+      "injuries_per_100": 6.8179699695359295
+    },
+    {
+      "policy": "model",
+      "param": 5e-05,
+      "overs": 54.0,
+      "risk": 0.06797247542231616,
+      "overs_kept_pct": 0.6754643817624617,
+      "injuries_per_100": 6.797247542231616
+    },
+    {
+      "policy": "model",
+      "param": 0.0001,
+      "overs": 278.5,
+      "risk": 0.06738257455962353,
+      "overs_kept_pct": 3.4836450059415847,
+      "injuries_per_100": 6.738257455962353
+    },
+    {
+      "policy": "model",
+      "param": 0.0002,
+      "overs": 1028.0,
+      "risk": 0.06596668243330896,
+      "overs_kept_pct": 12.858840452811307,
+      "injuries_per_100": 6.596668243330896
+    },
+    {
+      "policy": "model",
+      "param": 0.0003,
+      "overs": 2307.0,
+      "risk": 0.0637037178339071,
+      "overs_kept_pct": 28.857339420851837,
+      "injuries_per_100": 6.37037178339071
+    },
+    {
+      "policy": "model",
+      "param": 0.0004,
+      "overs": 3123.0,
+      "risk": 0.06262127640800388,
+      "overs_kept_pct": 39.064356745262366,
+      "injuries_per_100": 6.262127640800388
+    },
+    {
+      "policy": "model",
+      "param": 0.0005,
+      "overs": 3580.0,
+      "risk": 0.06104081870324822,
+      "overs_kept_pct": 44.780786790918754,
+      "injuries_per_100": 6.104081870324822
+    },
+    {
+      "policy": "model",
+      "param": 0.0006,
+      "overs": 3990.0,
+      "risk": 0.05993235014618854,
+      "overs_kept_pct": 49.909312652448556,
+      "injuries_per_100": 5.993235014618854
+    },
+    {
+      "policy": "model",
+      "param": 0.0008,
+      "overs": 4733.5,
+      "risk": 0.05692818861132691,
+      "overs_kept_pct": 59.209456501344675,
+      "injuries_per_100": 5.692818861132691
+    },
+    {
+      "policy": "model",
+      "param": 0.001,
+      "overs": 5337.5,
+      "risk": 0.05714283210392132,
+      "overs_kept_pct": 66.76465069735443,
+      "injuries_per_100": 5.714283210392132
+    },
+    {
+      "policy": "model",
+      "param": 0.00125,
+      "overs": 5944.5,
+      "risk": 0.05755041696923653,
+      "overs_kept_pct": 74.357370692351,
+      "injuries_per_100": 5.755041696923653
+    },
+    {
+      "policy": "model",
+      "param": 0.0015,
+      "overs": 6432.5,
+      "risk": 0.057657336033986054,
+      "overs_kept_pct": 80.46156732753768,
+      "injuries_per_100": 5.765733603398606
+    },
+    {
+      "policy": "model",
+      "param": 0.002,
+      "overs": 6758.5,
+      "risk": 0.0580332900501488,
+      "overs_kept_pct": 84.53937081743699,
+      "injuries_per_100": 5.803329005014881
+    },
+    {
+      "policy": "model",
+      "param": 0.003,
+      "overs": 6977.0,
+      "risk": 0.058294227539949804,
+      "overs_kept_pct": 87.2724998436425,
+      "injuries_per_100": 5.82942275399498
+    },
+    {
+      "policy": "model",
+      "param": 0.005,
+      "overs": 7061.0,
+      "risk": 0.05834322499514283,
+      "overs_kept_pct": 88.323222215273,
+      "injuries_per_100": 5.834322499514283
+    },
+    {
+      "policy": "model",
+      "param": 1.0,
+      "overs": 7083.0,
+      "risk": 0.058481471168860356,
+      "overs_kept_pct": 88.59841140784289,
+      "injuries_per_100": 5.848147116886036
+    },
+    {
+      "policy": "rest",
+      "param": 0.0,
+      "overs": 4182.0,
+      "risk": 0.060122446818428606,
+      "overs_kept_pct": 52.31096378760398,
+      "injuries_per_100": 6.01224468184286
+    },
+    {
+      "policy": "rules",
+      "param": 0.0,
+      "overs": 6728.5,
+      "risk": 0.05757480664489163,
+      "overs_kept_pct": 84.16411282756896,
+      "injuries_per_100": 5.757480664489163
+    },
+    {
+      "policy": "uniform",
+      "param": 0.0,
+      "overs": 4182.0,
+      "risk": 0.060122446818428606,
+      "overs_kept_pct": 52.31096378760398,
+      "injuries_per_100": 6.01224468184286
+    },
+    {
+      "policy": "uniform",
+      "param": 0.2,
+      "overs": 4682.0,
+      "risk": 0.05749250520809032,
+      "overs_kept_pct": 58.56526361873788,
+      "injuries_per_100": 5.749250520809032
+    },
+    {
+      "policy": "uniform",
+      "param": 0.3,
+      "overs": 5051.0,
+      "risk": 0.05656319376914961,
+      "overs_kept_pct": 63.1809368941147,
+      "injuries_per_100": 5.656319376914961
+    },
+    {
+      "policy": "uniform",
+      "param": 0.4,
+      "overs": 5339.0,
+      "risk": 0.05626817287901036,
+      "overs_kept_pct": 66.78341359684784,
+      "injuries_per_100": 5.626817287901036
+    },
+    {
+      "policy": "uniform",
+      "param": 0.5,
+      "overs": 5626.5,
+      "risk": 0.0561895339534844,
+      "overs_kept_pct": 70.37963599974982,
+      "injuries_per_100": 5.6189533953484405
+    },
+    {
+      "policy": "uniform",
+      "param": 0.6,
+      "overs": 5926.0,
+      "risk": 0.056315829866418456,
+      "overs_kept_pct": 74.12596159859903,
+      "injuries_per_100": 5.631582986641845
+    },
+    {
+      "policy": "uniform",
+      "param": 0.7,
+      "overs": 6217.0,
+      "risk": 0.0566509464990835,
+      "overs_kept_pct": 77.76596410031897,
+      "injuries_per_100": 5.66509464990835
+    },
+    {
+      "policy": "uniform",
+      "param": 0.8,
+      "overs": 6503.0,
+      "risk": 0.057106038103906624,
+      "overs_kept_pct": 81.34342360372756,
+      "injuries_per_100": 5.710603810390662
+    },
+    {
+      "policy": "uniform",
+      "param": 0.9,
+      "overs": 6770.5,
+      "risk": 0.057611010686088794,
+      "overs_kept_pct": 84.6894740133842,
+      "injuries_per_100": 5.7611010686088795
+    },
+    {
+      "policy": "uniform",
+      "param": 1.0,
+      "overs": 7083.0,
+      "risk": 0.058481471168860356,
+      "overs_kept_pct": 88.59841140784289,
+      "injuries_per_100": 5.848147116886036
+    },
+    {
+      "policy": "usual",
+      "param": 0.0,
+      "overs": 7994.5,
+      "risk": 0.0629703811568189,
+      "overs_kept_pct": 100.0,
+      "injuries_per_100": 6.2970381156818895
+    }
+  ],
+  "runtime_s": 70.8,
+  "test_prevented_vs_usual": {
+    "rules": 0.5804598991065495,
+    "model": 0.7954809712504636
+  }
+}
