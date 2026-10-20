@@ -2,6 +2,7 @@ fastapi
 uvicorn[standard]
 python-multipart
 firebase-admin
+python-dotenv
 # C1 (re-encodes the skeleton overlay to H.264 so it plays in the app)
 imageio-ffmpeg
 # C2 (features router imports components/c2_biomech)
