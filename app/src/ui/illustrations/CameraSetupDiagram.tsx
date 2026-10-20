@@ -67,7 +67,7 @@ function Creases({ stumps, dir }: { stumps: number; dir: 1 | -1 }) {
   );
 }
 
-export function CameraSetupDiagram({ angle, distance }: { angle?: CameraView | null; distance?: number | null }) {
+export function CameraSetupDiagram({ angle, distance, caption = true }: { angle?: CameraView | null; distance?: number | null; caption?: boolean }) {
   const d = distance ?? 5;
   const sel = angle ?? null;
   const cam = sel ? cameraPos(sel, d) : null;
@@ -178,7 +178,7 @@ export function CameraSetupDiagram({ angle, distance }: { angle?: CameraView | n
         )}
       </SvgBox>
 
-      {sel ? (
+      {!caption ? null : sel ? (
         <View style={[s.caption, { borderColor: alpha(CYAN, 0.35) }]}>
           <Text style={[s.capTitle, { color: CYAN }]}>{CAMERA_VIEW[sel].label}{distance ? ` · ~${distance} m` : ''}</Text>
           <Text style={s.capText}>{CAMERA_VIEW[sel].hint}</Text>

@@ -7,7 +7,7 @@ import { getItem, getJson, KEYS, removeItem, setItem, setJson } from './storage'
 export type Coach = { name: string; team: string };
 export type PaceBand = 'under_110' | '110_125' | '125_135' | 'over_135';
 /** Fields C4's athlete model does not have; stored on this phone only and not sent to any model. */
-export type BowlerExtra = { pace?: PaceBand | null; soreness?: number | null; updatedAt?: string };
+export type BowlerExtra = { pace?: PaceBand | null; soreness?: number | null; lastAnalysedAt?: string; updatedAt?: string };
 
 export const PACE_LABEL: Record<PaceBand, string> = {
   under_110: '< 110 km/h', '110_125': '110–125 km/h', '125_135': '125–135 km/h', over_135: '135+ km/h',
@@ -19,6 +19,9 @@ type AppState = {
   coach: Coach;
   extras: Record<number, BowlerExtra>;
   apiBase: string;
+  /** Research mode: shows component owners and technical detail. */
+  researchMode: boolean;
+  setResearchMode: (on: boolean) => Promise<void>;
   finishOnboarding: () => Promise<void>;
   resetOnboarding: () => Promise<void>;
   saveCoach: (c: Coach) => Promise<void>;
@@ -34,16 +37,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [coach, setCoach] = useState<Coach>({ name: '', team: '' });
   const [extras, setExtras] = useState<Record<number, BowlerExtra>>({});
   const [apiBase, setBase] = useState(getApiBase());
+  const [researchMode, setResearch] = useState(false);
   const extrasRef = useRef<Record<number, BowlerExtra>>({});
 
   useEffect(() => {
     (async () => {
-      const [base, ob, c, ex] = await Promise.all([
+      const [base, ob, c, ex, rm] = await Promise.all([
         getItem(KEYS.apiBase), getItem(KEYS.onboarded),
         getJson<Coach>(KEYS.coach, { name: '', team: '' }), getJson<Record<number, BowlerExtra>>(KEYS.extras, {}),
+        getItem(KEYS.research),
       ]);
       if (base) { setApiBase(base); setBase(getApiBase()); }
       setOnboarded(ob === '1');
+      setResearch(rm === '1');
       setCoach(c);
       extrasRef.current = ex;
       setExtras(ex);
@@ -61,6 +67,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setExtras(next);
     await setJson(KEYS.extras, next);
   }, []);
+  const setResearchMode = useCallback(async (on: boolean) => { setResearch(on); await setItem(KEYS.research, on ? '1' : '0'); }, []);
   const changeApiBase = useCallback(async (url: string) => {
     setApiBase(url.trim() || defaultApiBase());
     setBase(getApiBase());
@@ -68,7 +75,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <Ctx.Provider value={{ ready, onboarded, coach, extras, apiBase, finishOnboarding, resetOnboarding, saveCoach, saveExtra, changeApiBase }}>
+    <Ctx.Provider value={{ ready, onboarded, coach, extras, apiBase, researchMode, setResearchMode, finishOnboarding, resetOnboarding, saveCoach, saveExtra, changeApiBase }}>
       {children}
     </Ctx.Provider>
   );
