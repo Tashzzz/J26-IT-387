@@ -9,3 +9,4 @@ export { Chip, ChipGroup, SegmentedControl, TextField } from './components/input
 export { Card, GradientHeader, Screen } from './components/layout';
 export { PipelineStepper, StepIndicator, type StepState } from './components/pipeline';
 export { RiskBadge, RiskGauge, RiskIcon, ScoreRing } from './components/risk';
+export * from './illustrations';
