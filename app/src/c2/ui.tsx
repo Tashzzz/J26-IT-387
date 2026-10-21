@@ -81,6 +81,7 @@ export function featureStatus(f: Feature): Status {
 /** "Breach if more than 30°" / "Breach if less than 30°" / "No published limit". */
 export function ruleText(f: Pick<Feature, 'threshold' | 'rule'>, name?: FeatureName): string {
   if (name === 'front_knee_flexion_release_deg') return 'Red if straighter than 150° (bend under 30°) together with twist or lean';
+  if (name === 'front_knee_flexion_ffc_deg') return 'Research reference: injured bowlers ~13–15° bend, healthy ~26° (Portus 2004)';
   if (f.threshold === null || !f.rule) return 'No published limit';
   return `Breach if ${f.rule === 'above' ? 'more' : 'less'} than ${f.threshold}°`;
 }
