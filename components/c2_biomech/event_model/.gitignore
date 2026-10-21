@@ -1,0 +1,6 @@
+data/
+results/
+models/
+demo_data/
+demo_results/
+__pycache__/
