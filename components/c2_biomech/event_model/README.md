@@ -31,7 +31,7 @@ replace the foot-contact rules there.
 | `common.py` | Shared features, Butterworth filter, 2-D angles |
 | `make_synthetic.py` | Fake clips **only** to check the code runs – never report these numbers |
 | `labels_template.csv` | Column format for the hand labels |
-| `models/event_xgb.json` | Pilot XGBoost model (11 clips, 2 bowlers) – **not validated**, demo only; see `models/README.md` |
+| `models/event_xgb.json` | XGBoost model trained on 20 deliveries from 11 bowlers (21 Oct 2026); results in `models/README.md` |
 
 Data and results are not committed (`.gitignore`); only the pilot model is: videos of participants stay
 out of the public repo, and labels use anonymous bowler ids.
@@ -52,6 +52,12 @@ Labelling rules (keep identical for every clip):
 - contact = the **first** frame any part of that foot touches the ground
 - release = the **last** frame the ball is still in the hand
 - order must be BFC < FFC < BR
+
+## Training run 2 (21 Oct 2026): 20 deliveries, 11 bowlers
+
+Leave-one-bowler-out. XGBoost beats the rule baseline for **release** (real-speed clips: 91 % vs 73 %
+within one frame, mean error 18 ms vs 83 ms); the rules stay better for foot contacts. Full tables and
+limits in `models/README.md`.
 
 ## Pilot results (21 Oct 2026)
 
