@@ -1,6 +1,6 @@
 // C4 (Rathnayaka) - calls to /recommend on the shared backend.
 import type {
-  Athlete, AthleteInput, Feedback, FeedbackInput, PreventionPlan, Upstream, Workload, WorkloadInput,
+  Athlete, AthleteInput, Feedback, FeedbackInput, PreventionPlan, Upstream, WeekPlanResult, WhatIfResult, Workload, WorkloadInput,
 } from '../c4/types';
 import { request } from './client';
 
@@ -25,6 +25,13 @@ export const c4 = {
   plans: (id: number) => request<PreventionPlan[]>(`${R}/athletes/${id}/plans`),
   plan: (pid: number) => request<PreventionPlan & { feedback: Feedback[] }>(`${R}/plans/${pid}`),
   addFeedback: (pid: number, f: FeedbackInput) => request<Feedback>(`${R}/plans/${pid}/feedback`, post(f)),
+
+  /** Model-guided check: how much would C3's risk model say each plan action lowers the risk? */
+  whatif: (id: number) => request<WhatIfResult>(`${R}/athletes/${id}/whatif`, { method: 'POST' }, 12000),
+
+  /** Week planner: next week's overs chosen by simulating candidate weeks with C3's model. */
+  weekPlan: (id: number, mode: WeekPlanResult['mode'] = 'tradeoff') =>
+    request<WeekPlanResult>(`${R}/athletes/${id}/week-plan?mode=${mode}`, { method: 'POST' }, 20000),
 
   resetDemo: () => request<{ reset: boolean }>(`${R}/demo/reset`, { method: 'POST' }),
 };

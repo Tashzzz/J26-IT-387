@@ -7,12 +7,19 @@ import { useC4 } from '../../src/c4/C4Context';
 import { categoryMeta, colors, tierColor } from '../../src/c4/theme';
 import type { Category, Recommendation } from '../../src/c4/types';
 import { Banner, Body, Button, Card, Chips, H, Loading, Row, Screen, TierBadge, Tile } from '../../src/c4/ui';
+import { pts, useWhatIf } from '../../src/c4/useWhatIf';
+import { useWeekPlan, WeekPlanCard } from '../../src/c4/WeekPlanCard';
+import { WhatIfCard } from '../../src/c4/WhatIfCard';
 
 const ORDER: Category[] = ['rehabilitation', 'training', 'workload', 'recovery', 'preventive_exercise'];
 
 export default function PlanDashboard() {
   const router = useRouter();
   const { athletes, athlete, plan, planIsCached, loading, online, error, selectAthlete, generatePlan, refreshAthletes } = useC4();
+  // C4 research layers (C3's model): re-run whenever a fresh (not cached) plan is made.
+  const modelKey = plan && !planIsCached ? (plan.id ?? plan.generated_at) : null;
+  const whatif = useWhatIf(athlete?.id, modelKey);
+  const weekplan = useWeekPlan(athlete?.id, modelKey);
 
   if (online === null) return <Screen><Loading text="Connecting to the C4 engine…" /></Screen>;
 
@@ -83,12 +90,22 @@ export default function PlanDashboard() {
             <NavPill icon="stats-chart-outline" label={`Workload · ACWR ${plan.metrics.acwr ?? '—'}`} onPress={() => router.push('/plan/workload')} />
             <NavPill icon="person-outline" label="Profile & inputs" onPress={() => router.push('/plan/profile')} />
             <NavPill icon="time-outline" label="History" onPress={() => router.push('/plan/history')} />
+            <NavPill icon="flask-outline" label="Model check (what-if)" onPress={() => router.push('/plan/whatif')} />
+            <NavPill icon="git-compare-outline" label="Week planner" onPress={() => router.push('/plan/week-plan')} />
           </Row>
+
+          {/* model-guided check (C3 model tests each action) and week planner (C3 model simulates next week) */}
+          <WhatIfCard data={whatif.data} loading={whatif.loading} unavailable={whatif.unavailable} onOpen={() => router.push('/plan/whatif')} />
+          <WeekPlanCard data={weekplan.data} loading={weekplan.loading} unavailable={weekplan.unavailable} onOpen={() => router.push('/plan/week-plan')} />
 
           {grouped.map(({ c, recs }) => (
             <View key={c} style={{ gap: 10 }}>
               <H>{categoryMeta[c].label}</H>
-              {recs.map((r) => <RecCard key={r.rule_id} rec={r} onPress={() => router.push(`/plan/why/${r.rule_id}`)} />)}
+              {recs.map((r) => {
+                const eff = whatif.data?.rule_effect[r.rule_id];
+                const effect = eff != null && eff >= (whatif.data?.min_effect ?? 0.02) ? eff : undefined;
+                return <RecCard key={r.rule_id} rec={r} effect={effect} onPress={() => router.push(`/plan/why/${r.rule_id}`)} />;
+              })}
             </View>
           ))}
 
@@ -108,7 +125,7 @@ export default function PlanDashboard() {
   );
 }
 
-function RecCard({ rec, onPress }: { rec: Recommendation; onPress: () => void }) {
+function RecCard({ rec, onPress, effect }: { rec: Recommendation; onPress: () => void; effect?: number }) {
   const meta = categoryMeta[rec.category];
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityHint="Shows why this was recommended"
@@ -118,6 +135,12 @@ function RecCard({ rec, onPress }: { rec: Recommendation; onPress: () => void })
       </View>
       <View style={{ flex: 1, gap: 4 }}>
         <Text style={s.recTitle}>{rec.title}</Text>
+        {effect != null && (
+          <View style={s.effect}>
+            <Ionicons name="trending-down" size={14} color={colors.ok} />
+            <Text style={s.effectText}>Model predicts −{pts(effect)} risk points</Text>
+          </View>
+        )}
         <Text style={s.recAction}>{rec.action}</Text>
         {rec.exercises.map((e) => (
           <Text key={e.name} style={s.exercise}>• {e.name} — {e.dose}</Text>
@@ -152,4 +175,6 @@ const s = StyleSheet.create({
   small: { color: colors.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1 },
   note: { color: colors.muted, fontSize: 13, lineHeight: 19 },
   footer: { color: colors.muted, fontSize: 12, textAlign: 'center' },
+  effect: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.okBg, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
+  effectText: { color: colors.ok, fontSize: 12, fontWeight: '700' },
 });

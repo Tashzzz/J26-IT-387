@@ -14,6 +14,8 @@ export default function PlanLayout() {
         <Stack.Screen name="workload" options={{ title: 'Workload log' }} />
         <Stack.Screen name="profile" options={{ title: 'Bowler inputs' }} />
         <Stack.Screen name="history" options={{ title: 'Plan history' }} />
+        <Stack.Screen name="whatif" options={{ title: 'Model check (what-if)' }} />
+        <Stack.Screen name="week-plan" options={{ title: 'Week planner' }} />
         <Stack.Screen name="feedback" options={{ title: 'Coach feedback', presentation: 'modal', headerLeft: () => <HeaderBack icon="close" label="Close" /> }} />
       </Stack>
     </C4Provider>

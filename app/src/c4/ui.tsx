@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
   ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View,
-  type StyleProp, type TextInputProps, type ViewStyle,
+  type StyleProp, type TextInputProps, type TextStyle, type ViewStyle,
 } from 'react-native';
 
 import { Skeleton } from '../ui/components/feedback';
@@ -127,6 +127,30 @@ export function Chips<T extends string | number>({ label, options, value, onChan
   );
 }
 
+/** Card that opens a detail screen (whole card is the tap target). */
+export function PressCard({ children, onPress, label }: { children: React.ReactNode; onPress: () => void; label: string }) {
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
+      style={({ pressed }) => [s.card, pressed && { opacity: 0.8 }]}>
+      {children}
+    </Pressable>
+  );
+}
+
+export const Small = ({ children, style, numberOfLines }: { children: React.ReactNode; style?: StyleProp<TextStyle>; numberOfLines?: number }) => (
+  <Text style={[s.small, style]} numberOfLines={numberOfLines}>{children}</Text>
+);
+
+export function Pill({ text, tone = 'info', icon }: { text: string; tone?: 'ok' | 'info' | 'neutral'; icon?: keyof typeof Ionicons.glyphMap }) {
+  const c = tone === 'ok' ? colors.ok : tone === 'info' ? colors.accent : colors.muted;
+  return (
+    <View style={[s.pill, { borderColor: c, backgroundColor: `${c}1A` }]}>
+      {icon && <Ionicons name={icon} size={12} color={c} />}
+      <Text style={[s.pillText, { color: c }]}>{text}</Text>
+    </View>
+  );
+}
+
 export function Row({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
   return <View style={[s.row, style]}>{children}</View>;
 }
@@ -166,4 +190,7 @@ const s = StyleSheet.create({
   chip: { borderWidth: 1, borderColor: colors.border, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7, minHeight: 36, justifyContent: 'center' },
   chipText: { color: colors.text, fontSize: 13, fontWeight: '700' },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  small: { color: colors.muted, fontSize: 13, lineHeight: 19 },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, alignSelf: 'flex-start' },
+  pillText: { fontSize: 12, fontWeight: '700' },
 });
