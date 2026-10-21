@@ -1,0 +1,5 @@
+case,description,plan_A_order,plan_B_order,preferred (A/B/same),usefulness_A (1-5),usefulness_B (1-5),comment
+C04,"U19, ACWR > 2 spike, model risk 30%",Bring this week's overs into the safe range > Keep to the daily limit of 7 overs,Bring this week's overs into the safe range > Keep to the daily limit of 7 overs,,,,
+C06,"U19, trunk side-bend 52 deg + SCR 42 deg (both severe), risk 66%",Fix shoulder counter-rotation (mixed action) > Reduce trunk side-bend at release,Reduce trunk side-bend at release > Fix shoulder counter-rotation (mixed action),,,,
+C10,"U19, C3 offline, spike + SCR breach",Fix shoulder counter-rotation (mixed action) > Bring this week's overs into the safe range,Fix shoulder counter-rotation (mixed action) > Bring this week's overs into the safe range,,,,
+C12,"U13, 4 days in a row bowling, model risk 33%",Bring this week's overs into the safe range > Add a rest day inside the run of bowling days,Bring this week's overs into the safe range > Add a rest day inside the run of bowling days,,,,

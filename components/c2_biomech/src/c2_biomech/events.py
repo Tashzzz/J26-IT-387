@@ -24,10 +24,11 @@ Foot contacts - two automatic methods
     2. Without it (C1's current files are hip-centred only), "estimated":
        timing gives the search window, the foot movement relative to the hips
        picks the frame:
-         FFC  = the frame where the leading foot reaches furthest forward of the
-                hips, searched FFC_BEFORE_RELEASE_S +/- CONTACT_WINDOW_S before
-                release. Left/right labels can swap in side-on video, so the
-                leading foot is whichever ankle reaches furthest.
+         FFC  = FFC_AFTER_MAX_REACH_S after the frame where the leading foot
+                reaches furthest forward of the hips (searched FFC_BEFORE_RELEASE_S
+                +/- CONTACT_WINDOW_S before release): the foot reaches furthest
+                just before it lands. Left/right labels can swap in side-on video,
+                so the leading foot is whichever ankle reaches furthest.
          BFC  = the frame where the other (back) foot is lowest below the hips,
                 searched BFC_BEFORE_FFC_S +/- CONTACT_WINDOW_S before FFC.
        Checked against frames marked by hand on 13 clips (3 bowlers, 30/60 fps,
@@ -35,7 +36,15 @@ Foot contacts - two automatic methods
        frames (mean 27 ms); all views FFC within 3, BFC within 4 frames. The two
        timings are medians of those 13 clips - re-check them on new bowlers.
 
-Priority for every event: manual > C1 window > image position > estimated.
+Release from the trained model (event_ml.py, added 21 Oct 2026)
+    When no manual / C1 release is given, the XGBoost release model is tried first and
+    used when its confidence is at least event_ml.MIN_CONFIDENCE; otherwise the rule above.
+    Leave-one-bowler-out on 20 hand-labelled deliveries (11 bowlers): on the consented
+    real-speed clips the hybrid found release within 1 frame on 82 % (rule alone 64 %),
+    mean error 15 ms (rule 101 ms). Details: event_model/models/README.md.
+
+Priority for release: manual > C1 window > model > rule.
+Priority for foot contacts: manual > C1 window > image position > estimated.
 
 Limitations (state these at PP1)
     - Highest wrist is a few frames before the real release.
@@ -55,6 +64,11 @@ CONTACT_SEARCH_S = 0.6     # look this far back for a foot contact
 FFC_BEFORE_RELEASE_S = 0.17  # median FFC -> release time, 13 hand-marked clips
 BFC_BEFORE_FFC_S = 0.15      # median BFC -> FFC time, same clips
 CONTACT_WINDOW_S = 0.07      # search +/- this around those times
+# The front foot reaches furthest forward BEFORE it touches the ground. On 11 hand-labelled
+# side-on clips (2 bowlers, 30/60 fps, 21 Oct 2026) "furthest reach" was early on every clip
+# (mean 67 ms). FFC = furthest reach + this delay; leave-one-clip-out error 18 ms, 10 of 11
+# within 1 frame (was 67 ms, 3 of 11). Re-check on new bowlers.
+FFC_AFTER_MAX_REACH_S = 0.067
 
 
 def arm_elevation(points, bowling_arm):
@@ -141,11 +155,13 @@ def estimate_contacts(points, fps, release):
         return None, None
     seg = np.abs(ankles[lead][a:b, 0])
     direction = np.sign(ankles[lead][a + int(np.nanargmax(seg)), 0])  # which way the bowler runs
-    ffc = a + int(np.nanargmax(direction * ankles[lead][a:b, 0]))
+    reach = a + int(np.nanargmax(direction * ankles[lead][a:b, 0]))
+    ffc = min(reach + int(round(FFC_AFTER_MAX_REACH_S * fps)), release)
 
     # BFC: the back foot at its lowest below the hips (y points down) near the expected time.
+    # Timed from the furthest-reach frame, as when the BFC timing was measured.
     back_y = ankles[1 - lead][:, 1]
-    guess = ffc - int(round(BFC_BEFORE_FFC_S * fps))
+    guess = reach - int(round(BFC_BEFORE_FFC_S * fps))
     a, b = max(0, guess - w), min(ffc, guess + w + 1)
     if b <= a or not np.isfinite(back_y[a:b]).any():
         return None, ffc
@@ -163,7 +179,7 @@ def detect_events(delivery, overrides=None, keep=None, points=None):
     """Return (events, method, warnings, info).
 
     events  {'bfc_frame','ffc_frame','release_frame'} (None when unknown)
-    method  how each was found: manual / c1_window / auto / not_detected
+    method  how each was found: manual / c1_window / model / auto / estimated / not_detected
     info    delivery stretch used and other release candidates
     """
     overrides = {k: v for k, v in (overrides or {}).items() if v is not None}
@@ -189,6 +205,19 @@ def detect_events(delivery, overrides=None, keep=None, points=None):
     strong = [(fr, e) for fr, e in peaks if top is not None and e >= RELEASE_PEAK_RATIO * top]
     info["release_candidates"] = [{"frame": fr, "arm_elevation": round(e, 2)} for fr, e in strong[:3]]
     f, m = given("release_frame")
+    if f is None:
+        # Trained model first (event_ml.py); the rule below is the fallback when the model
+        # is off, missing or not confident.
+        try:
+            from . import event_ml
+            mf, conf = event_ml.predict_release(P, delivery.bowling_arm, delivery.fps, usable)
+        except Exception as exc:  # never let the model break the pipeline
+            mf, conf = None, None
+            info["release_model_error"] = str(exc)
+        info["release_model"] = {"frame": mf, "confidence": None if conf is None else round(conf, 3),
+                                 "rule_frame": strong[0][0] if strong else None}
+        if mf is not None:
+            f, m = mf, "model"
     if f is None and strong:
         f, m = strong[0][0], "auto"
         if len(strong) > 1:

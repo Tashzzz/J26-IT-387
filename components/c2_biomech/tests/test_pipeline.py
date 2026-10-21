@@ -37,9 +37,10 @@ def test_features_match_known_values():
 
 
 def test_filter_keeps_peaks():
-    """With the 8 Hz Butterworth on, smooth motion keeps its peaks (within 2.5 deg)."""
+    """With the default Butterworth on, smooth motion keeps its peaks (within 2.5 deg)."""
+    from c2_biomech.features import DEFAULT_CUTOFF_HZ
     row, _, truth = run()
-    assert row["filter"]["applied"] and row["filter"]["cutoff_hz"] == 8.0
+    assert row["filter"]["applied"] and row["filter"]["cutoff_hz"] == DEFAULT_CUTOFF_HZ
     for name in FEATURES:
         assert row["features"][name]["value"] == pytest.approx(truth[name], abs=2.5), name
 

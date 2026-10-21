@@ -1,29 +1,53 @@
-// Root navigator: one tab per component (app/README.md). Owners replace their placeholder screens.
-import { Ionicons } from '@expo/vector-icons';
-import { DarkTheme, Tabs, ThemeProvider } from 'expo-router';
+// Root navigator (ui-v2): bottom tabs in (tabs)/, first-launch flow in onboarding/, bowler screens, the guided
+// analysis, and the research workspaces (capture, features, risk, reliability, plan/*) kept as stack routes.
+// Every detail screen hides the tab bar (it sits above the tabs) and gets the same back button.
+import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import type { ColorValue } from 'react-native';
 
-import { colors } from '../src/c4/theme';
+import { AnalysisProvider } from '../src/analysis/AnalysisContext';
+import { AppProvider } from '../src/shell/AppContext';
+import { HeaderBack } from '../src/shell/HeaderBack';
+import { SquadProvider } from '../src/shell/squad';
+import { color, font, gradient } from '../src/ui';
 
-const theme = { ...DarkTheme, colors: { ...DarkTheme.colors, background: colors.bg, card: colors.card, border: colors.border, primary: colors.accent, text: colors.text } };
-
-type IconName = keyof typeof Ionicons.glyphMap;
-const icon = (name: IconName) => ({ color, size }: { color: ColorValue; size: number }) => <Ionicons name={name} color={color as string} size={size} />;
+const theme = { ...DarkTheme, colors: { ...DarkTheme.colors, background: color.bg, card: color.surface, border: color.border, primary: gradient.brand[1], text: color.text } };
 
 export default function RootLayout() {
   return (
     <ThemeProvider value={theme}>
       <StatusBar style="light" />
-      <Tabs screenOptions={{ tabBarActiveTintColor: colors.accent, tabBarInactiveTintColor: colors.muted, headerStyle: { backgroundColor: colors.card }, headerTintColor: colors.text }}>
-        <Tabs.Screen name="index" options={{ title: 'CricShield', tabBarLabel: 'Home', tabBarIcon: icon('shield-checkmark-outline') }} />
-        <Tabs.Screen name="capture/index" options={{ title: 'Capture (C1)', tabBarLabel: 'Capture', tabBarIcon: icon('videocam-outline') }} />
-        <Tabs.Screen name="features/index" options={{ title: 'Biomechanics (C2)', tabBarLabel: 'Features', tabBarIcon: icon('body-outline') }} />
-        <Tabs.Screen name="risk/index" options={{ title: 'Risk (C3)', tabBarLabel: 'Risk', tabBarIcon: icon('pulse-outline') }} />
-        <Tabs.Screen name="plan" options={{ headerShown: false, title: 'Prevention plan', tabBarLabel: 'Plan', tabBarIcon: icon('clipboard-outline') }} />
-        {/* Hidden from the tab bar but still reachable (SDK 58: href: null now redirects away). */}
-        <Tabs.Screen name="reliability/index" options={{ tabBarItemStyle: { display: 'none' }, title: 'Reliability (C1)' }} />
-      </Tabs>
+      <AppProvider>
+        <SquadProvider>
+          <AnalysisProvider>
+            <Stack screenOptions={{
+              headerStyle: { backgroundColor: color.bg }, headerTintColor: color.text, headerShadowVisible: false,
+              headerTitleStyle: { fontSize: font.h2.fontSize, fontWeight: font.h2.fontWeight },
+              contentStyle: { backgroundColor: color.bg }, headerBackTitle: 'Back',
+              headerLeft: () => <HeaderBack />,
+            }}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
+              <Stack.Screen name="bowler/[id]" options={{ title: 'Bowler' }} />
+              <Stack.Screen name="bowler/edit" options={{ title: 'Bowler details', presentation: 'modal', headerLeft: () => <HeaderBack icon="close" label="Close" /> }} />
+              <Stack.Screen name="analyse/setup" options={{ title: 'Camera setup' }} />
+              <Stack.Screen name="analyse/video" options={{ title: 'Film the delivery' }} />
+              <Stack.Screen name="analyse/run" options={{ title: 'Analysing' }} />
+              <Stack.Screen name="analyse/results" options={{
+                title: 'Results', gestureEnabled: false, headerLeft: () => <HeaderBack icon="close" label="Close results" home />,
+              }} />
+              <Stack.Screen name="analyse/details" options={{ title: 'Full results' }} />
+              <Stack.Screen name="capture/index" options={{ title: 'Pose capture' }} />
+              <Stack.Screen name="reliability/index" options={{ title: 'Tracking reliability' }} />
+              <Stack.Screen name="insights/thresholds" options={{ title: 'Joint-angle limits' }} />
+              <Stack.Screen name="insights/model" options={{ title: 'How the risk score works' }} />
+              <Stack.Screen name="insights/knowledge" options={{ title: 'Plan rules & sources' }} />
+              <Stack.Screen name="features/index" options={{ title: 'Joint angles' }} />
+              <Stack.Screen name="risk/index" options={{ title: 'Risk assessment' }} />
+              <Stack.Screen name="plan" options={{ headerShown: false }} />
+            </Stack>
+          </AnalysisProvider>
+        </SquadProvider>
+      </AppProvider>
     </ThemeProvider>
   );
 }

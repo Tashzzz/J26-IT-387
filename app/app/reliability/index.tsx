@@ -1,26 +1,38 @@
-// C1 Reliability (owner: Nethmi): pilot ICC(2,1) per body region for each camera setup.
+// C1 Reliability study (owner: Nethmi): pilot ICC(2,1) per body region for each camera setup.
+// Body map + per-region ICC bars with the usable gate; ICC numbers are shown in Research mode.
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { combineSetups } from '../../src/analysis/reliability';
 import { c1 } from '../../src/api/c1';
-import type { Band, Reliability, RegionIcc, Setup } from '../../src/c1/types';
-import { colors } from '../../src/c4/theme';
-import { Banner, Body, Button, Card, Chips, H, Loading, Row, Screen, Tile } from '../../src/c4/ui';
+import type { Band, RegionIcc, Reliability, Setup } from '../../src/c1/types';
+import {
+  BodyReliabilityMap, BottomSheet, Card, ChipGroup, color, COMPONENT, ErrorBanner, font, GradientHeader, RISK, ScoreRing, Screen,
+  SecondaryButton, Skeleton, sp, useResearchMode,
+} from '../../src/ui';
 
 // Koo & Li (2016) bands; the gate (0.75) is where a keypoint counts as usable.
-const BAND_COLOR: Record<Band, string> = { excellent: colors.ok, good: colors.accent, moderate: colors.warn, poor: colors.danger };
+const BAND: Record<Band, { color: string; label: string }> = {
+  excellent: { color: RISK.low.color, label: 'Excellent' },
+  good: { color: COMPONENT.c1.color, label: 'Good' },
+  moderate: { color: RISK.moderate.color, label: 'Moderate' },
+  poor: { color: RISK.critical.text, label: 'Poor' },
+};
 const band = (icc: number): Band => (icc >= 0.9 ? 'excellent' : icc >= 0.75 ? 'good' : icc >= 0.5 ? 'moderate' : 'poor');
 
 const ANGLE: Record<string, string> = { front: 'Front', semi_side: 'Semi-side', side: 'Side', rear: 'Rear' };
-const setupName = (s: Setup) =>
-  s.angle ? `${ANGLE[s.angle] ?? s.angle} · ${s.distance_m} m` : s.group;
+const setupName = (s: Setup, withBowler: boolean) =>
+  s.angle ? `${ANGLE[s.angle] ?? s.angle} · ${s.distance_m} m${withBowler && s.bowler ? ` · ${s.bowler}` : ''}` : s.group;
+const C1 = COMPONENT.c1.color;
 
 export default function ReliabilityScreen() {
+  const research = useResearchMode();
   const [data, setData] = useState<Reliability | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [group, setGroup] = useState<string | null>(null);
   const [open, setOpen] = useState<string | null>(null);
+  const [explain, setExplain] = useState(false);
 
   function load() {
     setError(null);
@@ -30,110 +42,124 @@ export default function ReliabilityScreen() {
   }
   useEffect(load, []);
 
-  if (error) {
-    return (
-      <Screen>
-        <Banner tone="danger" icon="cloud-offline-outline" title="Could not load reliability"><Body>{error}</Body></Banner>
-        <Button title="Try again" icon="refresh-outline" variant="secondary" onPress={load} />
-      </Screen>
-    );
-  }
-  if (!data) return <Screen><Loading text="Loading reliability results…" /></Screen>;
+  const setup = data ? (data.setups.find((s) => s.group === group) ?? data.setups[0]) : null;
+  const sameSetupTwice = data ? new Set(data.setups.map((s) => `${s.angle}-${s.distance_m}`)).size < data.setups.length : false;
 
-  const setup = data.setups.find((s) => s.group === group) ?? data.setups[0];
   return (
     <Screen>
-      <Card>
-        <Body>How consistently each body keypoint is found when the same bowler repeats the same delivery.</Body>
-        <Body muted>Keypoints with ICC ≥ {data.gate} are marked usable for the joint angles in C2.</Body>
-      </Card>
+      <GradientHeader component="c1" title="Reliability study" icon="analytics"
+        subtitle="How consistently each body point is found when the same bowler repeats the same delivery." />
+      <SecondaryButton title="What is ICC?" icon="help-circle-outline" tint={C1} onPress={() => setExplain(true)} />
 
-      <Chips label="Camera setup" value={setup.group} onChange={(g) => { setGroup(g); setOpen(null); }}
-        options={data.setups.map((s) => ({ label: setupName(s), value: s.group }))} />
+      {error ? <ErrorBanner title="Could not load the reliability study" message={error} onRetry={load} />
+        : !data || !setup ? <Skeleton height={360} round={20} />
+        : (
+          <>
+            <ChipGroup label="Camera setup" value={setup.group} tint={C1} onChange={(g) => { setGroup(g); setOpen(null); }}
+              options={data.setups.map((s) => ({ value: s.group, label: setupName(s, research || sameSetupTwice) }))} />
 
-      <Row>
-        <Tile label="Usable keypoints" value={`${setup.usable} / ${setup.total}`} tone={setup.usable / setup.total >= 0.75 ? 'ok' : 'danger'} />
-        <Tile label="Bowler" value={setup.bowler ?? '–'} />
-      </Row>
+            <Card variant="glow" accent={C1}>
+              <View style={s.summary}>
+                <ScoreRing value={(setup.usable / Math.max(1, setup.total)) * 100} tint={setup.usable / setup.total >= 0.75 ? RISK.low.color : RISK.moderate.color}
+                  label="Keypoints usable" display={`${setup.usable}/${setup.total}`} />
+                <View style={{ flex: 1, gap: 4 }}>
+                  <Text style={s.h2}>{setupName(setup, false)}</Text>
+                  <Text style={s.muted}>{setup.usable} of {setup.total} body points pass the reliability gate (ICC ≥ {data.gate}) from this camera position.</Text>
+                  {research && setup.bowler ? <Text style={s.muted}>Studied bowler: {setup.bowler}</Text> : null}
+                </View>
+              </View>
+              <BodyReliabilityMap regions={combineSetups([setup]).regions} />
+            </Card>
 
-      <H>ICC by body region</H>
-      <Card>
-        {setup.regions.map((r) => (
-          <RegionRow key={r.region} region={r} gate={data.gate} open={open === r.region}
-            onToggle={() => setOpen(open === r.region ? null : r.region)} />
+            <Card>
+              <Text style={s.h2}>ICC by body region</Text>
+              {setup.regions.map((r) => (
+                <RegionRow key={r.region} region={r} gate={data.gate} research={research} open={open === r.region}
+                  onToggle={() => setOpen(open === r.region ? null : r.region)} />
+              ))}
+              <View style={s.legend}>
+                {(Object.keys(BAND) as Band[]).map((b) => (
+                  <View key={b} style={s.legendItem}>
+                    <View style={[s.dot, { backgroundColor: BAND[b].color }]} />
+                    <Text style={s.legendText}>{BAND[b].label}</Text>
+                  </View>
+                ))}
+                <View style={s.legendItem}>
+                  <View style={s.gateKey} />
+                  <Text style={s.legendText}>usable gate {data.gate}</Text>
+                </View>
+              </View>
+            </Card>
+
+            <Text style={s.foot}>{research ? `${data.icc_type}. ` : ''}Pilot data: a few deliveries per setup, so treat these as early estimates.</Text>
+          </>
+        )}
+
+      <BottomSheet visible={explain} onClose={() => setExplain(false)} title="What is ICC?">
+        <Text style={s.body}>The intraclass correlation coefficient (ICC) measures how consistently a body point is found when the same bowler bowls the same delivery again, filmed from the same place.</Text>
+        <Text style={s.body}>1.0 means the point lands in the same place every time; 0 means it is no better than chance.</Text>
+        {(Object.keys(BAND) as Band[]).map((b) => (
+          <View key={b} style={s.legendItem}>
+            <View style={[s.dot, { backgroundColor: BAND[b].color }]} />
+            <Text style={s.body}>{BAND[b].label}: {b === 'excellent' ? 'above 0.90' : b === 'good' ? '0.75 – 0.90' : b === 'moderate' ? '0.50 – 0.75' : 'below 0.50'}</Text>
+          </View>
         ))}
-        <Legend />
-      </Card>
-
-      <Body muted>{data.icc_type}. Pilot data: a few deliveries per setup, so treat these as early estimates.</Body>
+        <Text style={s.body}>CricShield only trusts a body point when its ICC is at least {data?.gate ?? 0.75} (the gate). Joint angles built from points below the gate are tagged "low visibility" in the biomechanics results - they are never silently dropped.</Text>
+        <Text style={s.muted}>Bands from Koo & Li (2016). ICC(2,1): two-way random effects, absolute agreement, single measurement.</Text>
+      </BottomSheet>
     </Screen>
   );
 }
 
-function RegionRow({ region, gate, open, onToggle }: { region: RegionIcc; gate: number; open: boolean; onToggle: () => void }) {
+function RegionRow({ region, gate, research, open, onToggle }: { region: RegionIcc; gate: number; research: boolean; open: boolean; onToggle: () => void }) {
   const icc = region.mean_icc;
-  const c = icc == null ? colors.muted : BAND_COLOR[band(icc)];
+  const b = icc == null ? null : BAND[band(icc)];
+  const c = b?.color ?? color.muted;
   return (
     <View style={s.region}>
-      <Pressable onPress={onToggle} accessibilityRole="button" accessibilityState={{ expanded: open }} style={s.regionHead}>
+      <Pressable onPress={onToggle} accessibilityRole="button" accessibilityState={{ expanded: open }}
+        accessibilityLabel={`${region.label}: ${b ? b.label : 'not tested'}, ${region.usable} of ${region.total} usable`} style={s.regionHead}>
         <Text style={s.regionLabel}>{region.label}</Text>
-        <Text style={[s.regionValue, { color: c }]}>{icc == null ? '–' : icc.toFixed(2)}</Text>
+        <Text style={[s.regionValue, { color: c }]}>{icc == null ? '–' : research ? icc.toFixed(2) : b!.label}</Text>
         <Text style={s.usable}>{region.usable}/{region.total} usable</Text>
-        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={16} color={colors.muted} />
+        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={16} color={color.muted} />
       </Pressable>
-      <Bar value={icc} gate={gate} color={c} />
+      <View style={s.track}>
+        <View style={[s.fill, { width: `${Math.max(0, icc ?? 0) * 100}%`, backgroundColor: c }]} />
+        <View style={[s.gate, { left: `${gate * 100}%` }]} />
+      </View>
       {open && region.keypoints.map((k) => (
         <View key={k.keypoint} style={s.kp}>
           <Text style={s.kpName}>{k.keypoint.replace(/_/g, ' ')}</Text>
-          <Text style={[s.kpValue, { color: k.icc == null ? colors.muted : BAND_COLOR[k.band] }]}>{k.icc == null ? '–' : k.icc.toFixed(2)}</Text>
-          <Ionicons name={k.usable ? 'checkmark-circle' : 'close-circle'} size={16} color={k.usable ? colors.ok : colors.danger} />
+          {research && <Text style={[s.kpValue, { color: k.icc == null ? color.muted : BAND[k.band].color }]}>{k.icc == null ? '–' : k.icc.toFixed(2)}</Text>}
+          <Ionicons name={k.usable ? 'checkmark-circle' : 'close-circle'} size={18} color={k.usable ? RISK.low.color : RISK.critical.text}
+            accessibilityLabel={k.usable ? 'usable' : 'below the gate'} />
         </View>
       ))}
-    </View>
-  );
-}
-
-function Bar({ value, gate, color }: { value: number | null; gate: number; color: string }) {
-  return (
-    <View style={s.track}>
-      <View style={[s.fill, { width: `${Math.max(0, value ?? 0) * 100}%`, backgroundColor: color }]} />
-      <View style={[s.gate, { left: `${gate * 100}%` }]} />
-    </View>
-  );
-}
-
-function Legend() {
-  return (
-    <View style={s.legend}>
-      {(Object.keys(BAND_COLOR) as Band[]).map((b) => (
-        <View key={b} style={s.legendItem}>
-          <View style={[s.dot, { backgroundColor: BAND_COLOR[b] }]} />
-          <Text style={s.legendText}>{b}</Text>
-        </View>
-      ))}
-      <View style={s.legendItem}>
-        <View style={[s.gateKey]} />
-        <Text style={s.legendText}>usable gate</Text>
-      </View>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  region: { paddingVertical: 8, borderBottomColor: colors.border, borderBottomWidth: 1, gap: 6 },
-  regionHead: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 32 },
-  regionLabel: { color: colors.text, fontSize: 15, fontWeight: '700', flex: 1 },
-  regionValue: { fontSize: 15, fontWeight: '800', width: 44, textAlign: 'right' },
-  usable: { color: colors.muted, fontSize: 12, width: 72, textAlign: 'right' },
-  track: { height: 8, borderRadius: 4, backgroundColor: colors.cardAlt, overflow: 'hidden' },
-  fill: { height: 8, borderRadius: 4 },
-  gate: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: colors.text },
-  kp: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 12, paddingVertical: 2 },
-  kpName: { color: colors.muted, fontSize: 13, flex: 1, textTransform: 'capitalize' },
-  kpValue: { fontSize: 13, fontWeight: '700', width: 44, textAlign: 'right' },
-  legend: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingTop: 10 },
+  h2: { ...font.h2, color: color.text },
+  body: { ...font.body, color: color.text },
+  muted: { ...font.body, color: color.muted },
+  foot: { ...font.caption, color: color.muted, textAlign: 'center' },
+  summary: { flexDirection: 'row', alignItems: 'center', gap: sp(2) },
+  region: { paddingVertical: sp(1), borderBottomColor: color.border, borderBottomWidth: 1, gap: 6 },
+  regionHead: { flexDirection: 'row', alignItems: 'center', gap: sp(1), minHeight: 40 },
+  regionLabel: { ...font.body, fontWeight: '700', color: color.text, flex: 1 },
+  regionValue: { ...font.body, fontWeight: '700', minWidth: 48, textAlign: 'right' },
+  usable: { ...font.caption, color: color.muted, width: 76, textAlign: 'right' },
+  track: { height: 10, borderRadius: 5, backgroundColor: color.surface2, overflow: 'hidden' },
+  fill: { height: 10, borderRadius: 5 },
+  gate: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: color.text },
+  kp: { flexDirection: 'row', alignItems: 'center', gap: sp(1), paddingLeft: sp(1.5), minHeight: 28 },
+  kpName: { ...font.body, fontSize: 14, color: color.muted, flex: 1, textTransform: 'capitalize' },
+  kpValue: { ...font.body, fontSize: 14, fontWeight: '700', width: 44, textAlign: 'right' },
+  legend: { flexDirection: 'row', flexWrap: 'wrap', gap: sp(1.5), paddingTop: sp(1) },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dot: { width: 10, height: 10, borderRadius: 5 },
-  gateKey: { width: 2, height: 12, backgroundColor: colors.text },
-  legendText: { color: colors.muted, fontSize: 12, textTransform: 'capitalize' },
+  gateKey: { width: 2, height: 14, backgroundColor: color.text },
+  legendText: { ...font.caption, color: color.muted },
 });

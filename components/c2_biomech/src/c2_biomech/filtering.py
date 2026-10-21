@@ -20,13 +20,14 @@ Cutoff frequency
     cutoffs. At high cutoffs only noise is removed, so the residual falls on a
     straight line; extending that line to 0 Hz gives the noise level. The
     cutoff where the residual curve meets that noise level is chosen.
-    A fixed cutoff can also be given (e.g. 20 Hz as in the proposal); it must be
+    A fixed cutoff can also be given (the pipeline default is 8 Hz, see features.py); it must be
     below half the frame rate (Nyquist), so 20 Hz needs video above 40 fps.
 
 Double filtering
-    C1's stabilise.py already applies the same kind of filter (8 Hz). If the
-    input says it is already filtered, mode "auto" skips filtering so peak angles
-    are not flattened twice; residual analysis is still reported.
+    C1 does not smooth its output (C1 stabilise.py: smoothing belongs to C2), so
+    C2 is the only filter. If an input ever says it is already filtered
+    (normalisation.filter), mode "auto" skips filtering so peak angles are not
+    flattened twice; residual analysis is still reported.
 """
 
 import numpy as np

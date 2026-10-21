@@ -12,7 +12,10 @@ export type FeatureName =
   | 'front_knee_flexion_ffc_deg'
   | 'front_knee_flexion_release_deg'
   | 'trunk_lateral_flexion_deg'
-  | 'hip_shoulder_separation_bfc_deg';
+  | 'hip_shoulder_separation_bfc_deg'
+  | 'rear_knee_flexion_bfc_deg'
+  | 'rear_hip_flexion_bfc_deg'
+  | 'front_hip_flexion_ffc_deg';
 
 export type Feature = {
   value: number | null; // degrees, null when an event or keypoint is missing
@@ -34,7 +37,8 @@ export type Feature = {
 export type EventName = 'bfc_frame' | 'ffc_frame' | 'release_frame';
 export type Events = Partial<Record<EventName, number>>;
 // estimated = from foot movement relative to the hips (no image position from C1), about +/- 2-4 frames
-export type EventMethod = 'manual' | 'c1_window' | 'auto' | 'estimated' | 'not_detected';
+// model = ball release from the trained XGBoost model (c2_biomech/event_ml.py)
+export type EventMethod = 'manual' | 'c1_window' | 'model' | 'auto' | 'estimated' | 'not_detected';
 
 /** Per-frame angles for a chart later (column name -> one value per frame). */
 export type Series = Record<string, (number | null)[]>;

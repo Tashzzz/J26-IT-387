@@ -7,12 +7,19 @@ import { useC4 } from '../../src/c4/C4Context';
 import { categoryMeta, colors, tierColor } from '../../src/c4/theme';
 import type { Category, Recommendation } from '../../src/c4/types';
 import { Banner, Body, Button, Card, Chips, H, Loading, Row, Screen, TierBadge, Tile } from '../../src/c4/ui';
+import { pts, useWhatIf } from '../../src/c4/useWhatIf';
+import { useWeekPlan, WeekPlanCard } from '../../src/c4/WeekPlanCard';
+import { WhatIfCard } from '../../src/c4/WhatIfCard';
 
 const ORDER: Category[] = ['rehabilitation', 'training', 'workload', 'recovery', 'preventive_exercise'];
 
 export default function PlanDashboard() {
   const router = useRouter();
   const { athletes, athlete, plan, planIsCached, loading, online, error, selectAthlete, generatePlan, refreshAthletes } = useC4();
+  // C4 research layers (C3's model): re-run whenever a fresh (not cached) plan is made.
+  const modelKey = plan && !planIsCached ? (plan.id ?? plan.generated_at) : null;
+  const whatif = useWhatIf(athlete?.id, modelKey);
+  const weekplan = useWeekPlan(athlete?.id, modelKey);
 
   if (online === null) return <Screen><Loading text="Connecting to the C4 engine…" /></Screen>;
 
@@ -52,7 +59,10 @@ export default function PlanDashboard() {
         onPress={generatePlan} loading={loading} disabled={!athlete} />
 
       {!plan ? (
-        <Card><Body muted>No plan yet for {athlete?.bowler_id ?? 'this bowler'}. Generate one to see limits, actions and reasons.</Body></Card>
+        <>
+          <Card><Body muted>No plan yet for {athlete?.bowler_id ?? 'this bowler'}. Generate one to see limits, actions and reasons.</Body></Card>
+          <Button title="Research results: AI week planner vs rules" variant="secondary" icon="bar-chart-outline" onPress={() => router.push('/plan/research')} />
+        </>
       ) : (
         <>
           <Card style={{ borderColor: tierColor[plan.risk_tier] }}>
@@ -83,12 +93,23 @@ export default function PlanDashboard() {
             <NavPill icon="stats-chart-outline" label={`Workload · ACWR ${plan.metrics.acwr ?? '—'}`} onPress={() => router.push('/plan/workload')} />
             <NavPill icon="person-outline" label="Profile & inputs" onPress={() => router.push('/plan/profile')} />
             <NavPill icon="time-outline" label="History" onPress={() => router.push('/plan/history')} />
+            <NavPill icon="flask-outline" label="Model check (what-if)" onPress={() => router.push('/plan/whatif')} />
+            <NavPill icon="git-compare-outline" label="Week planner" onPress={() => router.push('/plan/week-plan')} />
+            <NavPill icon="bar-chart-outline" label="Research results" onPress={() => router.push('/plan/research')} />
           </Row>
+
+          {/* model-guided check (C3 model tests each action) and week planner (C3 model simulates next week) */}
+          <WhatIfCard data={whatif.data} loading={whatif.loading} unavailable={whatif.unavailable} onOpen={() => router.push('/plan/whatif')} />
+          <WeekPlanCard data={weekplan.data} loading={weekplan.loading} unavailable={weekplan.unavailable} onOpen={() => router.push('/plan/week-plan')} />
 
           {grouped.map(({ c, recs }) => (
             <View key={c} style={{ gap: 10 }}>
               <H>{categoryMeta[c].label}</H>
-              {recs.map((r) => <RecCard key={r.rule_id} rec={r} onPress={() => router.push(`/plan/why/${r.rule_id}`)} />)}
+              {recs.map((r) => {
+                const eff = whatif.data?.rule_effect[r.rule_id];
+                const effect = eff != null && eff >= (whatif.data?.min_effect ?? 0.02) ? eff : undefined;
+                return <RecCard key={r.rule_id} rec={r} effect={effect} onPress={() => router.push(`/plan/why/${r.rule_id}`)} />;
+              })}
             </View>
           ))}
 
@@ -108,7 +129,7 @@ export default function PlanDashboard() {
   );
 }
 
-function RecCard({ rec, onPress }: { rec: Recommendation; onPress: () => void }) {
+function RecCard({ rec, onPress, effect }: { rec: Recommendation; onPress: () => void; effect?: number }) {
   const meta = categoryMeta[rec.category];
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityHint="Shows why this was recommended"
@@ -118,6 +139,12 @@ function RecCard({ rec, onPress }: { rec: Recommendation; onPress: () => void })
       </View>
       <View style={{ flex: 1, gap: 4 }}>
         <Text style={s.recTitle}>{rec.title}</Text>
+        {effect != null && (
+          <View style={s.effect}>
+            <Ionicons name="trending-down" size={14} color={colors.ok} />
+            <Text style={s.effectText}>Model predicts −{pts(effect)} risk points</Text>
+          </View>
+        )}
         <Text style={s.recAction}>{rec.action}</Text>
         {rec.exercises.map((e) => (
           <Text key={e.name} style={s.exercise}>• {e.name} — {e.dose}</Text>
@@ -139,8 +166,8 @@ function NavPill({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMa
 
 const s = StyleSheet.create({
   code: { color: colors.text, fontSize: 16, fontWeight: '700' },
-  score: { fontSize: 34, fontWeight: '800' },
-  scoreLabel: { fontSize: 13, fontWeight: '500', color: colors.muted },
+  score: { fontSize: 34, fontWeight: '700' },
+  scoreLabel: { fontSize: 13, fontWeight: '400', color: colors.muted },
   rec: { flexDirection: 'row', gap: 12, backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 14, padding: 14 },
   recIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   recTitle: { color: colors.text, fontSize: 15, fontWeight: '700' },
@@ -148,8 +175,10 @@ const s = StyleSheet.create({
   exercise: { color: colors.muted, fontSize: 13 },
   why: { color: colors.accent, fontSize: 13, fontWeight: '700', marginTop: 2 },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, minHeight: 40 },
-  pillText: { color: colors.text, fontSize: 13, fontWeight: '600' },
-  small: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  pillText: { color: colors.text, fontSize: 13, fontWeight: '700' },
+  small: { color: colors.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1 },
   note: { color: colors.muted, fontSize: 13, lineHeight: 19 },
   footer: { color: colors.muted, fontSize: 12, textAlign: 'center' },
+  effect: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.okBg, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
+  effectText: { color: colors.ok, fontSize: 12, fontWeight: '700' },
 });
