@@ -25,6 +25,8 @@ export default function Details() {
   const { researchMode, coach } = useApp();
   const first = Math.max(0, COMPONENT_KEYS.indexOf((start ?? 'c1') as ComponentKey));
   const [page, setPage] = useState(first);
+  // Height of the pager: each page's ScrollView needs a fixed height to scroll (on web it otherwise grows to its content).
+  const [pageH, setPageH] = useState(0);
   const list = useRef<FlatList<ComponentKey>>(null);
   const [thresholds, setThresholds] = useState<Thresholds | null>(null);
   // Limits + meanings (as on the Joint angles screen); not fatal if it fails.
@@ -56,6 +58,8 @@ export default function Details() {
       </View>
 
       <FlatList
+        style={s.pager}
+        onLayout={(e) => setPageH(e.nativeEvent.layout.height)}
         ref={list}
         data={COMPONENT_KEYS}
         keyExtractor={(k) => k}
@@ -66,7 +70,7 @@ export default function Details() {
         getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
         onMomentumScrollEnd={(e) => setPage(Math.round(e.nativeEvent.contentOffset.x / width))}
         renderItem={({ item: k }) => (
-          <ScrollView style={{ width }} contentContainerStyle={s.page}>
+          <ScrollView style={{ width, height: pageH || undefined }} contentContainerStyle={s.page}>
             <View style={s.inner}>
               {researchMode && (
                 <View style={s.head}>
@@ -86,6 +90,7 @@ export default function Details() {
 
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.bg },
+  pager: { flex: 1 },
   tabs: { flexDirection: 'row', gap: sp(1), paddingHorizontal: sp(2), paddingVertical: sp(1), borderBottomWidth: 1, borderBottomColor: color.border, backgroundColor: color.surface },
   tab: { flex: 1, minHeight: 40, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm, borderWidth: 1, borderColor: color.border },
   tabText: { ...font.body, fontWeight: '700' },
