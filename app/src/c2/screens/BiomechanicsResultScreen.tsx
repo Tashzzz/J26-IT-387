@@ -6,10 +6,11 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
-  alpha, Card, color, DeliveryTimeline, font, MetricTile, radius, RISK, SecondaryButton, sp, Tag, useResearchMode,
+  alpha, Card, color, font, MetricTile, radius, RISK, SecondaryButton, sp, Tag, useResearchMode,
 } from '../../ui';
 import type { Feature, FeatureName, FeatureRow, Threshold, Thresholds } from '../types';
-import { EventsCard, FEATURE_LABEL, FEATURE_ORDER, FeatureCard, featureStatus, ruleText, TECH_LABEL } from '../ui';
+import { KeyMomentsCard } from '../KeyMoments';
+import { FEATURE_LABEL, FEATURE_ORDER, FeatureCard, featureStatus, ruleText, TECH_LABEL } from '../ui';
 
 const fmt = (deg: number | null) => (deg === null ? '—' : `${deg.toFixed(1)}°`);
 
@@ -81,7 +82,6 @@ export function BiomechanicsResultScreen({ row, thresholds, children }: {
   const [showNotes, setShowNotes] = useState(false);
   const measured = FEATURE_ORDER.filter((n) => row.features[n]?.value !== null && row.features[n]?.value !== undefined).length;
   const confirmedBreaches = FEATURE_ORDER.filter((n) => row.features[n]?.breach).length;
-  const frames = row.series ? Math.max(0, ...Object.values(row.series).map((v) => v.length)) : 0;
   const research = useResearchMode();
 
   return (
@@ -100,11 +100,7 @@ export function BiomechanicsResultScreen({ row, thresholds, children }: {
         <MetricTile label="Angles measured" value={`${measured} / ${FEATURE_ORDER.length}`} icon="analytics-outline" tint={color.text} />
       </View>
 
-      <Card>
-        <Text style={s.h2}>Key moments</Text>
-        <DeliveryTimeline bfc={row.events.bfc_frame} ffc={row.events.ffc_frame} release={row.events.release_frame} total={frames} fps={row.fps} />
-        <EventsCard events={row.events} method={row.event_method} fps={row.fps} />
-      </Card>
+      <KeyMomentsCard row={row} />
 
       <Text style={s.h2}>Joint angles</Text>
       {FEATURE_ORDER.filter((n) => row.features[n]).map((n) => (
