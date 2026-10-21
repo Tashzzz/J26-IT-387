@@ -54,31 +54,33 @@ Labelling rules (keep identical for every clip):
 
 ## Pilot results (21 Oct 2026)
 
-12 hand-labelled side-on deliveries from 2 bowlers (30 and 60 fps), labels drafted with AI
-assistance and checked by the C2 owner.
+11 hand-labelled side-on deliveries from 2 bowlers (30 and 60 fps), labels drafted with AI
+assistance and checked by the C2 owner. One clip was dropped because its labels were a
+copy of another clip's.
 
 Rule baseline – frame error against the hand labels:
 
 | Event | n | Median error (frames) | Mean error (ms) | Within ±1 frame | Within ±2 frames |
 |---|---|---|---|---|---|
-| BFC | 12 | 2.5 | 152 | 33 % | 50 % |
-| FFC | 12 | 1.5 | 141 | 50 % | 58 % |
-| BR | 12 | 1.0 | 125 | 67 % | 67 % |
+| BFC | 11 | 2.0 | 123 | 36 % | 55 % |
+| FFC | 11 | 1.0 | 102 | 55 % | 64 % |
+| BR | 11 | 1.0 | 88 | 73 % | 73 % |
 
 Angle error caused by the event error (rule baseline, 2-D proxies):
 
 | Event | Angle | Mean | Max |
 |---|---|---|---|
-| BFC | rear hip | 15.3° | 89.3° |
-| BFC | rear knee | 16.6° | 77.5° |
-| FFC | front hip | 9.3° | 25.1° |
-| FFC | front knee | 5.6° | 28.6° |
-| BR | front knee | 4.4° | 25.2° |
+| BFC | rear hip | 8.5° | 55.4° |
+| BFC | rear knee | 12.1° | 77.5° |
+| FFC | front hip | 9.1° | 25.1° |
+| FFC | front knee | 5.3° | 28.6° |
+| BR | front knee | 2.5° | 12.7° |
 
 What it means
 - Release is the easiest event; foot contacts (especially BFC) are the hardest.
-- A wrong BFC moves the rear-hip angle by 15° on average – larger than the ~10° difference
-  between injured and uninjured bowlers (Alway et al. 2021), so event accuracy matters.
+- A wrong BFC moves the rear-knee angle by 12° on average (up to 78° on one clip) – larger
+  than the ~10° difference between injured and uninjured bowlers (Alway et al. 2021), so
+  event accuracy matters.
 - XGBoost was not evaluated: with 2 bowlers, leave-one-bowler-out trains on one bowler and
   tests on the other. It needs 15+ bowlers.
 
