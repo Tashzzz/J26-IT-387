@@ -42,6 +42,15 @@ def knee_flexion(hip, knee, ankle):
     return 180.0 - joint_angle(hip, knee, ankle)
 
 
+def hip_flexion(shoulder, hip, knee):
+    """Hip flexion: 0 deg = trunk and thigh in a straight line, larger = more bent.
+
+    Included angle shoulder-hip-knee on the same side (Alway et al. 2021 report this
+    included angle; flexion = 180 - included angle, the same convention as the knee).
+    """
+    return 180.0 - joint_angle(shoulder, hip, knee)
+
+
 def line_alignment(left, right):
     """Direction of the line left->right in the horizontal (x-z) plane, degrees.
 
@@ -117,6 +126,9 @@ def angle_series(points, bowling_arm):
     shoulder_align = line_alignment(P[:, kp.LEFT_SHOULDER], P[:, kp.RIGHT_SHOULDER])
     hip_align = line_alignment(P[:, kp.LEFT_HIP], P[:, kp.RIGHT_HIP])
     leg = (P[:, s["front_hip"]], P[:, s["front_knee"]], P[:, s["front_ankle"]])
+    rear_leg = (P[:, s["back_hip"]], P[:, s["back_knee"]], P[:, s["back_ankle"]])
+    rear_hip = (P[:, s["back_shoulder"]], P[:, s["back_hip"]], P[:, s["back_knee"]])
+    front_hip = (P[:, s["front_shoulder"]], P[:, s["front_hip"]], P[:, s["front_knee"]])
     trunk = (P[:, kp.LEFT_HIP], P[:, kp.RIGHT_HIP], P[:, kp.LEFT_SHOULDER], P[:, kp.RIGHT_SHOULDER])
     return {
         "shoulder_alignment_deg": shoulder_align,
@@ -124,6 +136,12 @@ def angle_series(points, bowling_arm):
         "hip_shoulder_separation_deg": np.abs(wrap180(shoulder_align - hip_align)),
         "front_knee_flexion_3d_deg": knee_flexion(*leg),
         "front_knee_flexion_2d_deg": knee_flexion(*(_xy(p) for p in leg)),
+        "rear_knee_flexion_3d_deg": knee_flexion(*rear_leg),
+        "rear_knee_flexion_2d_deg": knee_flexion(*(_xy(p) for p in rear_leg)),
+        "rear_hip_flexion_3d_deg": hip_flexion(*rear_hip),
+        "rear_hip_flexion_2d_deg": hip_flexion(*(_xy(p) for p in rear_hip)),
+        "front_hip_flexion_3d_deg": hip_flexion(*front_hip),
+        "front_hip_flexion_2d_deg": hip_flexion(*(_xy(p) for p in front_hip)),
         "trunk_lateral_flexion_3d_deg": trunk_lateral_flexion(*trunk),
         "trunk_lateral_flexion_2d_deg": trunk_tilt_2d(*trunk),
     }

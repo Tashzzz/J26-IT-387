@@ -41,6 +41,9 @@ C1 JSON → quality gate → Butterworth 8 Hz → release / BFC / FFC → 2-D or
 | `front_knee_flexion_ffc_deg` | FFC | reported | 3-D, poor | **2-D, good**¹ | 3-D, poor |
 | `shoulder_counter_rotation_deg` | BFC → FFC | > 30° (Portus mixed action: injured 41°, uninjured 19°) | 3-D, poor | 3-D, poor | 3-D, poor |
 | `hip_shoulder_separation_bfc_deg` | BFC | > 30° (Portus mixed-action criterion) | 3-D, poor | 3-D, poor | 3-D, poor |
+| `rear_knee_flexion_bfc_deg` | BFC | reported (Alway 2021: differs injured vs uninjured, no cut-off) | 3-D, poor | **2-D, good**¹ | 3-D, poor |
+| `rear_hip_flexion_bfc_deg` | BFC | reported (Alway 2021: strongest technique predictor, no cut-off) | 3-D, poor | **2-D, good** | 3-D, poor |
+| `front_hip_flexion_ffc_deg` | FFC | reported (Alway 2021; Bayne 2016, no cut-off) | 3-D, poor | **2-D, good** | 3-D, poor |
 
 One camera measures angles in the image plane well; anything in the depth direction
 relies on MediaPipe's z, its noisiest axis. "Poor" features are still output but marked
