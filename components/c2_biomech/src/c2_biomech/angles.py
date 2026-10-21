@@ -42,13 +42,21 @@ def knee_flexion(hip, knee, ankle):
     return 180.0 - joint_angle(hip, knee, ankle)
 
 
-def hip_flexion(shoulder, hip, knee):
+def hip_flexion(trunk_top, hip, knee, trunk_base=None):
     """Hip flexion: 0 deg = trunk and thigh in a straight line, larger = more bent.
 
-    Included angle shoulder-hip-knee on the same side (Alway et al. 2021 report this
-    included angle; flexion = 180 - included angle, the same convention as the knee).
+    The trunk direction is the TRUNK LINE (mid-hip -> mid-shoulder) when trunk_base
+    is given, so the result does not depend on where a single shoulder point is
+    placed (with the bowling arm raised, the shoulder landmark moves a lot - on
+    vishmi7 MediaPipe's shoulder and the Kinovea shoulder were 173 px apart).
+    The thigh is hip -> knee on the measured leg. flexion = 180 - included angle,
+    the same convention as the knee. Without trunk_base the trunk is hip -> trunk_top.
     """
-    return 180.0 - joint_angle(shoulder, hip, knee)
+    hip = np.asarray(hip, dtype=float)
+    base = hip if trunk_base is None else np.asarray(trunk_base, dtype=float)
+    trunk = np.asarray(trunk_top, dtype=float) - base
+    thigh = np.asarray(knee, dtype=float) - hip
+    return 180.0 - angle_between(trunk, thigh)
 
 
 def line_alignment(left, right):
@@ -72,8 +80,11 @@ def trunk_lateral_flexion(left_hip, right_hip, left_shoulder, right_shoulder):
 
     trunk   = mid-hip -> mid-shoulder
     lateral = hip line, made horizontal
-    The trunk is projected onto the plane spanned by "up" and "lateral",
-    and the angle from vertical in that plane is returned (always >= 0).
+    Side-bend = the angle between the trunk and the pelvis's sagittal plane,
+    asin(|trunk . lateral| / |trunk|), always >= 0. This matches a Cardan
+    (flexion first, then lateral bend) decomposition as used in the lab studies,
+    so forward lean does not inflate it. (An earlier version projected the trunk
+    onto the frontal plane: with 40 deg forward lean a true 20 deg side-bend read 25 deg.)
     Using the pelvis frame keeps the value independent of camera direction,
     as long as the depth (z) estimate is reasonable.
     """
@@ -87,10 +98,12 @@ def trunk_lateral_flexion(left_hip, right_hip, left_shoulder, right_shoulder):
     with np.errstate(invalid="ignore", divide="ignore"):
         lateral = lateral / lat_len[..., None]
 
-    up_part = np.sum(trunk * UP, axis=-1)
     side_part = np.sum(trunk * lateral, axis=-1)
-    out = np.degrees(np.arctan2(np.abs(side_part), up_part))
-    return np.where(lat_len > 1e-9, out, np.nan)
+    length = _norm(trunk)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        ratio = np.clip(np.abs(side_part) / length, 0.0, 1.0)
+    out = np.degrees(np.arcsin(ratio))
+    return np.where((lat_len > 1e-9) & (length > 1e-9), out, np.nan)
 
 
 def _xy(p):
@@ -127,8 +140,10 @@ def angle_series(points, bowling_arm):
     hip_align = line_alignment(P[:, kp.LEFT_HIP], P[:, kp.RIGHT_HIP])
     leg = (P[:, s["front_hip"]], P[:, s["front_knee"]], P[:, s["front_ankle"]])
     rear_leg = (P[:, s["back_hip"]], P[:, s["back_knee"]], P[:, s["back_ankle"]])
-    rear_hip = (P[:, s["back_shoulder"]], P[:, s["back_hip"]], P[:, s["back_knee"]])
-    front_hip = (P[:, s["front_shoulder"]], P[:, s["front_hip"]], P[:, s["front_knee"]])
+    mid_sh = (P[:, kp.LEFT_SHOULDER] + P[:, kp.RIGHT_SHOULDER]) / 2.0
+    mid_hip = (P[:, kp.LEFT_HIP] + P[:, kp.RIGHT_HIP]) / 2.0
+    rear_hip = (mid_sh, P[:, s["back_hip"]], P[:, s["back_knee"]], mid_hip)
+    front_hip = (mid_sh, P[:, s["front_hip"]], P[:, s["front_knee"]], mid_hip)
     trunk = (P[:, kp.LEFT_HIP], P[:, kp.RIGHT_HIP], P[:, kp.LEFT_SHOULDER], P[:, kp.RIGHT_SHOULDER])
     return {
         "shoulder_alignment_deg": shoulder_align,

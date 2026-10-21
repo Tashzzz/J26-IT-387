@@ -24,10 +24,11 @@ Foot contacts - two automatic methods
     2. Without it (C1's current files are hip-centred only), "estimated":
        timing gives the search window, the foot movement relative to the hips
        picks the frame:
-         FFC  = the frame where the leading foot reaches furthest forward of the
-                hips, searched FFC_BEFORE_RELEASE_S +/- CONTACT_WINDOW_S before
-                release. Left/right labels can swap in side-on video, so the
-                leading foot is whichever ankle reaches furthest.
+         FFC  = FFC_AFTER_MAX_REACH_S after the frame where the leading foot
+                reaches furthest forward of the hips (searched FFC_BEFORE_RELEASE_S
+                +/- CONTACT_WINDOW_S before release): the foot reaches furthest
+                just before it lands. Left/right labels can swap in side-on video,
+                so the leading foot is whichever ankle reaches furthest.
          BFC  = the frame where the other (back) foot is lowest below the hips,
                 searched BFC_BEFORE_FFC_S +/- CONTACT_WINDOW_S before FFC.
        Checked against frames marked by hand on 13 clips (3 bowlers, 30/60 fps,
@@ -55,6 +56,11 @@ CONTACT_SEARCH_S = 0.6     # look this far back for a foot contact
 FFC_BEFORE_RELEASE_S = 0.17  # median FFC -> release time, 13 hand-marked clips
 BFC_BEFORE_FFC_S = 0.15      # median BFC -> FFC time, same clips
 CONTACT_WINDOW_S = 0.07      # search +/- this around those times
+# The front foot reaches furthest forward BEFORE it touches the ground. On 11 hand-labelled
+# side-on clips (2 bowlers, 30/60 fps, 21 Oct 2026) "furthest reach" was early on every clip
+# (mean 67 ms). FFC = furthest reach + this delay; leave-one-clip-out error 18 ms, 10 of 11
+# within 1 frame (was 67 ms, 3 of 11). Re-check on new bowlers.
+FFC_AFTER_MAX_REACH_S = 0.067
 
 
 def arm_elevation(points, bowling_arm):
@@ -141,11 +147,13 @@ def estimate_contacts(points, fps, release):
         return None, None
     seg = np.abs(ankles[lead][a:b, 0])
     direction = np.sign(ankles[lead][a + int(np.nanargmax(seg)), 0])  # which way the bowler runs
-    ffc = a + int(np.nanargmax(direction * ankles[lead][a:b, 0]))
+    reach = a + int(np.nanargmax(direction * ankles[lead][a:b, 0]))
+    ffc = min(reach + int(round(FFC_AFTER_MAX_REACH_S * fps)), release)
 
     # BFC: the back foot at its lowest below the hips (y points down) near the expected time.
+    # Timed from the furthest-reach frame, as when the BFC timing was measured.
     back_y = ankles[1 - lead][:, 1]
-    guess = ffc - int(round(BFC_BEFORE_FFC_S * fps))
+    guess = reach - int(round(BFC_BEFORE_FFC_S * fps))
     a, b = max(0, guess - w), min(ffc, guess + w + 1)
     if b <= a or not np.isfinite(back_y[a:b]).any():
         return None, ffc
