@@ -26,7 +26,7 @@ NAMES = {
 
 
 def sides(bowling_arm):
-    """Return the keypoints for the bowling side and the front leg.
+    """Return the keypoints for the bowling side, the front leg and the back (rear) leg.
 
     A right-arm bowler lands on the LEFT foot at front-foot contact and on the
     RIGHT foot at back-foot contact; a left-arm bowler is the mirror image.
@@ -34,13 +34,17 @@ def sides(bowling_arm):
     if bowling_arm == "right":
         return {
             "wrist": RIGHT_WRIST,
+            "front_shoulder": LEFT_SHOULDER,
             "front_hip": LEFT_HIP, "front_knee": LEFT_KNEE, "front_ankle": LEFT_ANKLE,
-            "back_ankle": RIGHT_ANKLE,
+            "back_shoulder": RIGHT_SHOULDER,
+            "back_hip": RIGHT_HIP, "back_knee": RIGHT_KNEE, "back_ankle": RIGHT_ANKLE,
         }
     if bowling_arm == "left":
         return {
             "wrist": LEFT_WRIST,
+            "front_shoulder": RIGHT_SHOULDER,
             "front_hip": RIGHT_HIP, "front_knee": RIGHT_KNEE, "front_ankle": RIGHT_ANKLE,
-            "back_ankle": LEFT_ANKLE,
+            "back_shoulder": LEFT_SHOULDER,
+            "back_hip": LEFT_HIP, "back_knee": LEFT_KNEE, "back_ankle": LEFT_ANKLE,
         }
     raise ValueError(f"bowling_arm must be 'left' or 'right', got {bowling_arm!r}")

@@ -14,6 +14,9 @@ export const FEATURE_ORDER: FeatureName[] = [
   'front_knee_flexion_release_deg',
   'trunk_lateral_flexion_deg',
   'front_knee_flexion_ffc_deg',
+  'rear_hip_flexion_bfc_deg',
+  'rear_knee_flexion_bfc_deg',
+  'front_hip_flexion_ffc_deg',
   'hip_shoulder_separation_bfc_deg',
 ];
 
@@ -24,6 +27,9 @@ export const FEATURE_LABEL: Record<FeatureName, string> = {
   trunk_lateral_flexion_deg: 'Sideways body lean at release',
   front_knee_flexion_ffc_deg: 'Front knee bend at landing',
   hip_shoulder_separation_bfc_deg: 'Hips vs shoulders at back-foot landing',
+  rear_knee_flexion_bfc_deg: 'Back knee bend at back-foot landing',
+  rear_hip_flexion_bfc_deg: 'Back hip bend at back-foot landing',
+  front_hip_flexion_ffc_deg: 'Front hip bend at front-foot landing',
 };
 
 export const TECH_LABEL: Record<FeatureName, string> = {
@@ -32,6 +38,9 @@ export const TECH_LABEL: Record<FeatureName, string> = {
   trunk_lateral_flexion_deg: 'trunk lateral flexion at ball release',
   front_knee_flexion_ffc_deg: 'front-knee flexion at front-foot contact',
   hip_shoulder_separation_bfc_deg: 'hip–shoulder separation at back-foot contact',
+  rear_knee_flexion_bfc_deg: 'rear-knee flexion at back-foot contact',
+  rear_hip_flexion_bfc_deg: 'rear-hip flexion at back-foot contact',
+  front_hip_flexion_ffc_deg: 'front-hip flexion at front-foot contact',
 };
 
 const EVENT_LABEL: Record<EventName, string> = {

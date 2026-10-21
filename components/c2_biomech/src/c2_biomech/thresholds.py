@@ -44,6 +44,13 @@ How the limits were chosen (20 Oct 2026, see docs/decisions.md):
                                          definition (separation >= 30 deg at BFC or SCR >= 30 deg).
     Front knee at FFC          reported  Portus: injured 165-167 deg vs uninjured 154 deg, no
                                          published cut-off; Alway (2021) no difference (163 deg both).
+    Rear knee at BFC           reported  Alway et al. (2021, elite adults, prospective, MRI-confirmed
+    Rear hip at BFC            reported  lumbar bone stress injury): rear knee and rear hip angle at BFC
+    Front hip at FFC           reported  and front hip angle at FFC differed between injured and
+                                         uninjured bowlers; rear hip at BFC (with lumbopelvic angle at
+                                         FFC) predicted 88 % of bowlers by injury history. No published
+                                         cut-off, so these are reported only (threshold None) until
+                                         smartphone values are validated against Kinovea.
 """
 
 THRESHOLDS = {
@@ -82,6 +89,27 @@ THRESHOLDS = {
         "source": "Portus et al. (2004) - mixed-action criterion",
         "evidence": "Mixed action = hip-shoulder separation of 30° or more at BFC, or SCR of 30° or more",
         "meaning": "Hips and shoulders point in different directions at back-foot contact (part of a mixed action)",
+    },
+    "rear_knee_flexion_bfc_deg": {
+        "threshold": None, "rule": None, "amber_band": None,
+        "label": "Back knee bend at back-foot landing",
+        "source": "Alway et al. (2021) - no published limit",
+        "evidence": "Rear knee angle at BFC differed between bowlers with and without lumbar bone stress injury (Alway 2021)",
+        "meaning": "How much the back leg bends as the back foot lands - a collapsed, sat-down back leg is linked to lower-back stress injury",
+    },
+    "rear_hip_flexion_bfc_deg": {
+        "threshold": None, "rule": None, "amber_band": None,
+        "label": "Back hip bend at back-foot landing",
+        "source": "Alway et al. (2021) - no published limit",
+        "evidence": "Rear hip angle at BFC was the strongest technique predictor of lumbar bone stress injury (Alway 2021)",
+        "meaning": "How much the back hip folds as the back foot lands - more folding is linked to lower-back stress injury",
+    },
+    "front_hip_flexion_ffc_deg": {
+        "threshold": None, "rule": None, "amber_band": None,
+        "label": "Front hip bend at front-foot landing",
+        "source": "Alway et al. (2021); Bayne et al. (2016) - no published limit",
+        "evidence": "Front hip angle at FFC differed between injured and uninjured bowlers (Alway 2021; Bayne 2016 in adolescents)",
+        "meaning": "How much the front hip bends as the front foot lands",
     },
 }
 

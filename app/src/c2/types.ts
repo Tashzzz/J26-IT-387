@@ -12,7 +12,10 @@ export type FeatureName =
   | 'front_knee_flexion_ffc_deg'
   | 'front_knee_flexion_release_deg'
   | 'trunk_lateral_flexion_deg'
-  | 'hip_shoulder_separation_bfc_deg';
+  | 'hip_shoulder_separation_bfc_deg'
+  | 'rear_knee_flexion_bfc_deg'
+  | 'rear_hip_flexion_bfc_deg'
+  | 'front_hip_flexion_ffc_deg';
 
 export type Feature = {
   value: number | null; // degrees, null when an event or keypoint is missing

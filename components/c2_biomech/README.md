@@ -41,10 +41,20 @@ C1 JSON → quality gate → Butterworth 8 Hz → release / BFC / FFC → 2-D or
 | `front_knee_flexion_ffc_deg` | FFC | reported | 3-D, poor | **2-D, good**¹ | 3-D, poor |
 | `shoulder_counter_rotation_deg` | BFC → FFC | > 30° (Portus mixed action: injured 41°, uninjured 19°) | 3-D, poor | 3-D, poor | 3-D, poor |
 | `hip_shoulder_separation_bfc_deg` | BFC | > 30° (Portus mixed-action criterion) | 3-D, poor | 3-D, poor | 3-D, poor |
+| `rear_knee_flexion_bfc_deg` | BFC | reported (Alway 2021: differs injured vs uninjured, no cut-off) | 3-D, poor | **2-D, good**¹ | 3-D, poor |
+| `rear_hip_flexion_bfc_deg` | BFC | reported (Alway 2021: strongest technique predictor, no cut-off) | 3-D, poor | **2-D, good** | 3-D, poor |
+| `front_hip_flexion_ffc_deg` | FFC | reported (Alway 2021; Bayne 2016, no cut-off) | 3-D, poor | **2-D, good** | 3-D, poor |
 
 One camera measures angles in the image plane well; anything in the depth direction
 relies on MediaPipe's z, its noisiest axis. "Poor" features are still output but marked
 `reliable: false`. The table was set from the first real clips (see `docs/decisions.md`).
+
+How the angles are defined (changed 21 Oct 2026 after the Kinovea pilot, see `docs/decisions.md`):
+- Knee flexion = 180° − hip-knee-ankle angle (0° = straight).
+- Hip flexion = angle between the trunk line (mid-hip → mid-shoulder) and the thigh (hip → knee), 0° = thigh in line with the trunk.
+- Trunk side-bend = angle of the trunk out of the vertical plane, measured towards the side (asin form, not a projection, so forward lean does not inflate it).
+- Shoulder counter-rotation = largest rotation of the shoulder line **away from** the target between BFC and FFC; rotation towards the target is ignored.
+- FFC (when C1 sends no image position) = 0.067 s after the front foot's furthest reach, never after release.
 
 ¹ Geometry is good side-on, but C1's ICC study found knee/ankle tracking unreliable in side-on
 clips (ICC < 0.75), so these are also marked `reliable: false` (`c1_reliability.py`) until C1's
@@ -106,5 +116,7 @@ tests/            unit, known-answer, failure-path, real-clip-shape and API test
 
 - 30 fps: one frame = 33 ms; a 1-frame release error moves trunk side-bend by 6–8°. Record at ≥ 60 fps.
 - Release is approximated by the highest wrist (slightly before the real release).
+- Clips below 50 fps get a warning; the knee at FFC changes 10–20° per frame at 30 fps.
+- Kinovea pilot (2 bowlers, 8 angles, 21 Oct 2026): C2 read the joints straighter than Kinovea in all 8 (bias +7.7°, RMSE 9.0°, 3 of 8 within 5°). Main cause: MediaPipe places the hip 40–75 px away from the hip joint. Target < 5° not met; leg angles stay `reliable: false` until a correction is trained on more data.
 - Shoulder counter-rotation needs depth: not reliable from a single camera.
 - Limits come from studies on elite adult bowlers; thresholds are configurable for physiotherapist review.

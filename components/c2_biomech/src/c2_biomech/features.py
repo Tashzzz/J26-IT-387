@@ -14,10 +14,13 @@ Features (degrees):
     front_knee_flexion_release_deg  front-knee bend at release
     trunk_lateral_flexion_deg       trunk side-bend at release
     hip_shoulder_separation_bfc_deg hip line vs shoulder line at BFC
+    rear_knee_flexion_bfc_deg       back-leg knee bend at BFC (Alway et al. 2021)
+    rear_hip_flexion_bfc_deg        back-leg hip bend at BFC (Alway et al. 2021)
+    front_hip_flexion_ffc_deg       front-leg hip bend at FFC (Alway et al. 2021)
 
 Camera view (one camera can only measure angles that lie in the image plane well):
     front / rear  image plane = frontal plane  -> trunk side-bend in 2-D (good)
-    side          image plane = sagittal plane -> knee bend in 2-D (good)
+    side          image plane = sagittal plane -> knee and hip bend in 2-D (good)
     anything that needs depth (z) is computed in 3-D and marked view_suitability
     "limited" or "poor"; "poor" features are reported but marked not reliable.
     Shoulder counter-rotation and hip-shoulder separation are rotations about the
@@ -41,7 +44,12 @@ from .quality import gate
 from .thresholds import THRESHOLDS, classify, knee_release_level
 
 EVENT_TOLERANCE = 1     # if a keypoint is missing exactly at an event, look +/- this many frames
-DEFAULT_CUTOFF_HZ = 8.0  # agreed with C1 (stabilise.py used 8 Hz); must stay below fps / 2
+# 8 Hz. C1 does not smooth (stabilise.py: "smoothing belongs to C2"), so C2 is the only filter.
+# Checked on the Kinovea pilot (21 Oct 2026): 12 Hz or no filter changed the mean angle error
+# by < 1 deg (8.6 -> 8.0 deg on 8 angles) but made release detection worse on real clips
+# (rashini20: 6 -> 11 frames off), so 8 Hz stays. Capped below fps / 2 by filtering.max_cutoff.
+DEFAULT_CUTOFF_HZ = 8.0
+LOW_FPS = 50.0  # below this, joint angles at foot contact change too much per frame
 
 # feature -> view -> (angle method, view suitability)
 VIEW_METHOD = {
@@ -52,9 +60,12 @@ VIEW_METHOD = {
     "trunk_lateral": {"front": ("2d", "good"), "rear": ("2d", "good"),
                       "semi_side": ("3d", "poor"), "side": ("3d", "poor")},
     "transverse": {},  # SCR, hip-shoulder separation: always 3-D, poor from one camera
+    # Hip and knee bend of either leg move in the sagittal plane, like the front knee.
+    "sagittal": {"side": ("2d", "good"), "semi_side": ("3d", "poor"),
+                 "front": ("3d", "poor"), "rear": ("3d", "poor")},
 }
 DEFAULT_METHOD = {"front_knee": ("3d", "limited"), "trunk_lateral": ("3d", "limited"),
-                  "transverse": ("3d", "poor")}
+                  "transverse": ("3d", "poor"), "sagittal": ("3d", "limited")}
 
 
 def view_method(kind, view):
@@ -72,18 +83,33 @@ def value_at(series, frame, tol=EVENT_TOLERANCE):
     return None
 
 
+SCR_START_DEG = 3.0  # first movement larger than this sets the counter-rotation direction
+
+
 def shoulder_counter_rotation(shoulder_align, bfc, ffc):
-    """Max |change| in shoulder alignment from its BFC value, over BFC..FFC."""
+    """Counter-rotation only: the largest twist of the shoulder line AWAY from its BFC
+    alignment, between BFC and FFC (Portus et al. 2004 define SCR as the rotation from
+    BFC to the most side-on / most counter-rotated position).
+
+    After BFC the shoulders first counter-rotate (away from the batter) and only then
+    rotate forward. So the direction of the first clear movement (> SCR_START_DEG) is
+    taken as "away", and SCR is the largest deviation in that direction. Later forward
+    rotation is not counted (an earlier version took the largest change in either
+    direction, so 10 deg away followed by 35 deg forward read as 35 deg of SCR).
+    """
     if bfc is None or ffc is None or ffc <= bfc:
         return None
     ref = value_at(shoulder_align, bfc)
     if ref is None:
         return None
-    seg = shoulder_align[bfc:ffc + 1]
-    dev = np.abs(wrap180(seg - ref))
+    dev = wrap180(np.asarray(shoulder_align[bfc:ffc + 1], dtype=float) - ref)
     if not np.isfinite(dev).any():
         return None
-    return float(np.nanmax(dev))
+    moved = np.where(np.abs(dev) > SCR_START_DEG)[0]
+    if len(moved) == 0:
+        return float(np.nanmax(np.abs(dev)))  # never moved clearly: report the small wobble
+    away = np.sign(dev[moved[0]])
+    return float(max(0.0, np.nanmax(away * dev)))
 
 
 def keypoint_reliable(names, reliability):
@@ -149,12 +175,16 @@ def compute_features(delivery, overrides=None, thresholds=None, filter_mode="aut
     knee_m, knee_s = view_method("front_knee", view)
     trunk_m, trunk_s = view_method("trunk_lateral", view)
     rot_m, rot_s = view_method("transverse", view)
+    sag_m, sag_s = view_method("sagittal", view)
     knee = ang[f"front_knee_flexion_{knee_m}_deg"]
     trunk_lat = ang[f"trunk_lateral_flexion_{trunk_m}_deg"]
 
     s = kp.sides(delivery.bowling_arm)
     front_leg = [kp.NAMES[s["front_hip"]], kp.NAMES[s["front_knee"]], kp.NAMES[s["front_ankle"]]]
     trunk = ["left_hip", "right_hip", "left_shoulder", "right_shoulder"]
+    rear_leg = [kp.NAMES[s["back_hip"]], kp.NAMES[s["back_knee"]], kp.NAMES[s["back_ankle"]]]
+    rear_hip = trunk + [kp.NAMES[s["back_knee"]]]     # trunk line + back thigh
+    front_hip = trunk + [kp.NAMES[s["front_knee"]]]   # trunk line + front thigh
 
     raw = {
         "shoulder_counter_rotation_deg":
@@ -168,7 +198,18 @@ def compute_features(delivery, overrides=None, thresholds=None, filter_mode="aut
             (value_at(trunk_lat, rel), "release", trunk, trunk_m, trunk_s),
         "hip_shoulder_separation_bfc_deg":
             (value_at(ang["hip_shoulder_separation_deg"], bfc), "bfc", trunk, rot_m, rot_s),
+        "rear_knee_flexion_bfc_deg":
+            (value_at(ang[f"rear_knee_flexion_{sag_m}_deg"], bfc), "bfc", rear_leg, sag_m, sag_s),
+        "rear_hip_flexion_bfc_deg":
+            (value_at(ang[f"rear_hip_flexion_{sag_m}_deg"], bfc), "bfc", rear_hip, sag_m, sag_s),
+        "front_hip_flexion_ffc_deg":
+            (value_at(ang[f"front_hip_flexion_{sag_m}_deg"], ffc), "ffc", front_hip, sag_m, sag_s),
     }
+
+    if delivery.fps < LOW_FPS:
+        warnings.append(f"video is {delivery.fps:g} fps: knee and hip angles at foot contact can change "
+                        "10-20 deg between frames, so one frame of event error is a large angle error - "
+                        "record at 60 fps or more")
 
     reliability, reliability_source = reliability_for(delivery)
     features = {}
@@ -229,6 +270,8 @@ def compute_features(delivery, overrides=None, thresholds=None, filter_mode="aut
         series[name] = np.round(values, 2)
     series["front_knee_flexion_deg"] = series[f"front_knee_flexion_{knee_m}_deg"]
     series["trunk_lateral_flexion_deg"] = series[f"trunk_lateral_flexion_{trunk_m}_deg"]
+    for name in ("rear_knee_flexion", "rear_hip_flexion", "front_hip_flexion"):
+        series[f"{name}_deg"] = series[f"{name}_{sag_m}_deg"]
     series["arm_elevation"] = np.round(arm_elevation(delivery.points, delivery.bowling_arm), 3)
     series["kept"] = keep.astype(int)
     # Shoulder twist relative to its BFC alignment (SCR is its peak between BFC and FFC).
