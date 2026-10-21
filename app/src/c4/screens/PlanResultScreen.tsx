@@ -2,6 +2,7 @@
 // (category icon, why, source) and coach / physio feedback. Plan content comes from the engine as-is;
 // categories, colours and the feedback payload are the same as app/plan/index.tsx and app/plan/feedback.tsx.
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -10,9 +11,13 @@ import {
   alpha, Card, ChipGroup, color, ErrorBanner, font, MetricTile, PrimaryButton, radius, RISK, SegmentedControl, sp,
   TextField, toRiskLevel, useResearchMode,
 } from '../../ui';
+import { openPlan } from '../../shell/links';
 import { categoryMeta } from '../theme';
 import type { Category, FeedbackInput, PreventionPlan, Recommendation } from '../types';
 import { TierBadge } from '../ui';
+import { useWhatIf } from '../useWhatIf';
+import { useWeekPlan, WeekPlanCard } from '../WeekPlanCard';
+import { WhatIfCard } from '../WhatIfCard';
 
 const ORDER: Category[] = ['rehabilitation', 'training', 'workload', 'recovery', 'preventive_exercise'];
 
@@ -95,7 +100,12 @@ function FeedbackCard({ plan, reviewer }: { plan: PreventionPlan; reviewer?: str
   );
 }
 
-export function PlanResultScreen({ plan, reviewer }: { plan: PreventionPlan; reviewer?: string }) {
+export function PlanResultScreen({ plan, reviewer, athleteId }: { plan: PreventionPlan; reviewer?: string; athleteId?: number }) {
+  const router = useRouter();
+  // C4 research layers on C3's model: model check (rank actions) + week planner (next week's overs).
+  const key = athleteId != null ? (plan.id ?? plan.generated_at) : null;
+  const whatif = useWhatIf(athleteId, key);
+  const weekplan = useWeekPlan(athleteId, key);
   const level = toRiskLevel(plan.risk_tier);
   const groups = ORDER.map((c) => ({ c, recs: plan.recommendations.filter((r) => r.category === c) })).filter((g) => g.recs.length);
   const m = plan.metrics;
@@ -132,6 +142,13 @@ export function PlanResultScreen({ plan, reviewer }: { plan: PreventionPlan; rev
         <Text style={s.muted}>Rest: {plan.limits.rest_window}</Text>
         <Text style={s.muted}>Last 7 days {m.acute_overs} overs · usual week {m.chronic_weekly_overs} overs{research ? ` · ACWR ${m.acwr ?? '—'}` : ''}</Text>
       </Card>
+
+      {athleteId != null && (
+        <>
+          <WhatIfCard data={whatif.data} loading={whatif.loading} unavailable={whatif.unavailable} onOpen={() => openPlan(router, athleteId, 'whatif')} />
+          <WeekPlanCard data={weekplan.data} loading={weekplan.loading} unavailable={weekplan.unavailable} onOpen={() => openPlan(router, athleteId, 'week-plan')} />
+        </>
+      )}
 
       <Text style={s.h2}>Priority actions</Text>
       {groups.length === 0 && <Text style={s.muted}>No actions in this plan.</Text>}

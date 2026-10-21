@@ -59,7 +59,9 @@ export default function WeekPlanScreen() {
               <TierBadge tier={res.tier} />
               <Pill text={`${res.candidates_evaluated} weeks tested`} icon="flask-outline" />
             </View>
-            <Text style={s.summary}>{res.explanation}</Text>
+            <Text style={s.summary}>{res.usual.total_overs === 0
+              ? 'No workload logged for this bowler yet, so there is no usual week to plan from. Log at least 2-3 weeks of sessions in the Workload log, then run the planner again.'
+              : res.explanation}</Text>
             {res.synthetic_model && <Small>Risk model trained on synthetic, literature-informed data – estimates, not certainty.</Small>}
           </View>
 

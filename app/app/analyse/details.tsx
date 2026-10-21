@@ -21,7 +21,7 @@ const TAB: Record<ComponentKey, string> = { c1: 'Video', c2: 'Angles', c3: 'Risk
 export default function Details() {
   const { start } = useLocalSearchParams<{ start?: string }>();
   const { width } = useWindowDimensions();
-  const { results, video } = useAnalysis();
+  const { results, video, athlete } = useAnalysis();
   const { researchMode, coach } = useApp();
   const first = Math.max(0, COMPONENT_KEYS.indexOf((start ?? 'c1') as ComponentKey));
   const [page, setPage] = useState(first);
@@ -36,7 +36,7 @@ export default function Details() {
     if (k === 'c1' && results.pose) return <PoseResultScreen result={results.pose} rawUri={video?.uri} row={results.row} />;
     if (k === 'c2' && results.row) return <BiomechanicsResultScreen row={results.row} thresholds={thresholds} />;
     if (k === 'c3' && results.risk) return <RiskResultScreen result={results.risk} />;
-    if (k === 'c4' && results.plan) return <PlanResultScreen plan={results.plan} reviewer={coach.name} />;
+    if (k === 'c4' && results.plan) return <PlanResultScreen plan={results.plan} reviewer={coach.name} athleteId={athlete?.id} />;
     return <EmptyState spot="results" title="This step did not finish" text="Go back to the analysis to retry it." />;
   };
 

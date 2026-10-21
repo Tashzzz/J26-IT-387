@@ -55,6 +55,7 @@ export function WeekPlanCard({ data, loading, unavailable, onOpen }: {
     );
   }
   const changed = data.status === 'optimised' || data.status === 'safety_stop';
+  const noHistory = data.usual.total_overs === 0;
   return (
     <PressCard onPress={onOpen} label="Open the week planner">
       <View style={s.head}>
@@ -64,7 +65,13 @@ export function WeekPlanCard({ data, loading, unavailable, onOpen }: {
       </View>
       <Row label="Usual" opt={data.usual} />
       {changed && <Row label="Planned" opt={data.recommended} highlight />}
-      <Body>{data.explanation}</Body>
+      {noHistory ? (
+        <Body>No workload logged for this bowler yet, so there is no usual week to plan from. Log at least 2-3 weeks of
+          sessions (Workload log or "Log today's overs" on the bowler page) and the planner will compare next week's options.</Body>
+      ) : <Body>{data.explanation}</Body>}
+      {data.status === 'safety_stop' && !noHistory && (
+        <Small>Safety rule: the planner is not allowed to choose any bowling week until a physiotherapist clears the bowler.</Small>
+      )}
       <Small>Chance of injury over the next 2 weeks, from C3's risk model – an estimate. Rules and referrals still apply.</Small>
       <Button title="Compare options" variant="secondary" icon="git-compare-outline" onPress={onOpen} />
     </PressCard>
