@@ -53,8 +53,14 @@ def create_landmarker(model_path):
     return vision.PoseLandmarker.create_from_options(options)
 
 
-def extract_video(video_path, model_path, out_dir):
-    """Extract keypoints from one video. Returns the summary dict."""
+def extract_video(video_path, model_path, out_dir, frame_step=1, transform=None):
+    """Extract keypoints from one video. Returns the summary dict.
+
+    frame_step and transform are for the robustness study (robustness.py):
+    frame_step=2 keeps every 2nd frame (60 fps -> 30 fps), and transform(frame_bgr)
+    changes each kept frame (e.g. darker, smaller) before MediaPipe sees it.
+    The changed frames are never written to a video, so no extra compression is added.
+    """
     video_path = Path(video_path)
     clip_id = video_path.stem
     out_dir = Path(out_dir)
@@ -68,6 +74,7 @@ def extract_video(video_path, model_path, out_dir):
     if not fps or fps <= 0 or math.isnan(fps):
         print(f"  WARNING: fps not found in {video_path.name}, assuming 30")
         fps = 30.0
+    fps /= frame_step
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
@@ -84,10 +91,17 @@ def extract_video(video_path, model_path, out_dir):
         writer.writerow(CSV_COLUMNS)
 
         frame_idx = 0
+        source_idx = -1
         while True:
             ok, frame_bgr = cap.read()
             if not ok:
                 break
+            source_idx += 1
+            if source_idx % frame_step:
+                continue
+            if transform is not None:
+                frame_bgr = transform(frame_bgr)
+                height, width = frame_bgr.shape[:2]   # normalise.py needs the size MediaPipe saw
 
             # Timestamps must strictly increase in VIDEO mode.
             time_ms = int(round(frame_idx * 1000.0 / fps))
