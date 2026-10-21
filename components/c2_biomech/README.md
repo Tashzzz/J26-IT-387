@@ -61,7 +61,7 @@ clips (ICC < 0.75), so these are also marked `reliable: false` (`c1_reliability.
 reliability says otherwise. Two separate gates: can this camera see the angle (view), and does
 C1 track those joints reliably (ICC).
 
-**Events.** Release is automatic: arm elevation = bowling wrist above the shoulder, divided by
+**Events.** Release is found by a trained XGBoost model first (`event_ml.py`, see `event_model/models/README.md`; on consented clips 82 % within 1 frame vs 64 % for the rule alone) and falls back to the rule when the model is not confident. The rule: arm elevation = bowling wrist above the shoulder, divided by
 trunk length (so it doesn't change as the bowler gets closer to the camera); release is the
 **first** arm peak reaching 60 % of the highest one, because bowlers often lift the arm again after
 the follow-through. Checked against release frames marked by hand on 13 clips: within 1 frame
@@ -85,7 +85,7 @@ python -m c2_biomech ../../data/handoff --events events.csv   # manual BFC/FFC p
 python -m c2_biomech <clip>.json --bfc 98 --ffc 108           # manual events, one clip
 python -m c2_biomech <clip>.json --cutoff auto    # residual-analysis cutoff instead of 8 Hz
 python -m c2_biomech --synthetic                  # known-answer demo delivery
-python -m pytest                                  # 49 tests
+python -m pytest                                  # 82 tests
 ```
 
 `events.csv`: `video_id,bfc_frame,ffc_frame,release_frame` — frame = index in the C1 file's
@@ -102,6 +102,7 @@ src/c2_biomech/
   quality.py     drop impossible detections (upside-down, tiny, ankles above hips)
   filtering.py   gap fill + Butterworth (zero lag) + Winter residual analysis
   events.py      release (arm elevation), BFC/FFC (needs image position) + overrides
+  event_ml.py    trained XGBoost release model (models/release_xgb.json), rule fallback
   angles.py      angle maths, 2-D and 3-D, per frame
   features.py    view-dependent feature values + reliability -> C2 contract row
   thresholds.py  published limits, red/amber/green

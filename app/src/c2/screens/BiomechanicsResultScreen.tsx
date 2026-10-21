@@ -6,10 +6,11 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
-  alpha, Card, color, DeliveryTimeline, font, MetricTile, radius, RISK, SecondaryButton, sp, Tag, useResearchMode,
+  alpha, Card, color, font, MetricTile, radius, RISK, SecondaryButton, sp, Tag, useResearchMode,
 } from '../../ui';
 import type { Feature, FeatureName, FeatureRow, Threshold, Thresholds } from '../types';
-import { EventsCard, FEATURE_LABEL, FEATURE_ORDER, FeatureCard, featureStatus, ruleText, TECH_LABEL } from '../ui';
+import { KeyMomentsCard } from '../KeyMoments';
+import { FEATURE_LABEL, FEATURE_ORDER, FeatureCard, featureStatus, ruleText, TECH_LABEL } from '../ui';
 
 const fmt = (deg: number | null) => (deg === null ? '—' : `${deg.toFixed(1)}°`);
 
@@ -59,8 +60,7 @@ function AngleCard({ name, f, info, trueValue }: { name: FeatureName; f: Feature
       <LimitBar f={f} info={info} markerColor={muted ? color.text : st.color} />
       <Text style={s.small}>{ruleText(f, name)}</Text>
       <View style={s.tags}>
-        {!f.reliable && f.value !== null && <Tag label="Low visibility" icon="eye-off-outline" tint={RISK.moderate.color} />}
-        {f.view_suitability !== 'good' && <Tag label={`View: ${f.view_suitability}`} />}
+        {research && f.view_suitability !== 'good' && <Tag label={`View: ${f.view_suitability}`} />}
         {research && f.unusable_keypoints?.length ? <Tag label={`${f.unusable_keypoints.length} keypoint${f.unusable_keypoints.length === 1 ? '' : 's'} below ICC gate`} /> : null}
         {research && <Tag label={f.method.toUpperCase()} />}
       </View>
@@ -80,10 +80,8 @@ export function BiomechanicsResultScreen({ row, thresholds, children }: {
   children?: React.ReactNode;
 }) {
   const [showNotes, setShowNotes] = useState(false);
-  const reliable = FEATURE_ORDER.filter((n) => row.features[n]?.reliable).length;
-  const confirmedBreaches = FEATURE_ORDER.filter((n) => row.features[n]?.breach && row.features[n]?.reliable).length;
-  const uncheckedBreaches = row.n_breaches - confirmedBreaches;
-  const frames = row.series ? Math.max(0, ...Object.values(row.series).map((v) => v.length)) : 0;
+  const measured = FEATURE_ORDER.filter((n) => row.features[n]?.value !== null && row.features[n]?.value !== undefined).length;
+  const confirmedBreaches = FEATURE_ORDER.filter((n) => row.features[n]?.breach).length;
   const research = useResearchMode();
 
   return (
@@ -99,20 +97,10 @@ export function BiomechanicsResultScreen({ row, thresholds, children }: {
 
       <View style={s.tiles}>
         <MetricTile label="Red flags" value={confirmedBreaches} icon="alert-circle" tint={confirmedBreaches ? RISK.critical.text : RISK.low.color} />
-        <MetricTile label="Clearly seen" value={`${reliable} / ${FEATURE_ORDER.length}`} icon="eye" tint={reliable ? color.text : RISK.critical.text} />
+        <MetricTile label="Angles measured" value={`${measured} / ${FEATURE_ORDER.length}`} icon="analytics-outline" tint={color.text} />
       </View>
-      {uncheckedBreaches > 0 && (
-        <Card style={{ borderColor: alpha(RISK.moderate.color, 0.6) }}>
-          <Text style={[s.h2, { color: RISK.moderate.color }]}>{uncheckedBreaches} more over the limit · low visibility</Text>
-          <Text style={s.muted}>Measured from a camera view that cannot see that angle reliably. Check the camera setup and the video before acting.</Text>
-        </Card>
-      )}
 
-      <Card>
-        <Text style={s.h2}>Key moments</Text>
-        <DeliveryTimeline bfc={row.events.bfc_frame} ffc={row.events.ffc_frame} release={row.events.release_frame} total={frames} fps={row.fps} />
-        <EventsCard events={row.events} method={row.event_method} fps={row.fps} />
-      </Card>
+      <KeyMomentsCard row={row} />
 
       <Text style={s.h2}>Joint angles</Text>
       {FEATURE_ORDER.filter((n) => row.features[n]).map((n) => (

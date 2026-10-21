@@ -9,3 +9,4 @@ numpy
 scipy
 pandas
 matplotlib
+xgboost        # C2 release model (event_ml.py)

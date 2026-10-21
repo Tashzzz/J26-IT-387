@@ -7,13 +7,16 @@ name = "c2_biomech"
 version = "0.1.0"
 description = "CricShield C2 - biomechanical feature engineering for fast-bowling injury risk"
 requires-python = ">=3.10"
-dependencies = ["numpy", "scipy", "pandas", "matplotlib"]
+dependencies = ["numpy", "scipy", "pandas", "matplotlib", "xgboost"]
 
 [project.optional-dependencies]
 test = ["pytest", "jsonschema", "fastapi", "httpx"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+c2_biomech = ["models/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

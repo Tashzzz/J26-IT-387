@@ -50,6 +50,7 @@ const EVENT_LABEL: Record<EventName, string> = {
 };
 
 const METHOD_LABEL: Record<EventMethod, string> = {
+  model: 'found by the trained AI model',
   auto: 'found automatically',
   estimated: 'found automatically · check on video',
   manual: 'corrected by hand',
@@ -64,17 +65,11 @@ const fmt = (deg: number | null) => (deg === null ? '—' : `${deg.toFixed(1)}°
 type Status = { text: string; color: string; icon: keyof typeof Ionicons.glyphMap };
 
 /**
- * One status per feature. An unreliable value is never shown as a confident red breach:
- * it gets the warning colour and "check on video" instead.
+ * One status per feature (traffic light from the published limit).
  */
 export function featureStatus(f: Feature): Status {
   if (f.value === null) return { text: 'No value', color: colors.muted, icon: 'remove-circle-outline' };
   if (f.threshold === null || f.level === 'none') return { text: 'No limit · reported only', color: colors.muted, icon: 'information-circle-outline' };
-  if (!f.reliable) {
-    return f.breach
-      ? { text: 'Over the limit · low visibility', color: colors.warn, icon: 'eye-off-outline' }
-      : { text: 'Low visibility', color: colors.muted, icon: 'eye-off-outline' };
-  }
   const byLevel: Record<Level, Status> = {
     red: { text: 'Over risk limit', color: colors.danger, icon: 'alert-circle' },
     amber: { text: 'Close to the limit', color: colors.warn, icon: 'warning-outline' },
@@ -87,6 +82,7 @@ export function featureStatus(f: Feature): Status {
 /** "Breach if more than 30°" / "Breach if less than 30°" / "No published limit". */
 export function ruleText(f: Pick<Feature, 'threshold' | 'rule'>, name?: FeatureName): string {
   if (name === 'front_knee_flexion_release_deg') return 'Red if straighter than 150° (bend under 30°) together with twist or lean';
+  if (name === 'front_knee_flexion_ffc_deg') return 'Research reference: injured bowlers ~13–15° bend, healthy ~26° (Portus 2004)';
   if (f.threshold === null || !f.rule) return 'No published limit';
   return `Breach if ${f.rule === 'above' ? 'more' : 'less'} than ${f.threshold}°`;
 }
@@ -114,19 +110,6 @@ export function FeatureCard({ name, f, info, trueValue }: {
       {f.note && f.value !== null ? <Text style={[s.note, { color: st.color === colors.muted ? colors.text : st.color }]}>{f.note}</Text> : null}
       <Text style={s.small}>{ruleText(f, name)} · measured at {f.event.replace(/_/g, ' ').replace('bfc', 'BFC').replace('ffc', 'FFC')} · {f.method.toUpperCase()}</Text>
       {trueValue !== undefined ? <Text style={s.small}>Demo built with {fmt(trueValue)} (the measured value should be close)</Text> : null}
-
-      {!f.reliable && f.value !== null ? (
-        <View style={s.warn}>
-          <Ionicons name="eye-off-outline" size={16} color={colors.warn} />
-          <Text style={s.warnText}>
-            Low visibility · check camera setup.
-            {f.view_suitability === 'poor'
-              ? ` This camera view cannot see this angle well: film ${name.startsWith('front_knee') ? 'side-on' : 'from behind or in front of'} the bowler.`
-              : ' The tracking is not reliable for these joints from this camera position.'}
-            {f.unusable_keypoints?.length ? ` (${f.unusable_keypoints.join(', ').replace(/_/g, ' ')})` : ''}
-          </Text>
-        </View>
-      ) : null}
 
       {info?.evidence ? <Text style={s.small}>Evidence: {info.evidence}</Text> : null}
       <Text style={s.source}>Source: {f.source}</Text>

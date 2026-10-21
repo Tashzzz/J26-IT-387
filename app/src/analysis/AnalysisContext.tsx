@@ -164,7 +164,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         athleteId: a.id, code: a.bowler_id, at,
         level: res.risk ? toRiskLevel(res.risk.risk_tier ?? res.risk.risk_level) : null,
         score: res.risk ? Math.round(res.risk.risk_score * 100) : null,
-        redFlags: res.row ? FEATURE_ORDER.filter((n) => res.row!.features[n]?.breach && res.row!.features[n]?.reliable).length : null,
+        redFlags: res.row ? FEATURE_ORDER.filter((n) => res.row!.features[n]?.breach).length : null,
         detection: res.pose.detection_rate,
         reason: top?.label ?? null,
       });
