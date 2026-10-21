@@ -1,9 +1,10 @@
 // "Log today's overs": same fields and payload as C4's workload screen (app/plan/workload.tsx),
-// then regenerates the plan like that screen does so it reflects the latest log.
+// then re-checks C3's risk and regenerates the plan, so the plan and C4's week planner reflect the latest log.
 import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { c4 } from '../api/c4';
+import { c3 } from '../api/risk';
 import type { WorkloadInput } from '../c4/types';
 import { Card, ChipGroup, color, ErrorBanner, font, SecondaryButton, sp, TextField } from '../ui';
 import { isoDay } from './WorkloadCard';
@@ -29,7 +30,8 @@ export function QuickLogCard({ athleteId, onLogged }: { athleteId: number; onLog
       });
       const logged = `${form.overs} overs saved.`;
       setForm((f) => ({ ...f, overs: '', longest: '', rpe: '' }));
-      try { await c4.generatePlan(athleteId); setDone(`${logged} Plan updated.`); } catch { setDone(`${logged} The plan could not be updated right now.`); }
+      try { await c3.assess(athleteId, { sendToC4: true }); } catch { /* C3 unavailable - plan uses guidelines */ }
+      try { await c4.generatePlan(athleteId); setDone(`${logged} Risk and plan updated.`); } catch { setDone(`${logged} The plan could not be updated right now.`); }
       onLogged();
     } catch (e) {
       setErr((e as Error).message);

@@ -10,10 +10,11 @@ import { ANALYSIS_STEPS, RESULT_NAME } from '../../src/analysis/steps';
 import { c1 } from '../../src/api/c1';
 import { detectionQuality, QUALITY } from '../../src/c1/screens/PoseResultScreen';
 import { FEATURE_ORDER } from '../../src/c2/ui';
+import { openWeekPlanner } from '../../src/shell/links';
 import { useSquad } from '../../src/shell/squad';
 import {
   alpha, Card, color, COMPONENT, COMPONENT_KEYS, ComponentBadge, DeliveryPlayer, EmptyState, font, PrimaryButton, radius, RISK, RiskBadge,
-  Screen, SectionTitle, sp, StepIndicator, Tag, toRiskLevel, useResearchMode, type ComponentKey,
+  Screen, SecondaryButton, SectionTitle, sp, StepIndicator, Tag, toRiskLevel, useResearchMode, type ComponentKey,
 } from '../../src/ui';
 
 export default function ResultsHub() {
@@ -101,6 +102,10 @@ export default function ResultsHub() {
       })}
 
       <PrimaryButton title={`Save & open ${athlete.bowler_id}'s profile`} icon="person" onPress={saveAndOpen} />
+      {plan && (
+        <SecondaryButton title="Plan next week (week planner)" icon="git-compare-outline"
+          onPress={async () => { const id = athlete.id; await refresh(); reset(); router.dismissAll(); await openWeekPlanner(router, id); }} />
+      )}
       <Text style={s.caption}>Everything is already stored on the team computer.</Text>
     </Screen>
   );

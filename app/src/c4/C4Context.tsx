@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { c4 as api } from '../api/c4';
+import { c3 } from '../api/risk';
 import { ApiError, defaultApiBase, getApiBase, setApiBase } from '../api/client';
 import type { Athlete, PreventionPlan } from './types';
 
@@ -71,21 +72,39 @@ export function C4Provider({ children }: { children: React.ReactNode }) {
     })();
   }, [refreshAthletes]);
 
-  // Show the cached plan immediately when switching athlete (also the offline fallback)
+  // Show the cached plan immediately when switching athlete (also the offline fallback), then replace it with
+  // the latest plan saved on the server - e.g. the one the video analysis just made - so the model check and
+  // week planner run on the bowler's current video, workload, profile and risk.
   useEffect(() => {
     if (selectedId == null) return;
     store(KEY_SELECTED, String(selectedId));
+    let alive = true;
     (async () => {
       const cached = await load(planKey(selectedId));
+      if (!alive) return;
       setPlan(cached ? JSON.parse(cached) : null);
       setPlanIsCached(Boolean(cached));
+      try {
+        const saved = await api.plans(selectedId);
+        if (!alive) return;
+        const latest = [...saved].sort((a, b) => b.generated_at.localeCompare(a.generated_at))[0];
+        if (latest) {
+          setPlan(latest);
+          setPlanIsCached(false);
+          await store(planKey(selectedId), JSON.stringify(latest));
+        }
+      } catch { /* offline: keep the cached plan */ }
     })();
+    return () => { alive = false; };
   }, [selectedId]);
 
   const generatePlan = useCallback(async () => {
     if (selectedId == null) return;
     setLoading(true);
     try {
+      // Re-run C3 first so the plan (and the week planner) use the latest workload log, video and profile.
+      // If C3's model is not available the plan still works from guidelines.
+      try { await c3.assess(selectedId, { sendToC4: true }); } catch { /* C3 unavailable */ }
       const p = await api.generatePlan(selectedId);
       setPlan(p);
       setPlanIsCached(false);

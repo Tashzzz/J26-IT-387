@@ -11,7 +11,7 @@ import type { HistoryItem } from '../../src/c3/types';
 import type { PreventionPlan, Upstream, Workload } from '../../src/c4/types';
 import { PACE_LABEL, useApp } from '../../src/shell/AppContext';
 import { useAnalysis } from '../../src/analysis/AnalysisContext';
-import { openPlan, openRisk } from '../../src/shell/links';
+import { openPlan, openRisk, openWeekPlanner } from '../../src/shell/links';
 import { QuickLogCard } from '../../src/shell/QuickLogCard';
 import { RiskHistoryChart } from '../../src/shell/RiskHistoryChart';
 import { ageOf, ago, levelOf, useSquad } from '../../src/shell/squad';
@@ -45,6 +45,7 @@ export default function BowlerProfile() {
   const [error, setError] = useState<string | null>(null);
   const [riskError, setRiskError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [planningWeek, setPlanningWeek] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -192,6 +193,11 @@ export default function BowlerProfile() {
               </View>
             </Pressable>
           )}
+        {data && (
+          <SecondaryButton title={planningWeek ? 'Simulating next week…' : 'Plan next week (week planner)'} icon="git-compare-outline"
+            loading={planningWeek}
+            onPress={async () => { setPlanningWeek(true); try { await openWeekPlanner(router, a.id); } finally { setPlanningWeek(false); } }} />
+        )}
       </Card>
 
       {/* Plan history */}
