@@ -10,7 +10,7 @@ import { c4 } from '../api/c4';
 import { ApiError } from '../api/client';
 import { colors } from './theme';
 import type { WeekPlanOption, WeekPlanResult } from './types';
-import { Body, Button, Card, Loading, Pill, PressCard, Small } from './ui';
+import { Body, Button, Card, Loading, Pill, Small } from './ui';
 
 export function useWeekPlan(athleteId: number | null | undefined, planKey: string | number | null | undefined) {
   const [data, setData] = useState<WeekPlanResult | null>(null);
@@ -57,7 +57,7 @@ export function WeekPlanCard({ data, loading, unavailable, onOpen }: {
   const changed = data.status === 'optimised' || data.status === 'safety_stop';
   const noHistory = data.usual.total_overs === 0;
   return (
-    <PressCard onPress={onOpen} label="Open the week planner">
+    <Card>
       <View style={s.head}>
         <Ionicons name="calendar-outline" size={18} color={colors.accent} />
         <Text style={[s.title, { flex: 1 }]}>Week planner</Text>
@@ -74,7 +74,7 @@ export function WeekPlanCard({ data, loading, unavailable, onOpen }: {
       )}
       <Small>Chance of injury over the next 2 weeks, from C3's risk model – an estimate. Rules and referrals still apply.</Small>
       <Button title="Compare options" variant="secondary" icon="git-compare-outline" onPress={onOpen} />
-    </PressCard>
+    </Card>
   );
 }
 

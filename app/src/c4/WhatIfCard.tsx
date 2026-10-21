@@ -7,7 +7,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { ProgressBar } from '../ui/components/data';
 import { colors, tierColor } from './theme';
 import type { WhatIfResult } from './types';
-import { Body, Button, Card, Loading, Pill, PressCard, Small } from './ui';
+import { Body, Button, Card, Loading, Pill, Small } from './ui';
 import { pts } from './useWhatIf';
 
 export function WhatIfCard({ data, loading, unavailable, onOpen }: {
@@ -32,7 +32,7 @@ export function WhatIfCard({ data, loading, unavailable, onOpen }: {
   const maxEffect = Math.max(0.01, ...data.scenarios.map((x) => x.effect));
 
   return (
-    <PressCard onPress={onOpen} label="Open the model check">
+    <Card>
       <View style={s.head}>
         <Ionicons name="flask-outline" size={18} color={colors.accent} />
         <Text style={[s.title, { flex: 1 }]}>Model check (what-if)</Text>
@@ -70,7 +70,7 @@ export function WhatIfCard({ data, loading, unavailable, onOpen }: {
 
       <Small>Estimate from C3's risk model, not a guarantee. Rules still decide what is safe.</Small>
       <Button title="See every scenario" variant="secondary" icon="list-outline" onPress={onOpen} />
-    </PressCard>
+    </Card>
   );
 }
 
