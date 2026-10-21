@@ -31,8 +31,9 @@ replace the foot-contact rules there.
 | `common.py` | Shared features, Butterworth filter, 2-D angles |
 | `make_synthetic.py` | Fake clips **only** to check the code runs – never report these numbers |
 | `labels_template.csv` | Column format for the hand labels |
+| `models/event_xgb.json` | Pilot XGBoost model (11 clips, 2 bowlers) – **not validated**, demo only; see `models/README.md` |
 
-Data, results and models are not committed (`.gitignore`): videos of participants stay
+Data and results are not committed (`.gitignore`); only the pilot model is: videos of participants stay
 out of the public repo, and labels use anonymous bowler ids.
 
 ## Run

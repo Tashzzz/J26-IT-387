@@ -1,6 +1,9 @@
 data/
 results/
-models/
+models/*
+!models/event_xgb.json
+!models/event_xgb.features.json
+!models/README.md
 demo_data/
 demo_results/
 __pycache__/
