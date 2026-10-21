@@ -42,3 +42,33 @@ Own participants only (11 real-speed deliveries, B05 + B07):
 ```bash
 python predict.py --landmarks data/landmarks/<clip>.csv --arm L --fps 59.2 --model models/event_xgb.json
 ```
+
+---
+
+# Release model used by the app – `src/c2_biomech/models/release_xgb.json`
+
+The model above was trained on raw MediaPipe image coordinates, but the app receives C1's
+**hip-centred, shoulder-width-scaled** keypoints, so it cannot be used there directly.
+`event_model/train_release_c1format.py` converts the same 20 labelled deliveries into exactly the
+C1 format, runs C2's quality gate and 8 Hz Butterworth filter, and trains a **release-only**
+XGBoost model (binary: release / not release) on movement features around each frame (bowling
+wrist and elbow height, wrist speed, shoulder tilt, both ankles relative to the hips, all divided
+by trunk length; 9 time offsets from −100 to +100 ms).
+
+In the app (`events.py`) the model is tried first; if its confidence is below 0.2 the rule
+(first strong arm peak) is used. Manual and C1 frames still win. Switch off with
+`C2_RELEASE_MODEL=off`. The app shows "AI model" on the release moment when it was used.
+
+Leave-one-bowler-out, release only, same deliveries for both methods:
+
+| Data | Method | Within ±1 frame | Within ±2 frames | Mean error |
+|---|---|---|---|---|
+| Consented participants (11 deliveries, B05 + B07) | Rule only | 64 % | 64 % | 101 ms |
+| Consented participants | **Model + rule fallback (app)** | **82 %** | **91 %** | **15 ms** |
+| All 20 deliveries, 11 bowlers | Rule only | 45 % | 45 % | 276 ms |
+| All 20 deliveries, 11 bowlers | **Model + rule fallback (app)** | **50 %** | **55 %** | 239 ms |
+
+Where it helps: the rule was 7–18 frames late on every B07 delivery (left-arm, 60 fps: the arm
+keeps rising after release); the model was 0–3 frames off. On B05 the rule was already exact and
+the model was not confident, so the rule was kept. It made two online clips slightly worse
+(b9 6→7, b13 1→6 frames). Same limits as above: small set, only 2 consented bowlers labelled.

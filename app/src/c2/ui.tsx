@@ -50,6 +50,7 @@ const EVENT_LABEL: Record<EventName, string> = {
 };
 
 const METHOD_LABEL: Record<EventMethod, string> = {
+  model: 'found by the trained AI model',
   auto: 'found automatically',
   estimated: 'found automatically · check on video',
   manual: 'corrected by hand',

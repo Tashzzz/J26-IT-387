@@ -36,7 +36,15 @@ Foot contacts - two automatic methods
        frames (mean 27 ms); all views FFC within 3, BFC within 4 frames. The two
        timings are medians of those 13 clips - re-check them on new bowlers.
 
-Priority for every event: manual > C1 window > image position > estimated.
+Release from the trained model (event_ml.py, added 21 Oct 2026)
+    When no manual / C1 release is given, the XGBoost release model is tried first and
+    used when its confidence is at least event_ml.MIN_CONFIDENCE; otherwise the rule above.
+    Leave-one-bowler-out on 20 hand-labelled deliveries (11 bowlers): on the consented
+    real-speed clips the hybrid found release within 1 frame on 82 % (rule alone 64 %),
+    mean error 15 ms (rule 101 ms). Details: event_model/models/README.md.
+
+Priority for release: manual > C1 window > model > rule.
+Priority for foot contacts: manual > C1 window > image position > estimated.
 
 Limitations (state these at PP1)
     - Highest wrist is a few frames before the real release.
@@ -171,7 +179,7 @@ def detect_events(delivery, overrides=None, keep=None, points=None):
     """Return (events, method, warnings, info).
 
     events  {'bfc_frame','ffc_frame','release_frame'} (None when unknown)
-    method  how each was found: manual / c1_window / auto / not_detected
+    method  how each was found: manual / c1_window / model / auto / estimated / not_detected
     info    delivery stretch used and other release candidates
     """
     overrides = {k: v for k, v in (overrides or {}).items() if v is not None}
@@ -197,6 +205,19 @@ def detect_events(delivery, overrides=None, keep=None, points=None):
     strong = [(fr, e) for fr, e in peaks if top is not None and e >= RELEASE_PEAK_RATIO * top]
     info["release_candidates"] = [{"frame": fr, "arm_elevation": round(e, 2)} for fr, e in strong[:3]]
     f, m = given("release_frame")
+    if f is None:
+        # Trained model first (event_ml.py); the rule below is the fallback when the model
+        # is off, missing or not confident.
+        try:
+            from . import event_ml
+            mf, conf = event_ml.predict_release(P, delivery.bowling_arm, delivery.fps, usable)
+        except Exception as exc:  # never let the model break the pipeline
+            mf, conf = None, None
+            info["release_model_error"] = str(exc)
+        info["release_model"] = {"frame": mf, "confidence": None if conf is None else round(conf, 3),
+                                 "rule_frame": strong[0][0] if strong else None}
+        if mf is not None:
+            f, m = mf, "model"
     if f is None and strong:
         f, m = strong[0][0], "auto"
         if len(strong) > 1:

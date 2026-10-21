@@ -43,6 +43,7 @@ const MOMENTS: {
 ];
 
 const METHOD: Record<EventMethod, { text: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = {
+  model: { text: 'AI model', icon: 'hardware-chip-outline' },
   auto: { text: 'Auto', icon: 'sparkles' },
   estimated: { text: 'Auto', icon: 'sparkles' },
   c1_window: { text: 'Auto', icon: 'sparkles' },
