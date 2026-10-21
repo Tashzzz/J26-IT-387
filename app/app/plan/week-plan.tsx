@@ -3,6 +3,7 @@
 // Layer 1 (/plan/whatif, "Model check") ranks the actions of the current plan; this screen plans the overs.
 // Ported from c4/what-if to the ui-v2 C4 kit; lives in the plan/ stack so it shares C4Provider.
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -21,6 +22,7 @@ const MODES: { value: Mode; label: string }[] = [
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 
 export default function WeekPlanScreen() {
+  const router = useRouter();
   const { athlete, plan } = useC4();
   const [mode, setMode] = useState<Mode>('tradeoff');
   const [res, setRes] = useState<WeekPlanResult | null>(null);
@@ -106,6 +108,8 @@ export default function WeekPlanScreen() {
         </>
       )}
       <Button title="Run again" variant="secondary" icon="refresh" onPress={run} loading={loading} />
+      <Button title="Does this beat the rules? See the research results" variant="secondary" icon="bar-chart-outline"
+        onPress={() => router.push('/plan/research')} />
     </Screen>
   );
 }

@@ -59,7 +59,10 @@ export default function PlanDashboard() {
         onPress={generatePlan} loading={loading} disabled={!athlete} />
 
       {!plan ? (
-        <Card><Body muted>No plan yet for {athlete?.bowler_id ?? 'this bowler'}. Generate one to see limits, actions and reasons.</Body></Card>
+        <>
+          <Card><Body muted>No plan yet for {athlete?.bowler_id ?? 'this bowler'}. Generate one to see limits, actions and reasons.</Body></Card>
+          <Button title="Research results: AI week planner vs rules" variant="secondary" icon="bar-chart-outline" onPress={() => router.push('/plan/research')} />
+        </>
       ) : (
         <>
           <Card style={{ borderColor: tierColor[plan.risk_tier] }}>
@@ -92,6 +95,7 @@ export default function PlanDashboard() {
             <NavPill icon="time-outline" label="History" onPress={() => router.push('/plan/history')} />
             <NavPill icon="flask-outline" label="Model check (what-if)" onPress={() => router.push('/plan/whatif')} />
             <NavPill icon="git-compare-outline" label="Week planner" onPress={() => router.push('/plan/week-plan')} />
+            <NavPill icon="bar-chart-outline" label="Research results" onPress={() => router.push('/plan/research')} />
           </Row>
 
           {/* model-guided check (C3 model tests each action) and week planner (C3 model simulates next week) */}
