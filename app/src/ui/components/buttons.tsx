@@ -23,7 +23,7 @@ export function PrimaryButton({ title, onPress, icon, loading, disabled, tint, s
   return (
     <Pressable onPress={onPress} disabled={off} accessibilityRole="button" accessibilityLabel={title}
       accessibilityState={{ disabled: !!off, busy: !!loading }}
-      style={({ pressed }) => [s.wrap, !off && glow(tint ?? gradient.brand[0], 0.7), off && s.off, pressed && s.pressed, style]}>
+      style={({ pressed }) => [s.wrap, !off && glow(tint ?? gradient.brand[0], 0.4), off && s.off, pressed && s.pressed, style]}>
       <LinearGradient colors={stops} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={s.btn}>
         {loading ? <ActivityIndicator color={color.onBrand} /> : (
           <>
@@ -79,7 +79,7 @@ const s = StyleSheet.create({
   wrap: { borderRadius: radius.button },
   btn: { minHeight: HIT + 4, borderRadius: radius.button, paddingHorizontal: sp(2.5), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: sp(1) },
   secondary: { borderWidth: 1, borderColor: color.border, backgroundColor: color.surface2 },
-  label: { ...font.h2, fontSize: 16, fontWeight: '800' },
+  label: { ...font.h2, fontSize: 16 },
   icon: { alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: color.border, backgroundColor: color.surface },
   off: { opacity: 0.45 },
   pressed: { opacity: 0.8, transform: [{ scale: 0.98 }] },

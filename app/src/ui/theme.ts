@@ -26,11 +26,15 @@ export const gradient = {
 
 export type ComponentKey = 'c1' | 'c2' | 'c3' | 'c4';
 
-export const COMPONENT: Record<ComponentKey, { code: string; color: string; label: string; icon: IconName }> = {
-  c1: { code: 'C1', color: '#22D3EE', label: 'Pose', icon: 'videocam' },
-  c2: { code: 'C2', color: '#A78BFA', label: 'Biomechanics', icon: 'body' },
-  c3: { code: 'C3', color: '#FB923C', label: 'Risk', icon: 'pulse' },
-  c4: { code: 'C4', color: '#34D399', label: 'Plan', icon: 'clipboard' },
+/**
+ * code + label are research names (shown only in Research mode). step / short are the coach words:
+ * "Film the delivery -> See the action -> Know the risk -> Get a plan".
+ */
+export const COMPONENT: Record<ComponentKey, { code: string; color: string; label: string; icon: IconName; step: string; short: string }> = {
+  c1: { code: 'C1', color: '#22D3EE', label: 'Pose', icon: 'videocam', step: 'Film the delivery', short: 'Video' },
+  c2: { code: 'C2', color: '#A78BFA', label: 'Biomechanics', icon: 'body', step: 'See the action', short: 'Action' },
+  c3: { code: 'C3', color: '#FB923C', label: 'Risk', icon: 'pulse', step: 'Know the risk', short: 'Risk' },
+  c4: { code: 'C4', color: '#34D399', label: 'Plan', icon: 'clipboard', step: 'Get a plan', short: 'Plan' },
 };
 export const COMPONENT_KEYS: ComponentKey[] = ['c1', 'c2', 'c3', 'c4'];
 
@@ -57,16 +61,24 @@ export function toRiskLevel(value: string | null | undefined): RiskLevel | null 
   return v === 'low' || v === 'moderate' || v === 'high' || v === 'critical' ? v : null;
 }
 
+/** Two weights only: regular (400) and bold (700). Smallest text is 12 px. */
+export const weight = { regular: '400', bold: '700' } as const;
+
 export const font = {
-  display: { fontSize: 28, fontWeight: '800', lineHeight: 34, letterSpacing: -0.4 },
-  title: { fontSize: 22, fontWeight: '800', lineHeight: 28, letterSpacing: -0.2 },
-  h2: { fontSize: 17, fontWeight: '700', lineHeight: 22 },
-  body: { fontSize: 15, fontWeight: '400', lineHeight: 21 },
-  caption: { fontSize: 12, fontWeight: '500', lineHeight: 16 },
+  display: { fontSize: 30, fontWeight: weight.bold, lineHeight: 36, letterSpacing: -0.5 },
+  title: { fontSize: 22, fontWeight: weight.bold, lineHeight: 28, letterSpacing: -0.2 },
+  h2: { fontSize: 17, fontWeight: weight.bold, lineHeight: 22 },
+  body: { fontSize: 15, fontWeight: weight.regular, lineHeight: 21 },
+  caption: { fontSize: 12, fontWeight: weight.regular, lineHeight: 16 },
+  /** Small uppercase label above a group ("NEEDS ATTENTION"). */
+  overline: { fontSize: 12, fontWeight: weight.bold, lineHeight: 16, letterSpacing: 0.8, textTransform: 'uppercase' },
 } as const;
 
 /** 8-pt grid: sp(1) = 8, sp(0.5) = 4. */
 export const sp = (n: number) => n * 8;
+
+/** Layout rhythm: 16 px screen padding, 12 px between blocks. */
+export const layout = { pad: 16, gap: 12 };
 
 export const radius = { card: 20, button: 14, chip: 999, sm: 10 };
 

@@ -4,3 +4,4 @@ export { CameraSetupDiagram } from './CameraSetupDiagram';
 export { CameraViewPreview } from './CameraViewPreview';
 export { CAMERA_VIEW, toCameraView, type CameraView } from './common';
 export { DeliveryTimeline } from './DeliveryTimeline';
+export { Spot, WelcomeIllustration, type SpotKind } from './Spot';

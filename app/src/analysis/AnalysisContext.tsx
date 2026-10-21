@@ -130,12 +130,12 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       }],
       ['c2', async () => {
         if (!res.pose) throw new Error('Pose step has no result yet.');
-        patch('c2', { text: 'Getting the keypoints from C1…' });
+        patch('c2', { text: 'Reading the body points from the video…' });
         const kp = await c2.c1Keypoints(res.pose.run_id);
         patch('c2', { text: 'Measuring joint angles…' });
         res.row = await c2.compute(kp);
         if (hasCode(res.row.bowler_id) && res.row.bowler_id !== a.bowler_id) {
-          throw new Error(`This video is from ${res.row.bowler_id}, not ${a.bowler_id}. C4 only accepts a delivery for the same bowler code.`);
+          throw new Error(`This video is named for ${res.row.bowler_id}, not ${a.bowler_id}. A delivery can only be saved to the bowler it belongs to.`);
         }
         patch('c2', { text: `Saving the angles to ${a.bowler_id}…` });
         res.sent = await c2.sendToC4(a.id, { ...res.row, bowler_id: a.bowler_id });

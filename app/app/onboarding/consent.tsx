@@ -52,5 +52,5 @@ const s = StyleSheet.create({
   title: { ...font.h2, color: color.text },
   text: { ...font.body, color: color.muted },
   check: { flexDirection: 'row', alignItems: 'center', gap: sp(1.5), borderWidth: 1, borderColor: color.border, borderRadius: radius.button, padding: sp(2), minHeight: 56 },
-  checkText: { ...font.body, color: color.text, flex: 1, fontWeight: '600' },
+  checkText: { ...font.body, color: color.text, flex: 1, fontWeight: '700' },
 });

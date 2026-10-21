@@ -67,7 +67,7 @@ const s = StyleSheet.create({
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   body: { ...font.body, color: color.text },
   muted: { ...font.body, color: color.muted },
-  label: { ...font.caption, color: color.muted, fontWeight: '800', letterSpacing: 1 },
+  label: { ...font.caption, color: color.muted, fontWeight: '700', letterSpacing: 1 },
   evidence: { gap: 2, borderLeftWidth: 3, borderLeftColor: alpha(C2, 0.6), paddingLeft: sp(1.5) },
   source: { ...font.caption, color: color.muted, fontStyle: 'italic' },
   foot: { ...font.caption, color: color.muted, textAlign: 'center' },

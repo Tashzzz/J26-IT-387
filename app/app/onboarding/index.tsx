@@ -1,69 +1,71 @@
-// Welcome: hero + the four research components as a pipeline.
+// Welcome: benefit-led hero (logo, big promise, illustration), the four steps in coach words, three benefits
+// and one action. No research components here - those live behind Research mode.
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import {
-  alpha, color, COMPONENT, COMPONENT_KEYS, font, glow, gradient, PrimaryButton, radius, Screen, sp, StepIndicator, type ComponentKey,
+  alpha, color, COMPONENT, COMPONENT_KEYS, font, gradient, PrimaryButton, Screen, sp, WelcomeIllustration, Wordmark, type IconName,
 } from '../../src/ui';
-import { ONBOARDING_STEPS } from '../../src/shell/onboarding';
 
-const STORY: Record<ComponentKey, { title: string; text: string }> = {
-  c1: { title: 'Pose from video', text: 'Finds 33 body points in a phone video of one delivery.' },
-  c2: { title: 'Bowling biomechanics', text: 'Measures joint angles at foot contact and release against published limits.' },
-  c3: { title: 'Injury risk', text: 'Combines technique, workload and history into a risk score you can question.' },
-  c4: { title: 'Prevention plan', text: 'Turns the risk into a week of limits, exercises and, if needed, a physio referral.' },
-};
+const BENEFITS: { icon: IconName; title: string; text: string }[] = [
+  { icon: 'videocam', title: 'Just a phone video', text: 'Film one delivery at the nets. No sensors, no lab.' },
+  { icon: 'body', title: 'See the action', text: 'A skeleton replay and the key angles at foot contact and release.' },
+  { icon: 'shield-checkmark', title: 'Act before an injury', text: 'A clear risk level and a week’s plan you can follow.' },
+];
 
 export default function Welcome() {
   const router = useRouter();
   return (
-    <Screen safeTop>
-      <LinearGradient colors={gradient.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[s.hero, glow(gradient.brand[0], 1.2)]}>
-        <View style={s.brandRow}>
-          <View style={s.badge}><Ionicons name="shield-checkmark" size={30} color={gradient.brand[0]} /></View>
-          <Text style={s.brand}>CricShield</Text>
-        </View>
-        <Text style={s.title}>From one phone video to a safer bowling week</Text>
-        <Text style={s.sub}>Injury-risk support for school and club fast bowlers, built for coaches and physios at the nets.</Text>
-      </LinearGradient>
+    <Screen safeTop style={s.page}>
+      <Wordmark size={36} />
 
-      <StepIndicator steps={ONBOARDING_STEPS} current={0} />
+      <View style={s.hero}>
+        <Text style={s.title} accessibilityRole="header">Safer fast bowling, from one phone video</Text>
+        <Text style={s.promise}>Spot injury risk early and know exactly what to change this week.</Text>
+      </View>
 
-      {COMPONENT_KEYS.map((k, i) => {
-        const c = COMPONENT[k];
-        return (
-          <View key={k}>
-            <View style={[s.card, { borderColor: alpha(c.color, 0.45) }]}>
-              <View style={[s.icon, { backgroundColor: alpha(c.color, 0.16) }]}><Ionicons name={c.icon} size={24} color={c.color} /></View>
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text style={[s.code, { color: c.color }]}>{c.code} · {c.label.toUpperCase()}</Text>
-                <Text style={s.cardTitle}>{STORY[k].title}</Text>
-                <Text style={s.cardText}>{STORY[k].text}</Text>
-              </View>
-            </View>
-            {i < 3 && <Ionicons name="arrow-down" size={18} color={COMPONENT[COMPONENT_KEYS[i + 1]].color} style={s.arrow} />}
+      <WelcomeIllustration />
+
+      <View style={s.flow} accessible accessibilityLabel={COMPONENT_KEYS.map((k) => COMPONENT[k].step).join(', then ')}>
+        {COMPONENT_KEYS.map((k, i) => (
+          <View key={k} style={s.flowItem}>
+            <Text style={s.flowText}>{COMPONENT[k].step}</Text>
+            {i < COMPONENT_KEYS.length - 1 && <Ionicons name="arrow-forward" size={14} color={gradient.brand[1]} />}
           </View>
-        );
-      })}
+        ))}
+      </View>
+
+      <View style={s.benefits}>
+        {BENEFITS.map((b) => (
+          <View key={b.title} style={s.benefit}>
+            <View style={s.icon}><Ionicons name={b.icon} size={22} color={gradient.brand[1]} /></View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={s.bTitle}>{b.title}</Text>
+              <Text style={s.bText}>{b.text}</Text>
+            </View>
+          </View>
+        ))}
+      </View>
 
       <PrimaryButton title="Get started" icon="arrow-forward" onPress={() => router.push('/onboarding/consent')} />
+      <Text style={s.foot}>Takes about a minute. Your data stays on your team computer.</Text>
     </Screen>
   );
 }
 
 const s = StyleSheet.create({
-  hero: { borderRadius: radius.card + 4, padding: sp(3), gap: sp(1.5) },
-  badge: { width: 56, height: 56, borderRadius: 18, backgroundColor: color.bg, alignItems: 'center', justifyContent: 'center' },
-  brandRow: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
-  brand: { ...font.caption, fontWeight: '800', letterSpacing: 2, color: gradient.brand[1], textTransform: 'uppercase', backgroundColor: color.bg, borderRadius: 999, paddingHorizontal: sp(1.5), paddingVertical: 6, overflow: 'hidden' },
-  title: { ...font.display, color: color.onBrand },
-  sub: { ...font.body, color: color.onBrand },
-  card: { flexDirection: 'row', gap: sp(1.5), alignItems: 'center', backgroundColor: color.surface, borderWidth: 1, borderRadius: radius.card, padding: sp(2) },
-  icon: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  code: { ...font.caption, fontWeight: '800', letterSpacing: 1 },
-  cardTitle: { ...font.h2, color: color.text },
-  cardText: { ...font.body, color: color.muted },
-  arrow: { alignSelf: 'center', marginTop: sp(1) },
+  page: { paddingTop: sp(3) },
+  hero: { gap: sp(1), marginTop: sp(2) },
+  title: { fontSize: 34, lineHeight: 40, fontWeight: '700', letterSpacing: -0.6, color: color.text },
+  promise: { ...font.body, fontSize: 17, lineHeight: 24, color: color.muted },
+  flow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', columnGap: sp(1), rowGap: 4 },
+  flowItem: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
+  flowText: { ...font.caption, fontWeight: '700', color: color.text },
+  benefits: { gap: sp(1.5), marginTop: sp(1) },
+  benefit: { flexDirection: 'row', alignItems: 'center', gap: sp(1.5) },
+  icon: { width: 44, height: 44, borderRadius: 14, backgroundColor: alpha(gradient.brand[1], 0.12), alignItems: 'center', justifyContent: 'center' },
+  bTitle: { ...font.h2, color: color.text },
+  bText: { ...font.body, color: color.muted },
+  foot: { ...font.caption, color: color.muted, textAlign: 'center' },
 });

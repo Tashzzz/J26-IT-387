@@ -147,7 +147,7 @@ export default function ProfileScreen() {
 }
 
 const s = StyleSheet.create({
-  small: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginTop: 8 },
+  small: { color: colors.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1, marginTop: 8 },
   inj: { color: colors.text, flex: 1 },
   remove: { color: colors.danger, fontWeight: '700', padding: 6 },
   kv: { color: colors.muted, fontSize: 13 },

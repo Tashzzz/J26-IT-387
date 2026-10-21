@@ -50,7 +50,7 @@ export default function Why() {
               return (
                 <View key={f.feature} style={{ marginBottom: 8 }}>
                   <View style={s.barRow}>
-                    <Text style={[s.barLabel, linked && { color: colors.accent, fontWeight: '800' }]}>
+                    <Text style={[s.barLabel, linked && { color: colors.accent, fontWeight: '700' }]}>
                       {label(f.feature)}{f.value != null ? ` (${f.value})` : ''}{linked ? '  ← this action' : ''}
                     </Text>
                     <Text style={s.barValue}>+{f.shap.toFixed(2)}</Text>
@@ -78,8 +78,8 @@ export default function Why() {
 }
 
 const s = StyleSheet.create({
-  cat: { fontSize: 12, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
-  title: { color: colors.text, fontSize: 20, fontWeight: '800' },
+  cat: { fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
+  title: { color: colors.text, fontSize: 20, fontWeight: '700' },
   barRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
   barLabel: { color: colors.text, fontSize: 13, flex: 1 },
   barValue: { color: colors.muted, fontSize: 13, fontVariant: ['tabular-nums'] },

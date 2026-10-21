@@ -149,7 +149,7 @@ const s = StyleSheet.create({
   region: { paddingVertical: sp(1), borderBottomColor: color.border, borderBottomWidth: 1, gap: 6 },
   regionHead: { flexDirection: 'row', alignItems: 'center', gap: sp(1), minHeight: 40 },
   regionLabel: { ...font.body, fontWeight: '700', color: color.text, flex: 1 },
-  regionValue: { ...font.body, fontWeight: '800', minWidth: 48, textAlign: 'right' },
+  regionValue: { ...font.body, fontWeight: '700', minWidth: 48, textAlign: 'right' },
   usable: { ...font.caption, color: color.muted, width: 76, textAlign: 'right' },
   track: { height: 10, borderRadius: 5, backgroundColor: color.surface2, overflow: 'hidden' },
   fill: { height: 10, borderRadius: 5 },

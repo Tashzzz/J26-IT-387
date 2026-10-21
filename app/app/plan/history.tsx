@@ -63,7 +63,7 @@ export default function HistoryScreen() {
 }
 
 const s = StyleSheet.create({
-  head: { color: colors.text, fontSize: 18, fontWeight: '800' },
+  head: { color: colors.text, fontSize: 18, fontWeight: '700' },
   item: { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderLeftWidth: 4, borderRadius: 12, padding: 14 },
   date: { color: colors.text, fontWeight: '700' },
   sub: { color: colors.muted, fontSize: 13, marginTop: 4 },

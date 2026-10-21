@@ -145,7 +145,7 @@ export function FactorDetail({ f, onClose }: { f: Factor | null; onClose: () => 
             {f.measured !== false && (
               <Text style={s.body}>
                 This {f.strength && f.strength !== 'moderately' ? `${f.strength} ` : ''}{verb} the risk score by{' '}
-                <Text style={{ fontWeight: '800' }}>{Math.abs(f.shap * 100).toFixed(1)} points</Text> (SHAP {signed(f.shap_logodds)} log-odds).
+                <Text style={{ fontWeight: '700' }}>{Math.abs(f.shap * 100).toFixed(1)} points</Text> (SHAP {signed(f.shap_logodds)} log-odds).
               </Text>
             )}
             {f.squad_typical ? <Text style={s.muted}>Squad typical: {f.squad_typical}</Text> : null}
@@ -221,17 +221,17 @@ export function BowlerPicker({ athletes, value, onChange }: { athletes: RiskAthl
 
 const s = StyleSheet.create({
   badge: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3, alignSelf: 'flex-start' },
-  badgeText: { fontSize: 12, fontWeight: '800', letterSpacing: 1 },
+  badgeText: { fontSize: 12, fontWeight: '700', letterSpacing: 1 },
   scoreRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 6, marginBottom: 10 },
-  score: { fontSize: 52, fontWeight: '800', lineHeight: 56 },
+  score: { fontSize: 52, fontWeight: '700', lineHeight: 56 },
   scoreOf: { color: colors.muted, fontSize: 14, marginBottom: 9 },
   track: { height: 14, borderRadius: 7, backgroundColor: colors.cardAlt, overflow: 'hidden', position: 'relative' },
   band: { position: 'absolute', top: 0, bottom: 0 },
   marker: { position: 'absolute', top: -1, width: 5, height: 16, marginLeft: -2.5, borderRadius: 3, borderWidth: 1, borderColor: colors.bg },
   ticks: { height: 16, marginTop: 4, position: 'relative' },
-  tick: { position: 'absolute', color: colors.muted, fontSize: 11 },
+  tick: { position: 'absolute', color: colors.muted, fontSize: 12 },
   axis: { flexDirection: 'row', justifyContent: 'space-between' },
-  axisText: { color: colors.muted, fontSize: 11 },
+  axisText: { color: colors.muted, fontSize: 12 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   rowCenter: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   modLabel: { color: colors.text, fontWeight: '700', fontSize: 14 },
@@ -242,24 +242,24 @@ const s = StyleSheet.create({
   factor: { gap: 6, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
   dot: { width: 9, height: 9, borderRadius: 5 },
   factorLabel: { color: colors.text, fontWeight: '700', fontSize: 14, flexShrink: 1 },
-  factorEffect: { fontWeight: '800', fontSize: 13 },
+  factorEffect: { fontWeight: '700', fontSize: 13 },
   factorValue: { color: colors.muted, fontSize: 13 },
   backdrop: { flex: 1, backgroundColor: '#000000AA', justifyContent: 'center', padding: 20 },
   sheet: { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 16, padding: 18, maxHeight: '85%', width: '100%', maxWidth: 560, alignSelf: 'center' },
-  sheetKicker: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
-  sheetTitle: { color: colors.text, fontSize: 20, fontWeight: '800' },
+  sheetKicker: { color: colors.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1 },
+  sheetTitle: { color: colors.text, fontSize: 20, fontWeight: '700' },
   sheetValue: { color: colors.accent, fontSize: 16, fontWeight: '700' },
   body: { color: colors.text, fontSize: 15, lineHeight: 22 },
   muted: { color: colors.muted, fontSize: 13, lineHeight: 19 },
-  small: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  small: { color: colors.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1 },
   mono: { color: colors.text, fontSize: 12, fontFamily: 'monospace' },
   warnBox: { flexDirection: 'row', gap: 8, borderWidth: 1, borderColor: colors.warn, borderRadius: 10, padding: 10, backgroundColor: `${colors.warn}14` },
   histRow: { height: 90, flexDirection: 'row', alignItems: 'flex-end', gap: 4, position: 'relative', marginBottom: 6 },
   histLine: { position: 'absolute', left: 0, right: 0, borderTopWidth: 1, borderStyle: 'dashed', borderColor: colors.muted },
   histCol: { flex: 1, height: '100%', justifyContent: 'flex-end', maxWidth: 34 },
   histBar: { borderTopLeftRadius: 4, borderTopRightRadius: 4, width: '100%' },
-  tick2: { color: colors.muted, fontSize: 11 },
+  tick2: { color: colors.muted, fontSize: 12 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: colors.border, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7, minHeight: 36 },
-  chipText: { color: colors.text, fontSize: 13, fontWeight: '600' },
+  chipText: { color: colors.text, fontSize: 13, fontWeight: '700' },
 });

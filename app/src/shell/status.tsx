@@ -2,7 +2,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { c1 } from '../api/c1';
 import { c2 } from '../api/c2';
@@ -37,7 +37,7 @@ export function StatusPill({ status, onPress }: { status: BackendStatus; onPress
   return (
     <Pressable onPress={onPress} disabled={!onPress} accessibilityRole="button" accessibilityLabel={`Backend status: ${text}`}
       style={({ pressed }) => [s.pill, { borderColor: alpha(c, 0.5), backgroundColor: alpha(c, 0.1) }, pressed && { opacity: 0.8 }]}>
-      {status.checking && status.up == null ? <ActivityIndicator size="small" color={color.muted} />
+      {status.checking && status.up == null ? <Ionicons name="sync" size={16} color={color.muted} />
         : <Ionicons name={n === 4 ? 'checkmark-circle' : n === 0 ? 'cloud-offline' : 'alert-circle'} size={16} color={tone?.text ?? color.muted} />}
       <Text style={[s.text, { color: tone?.text ?? color.muted }]} numberOfLines={1}>{text}</Text>
     </Pressable>

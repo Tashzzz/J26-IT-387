@@ -1,5 +1,5 @@
-// Bowler profile: latest risk, new analysis, quick workload log, workload vs usual, risk history,
-// analysed deliveries and prevention plans. Reads members' APIs only; links to their full screens.
+// Bowler profile. Hero: the latest risk gauge. Then: analyse a new delivery, quick workload log, workload vs
+// usual, risk history, analysed deliveries and prevention plans. Reads members' APIs only; links to their screens.
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -17,8 +17,8 @@ import { RiskHistoryChart } from '../../src/shell/RiskHistoryChart';
 import { ageOf, ago, levelOf, useSquad } from '../../src/shell/squad';
 import { WorkloadCard } from '../../src/shell/WorkloadCard';
 import {
-  alpha, Avatar, Card, color, COMPONENT, ComponentBadge, EmptyState, ErrorBanner, font, GradientHeader, IconButton, MetricTile,
-  PrimaryButton, radius, RISK, RiskBadge, RiskGauge, Screen, SecondaryButton, Skeleton, sp, Tag, toRiskLevel,
+  alpha, Avatar, Card, color, ComponentBadge, EmptyState, ErrorBanner, font, GradientHeader, IconButton, MetricTile,
+  PrimaryButton, radius, RISK, RiskBadge, RiskGauge, Screen, SecondaryButton, Skeleton, SkeletonCard, sp, Tag, toRiskLevel,
 } from '../../src/ui';
 
 type Data = { history: HistoryItem[] | null; inbox: Upstream | null; workloads: Workload[]; plans: PreventionPlan[] };
@@ -72,8 +72,8 @@ export default function BowlerProfile() {
   if (!row) {
     return (
       <Screen>
-        {squadLoading ? <Skeleton height={160} round={20} />
-          : <EmptyState icon="help-circle" title="Bowler not found" text="Pull to refresh the squad, or go back." actionTitle="Back to squad" onAction={() => router.back()} />}
+        {squadLoading ? <><SkeletonCard /><Skeleton height={260} round={radius.card} /></>
+          : <EmptyState spot="search" title="Bowler not found" text="They may have been removed. Pull to refresh the squad." actionTitle="Back to squad" onAction={() => router.replace('/squad')} />}
       </Screen>
     );
   }
@@ -90,11 +90,11 @@ export default function BowlerProfile() {
   return (
     <Screen onRefresh={reload}>
       <Stack.Screen options={{
-        title: a.bowler_id,
+        title: '',
         headerRight: () => <IconButton icon="create-outline" label={`Edit ${a.bowler_id}`} onPress={() => router.push({ pathname: '/bowler/edit', params: { id: String(a.id) } })} />,
       }} />
 
-      <GradientHeader title={a.bowler_id} tint={hue}
+      <GradientHeader title={a.bowler_id}
         subtitle={`Age ${ageOf(a.birth_year)} · ${a.playing_level[0].toUpperCase()}${a.playing_level.slice(1)} · ${a.dominant_arm === 'left' ? 'Left' : 'Right'}-arm`}
         right={<Avatar code={a.bowler_id} risk={level} size={56} />}>
         <View style={s.tags}>
@@ -107,26 +107,26 @@ export default function BowlerProfile() {
 
       {error && <ErrorBanner title="Can't reach the team computer" message={error} onRetry={load} />}
 
-      {/* Latest risk */}
-      <Card variant={level ? 'glow' : 'plain'} accent={hue}>
+      {/* Hero: latest risk */}
+      <Card variant={level ? 'glow' : 'plain'} accent={hue} style={s.hero}>
         <Section title="Latest risk" component="c3" action={latest ? <Text style={s.meta}>{ago(latest.created_at)}</Text> : null} />
-        {!data && !error ? <Skeleton height={180} />
-          : riskError && !latest ? <Text style={s.muted}>The risk model (C3) is not reachable: {riskError}</Text>
+        {!data && !error ? <Skeleton height={200} />
+          : riskError && !latest ? <Text style={s.muted}>Risk results are not available right now. Pull down to try again.</Text>
           : latest && level ? (
             <>
-              <RiskGauge score={latest.risk_score * 100} level={level} size={240} />
+              <RiskGauge score={latest.risk_score * 100} level={level} size={260} />
               {latest.top_factors.length > 0 && (
-                <Text style={s.muted}>Main drivers: {latest.top_factors.slice(0, 3).map((f) => f.label ?? f.feature).join(', ')}</Text>
+                <Text style={s.drivers}>Mainly {latest.top_factors.slice(0, 3).map((f) => f.label ?? f.feature).join(', ')}</Text>
               )}
-              <SecondaryButton title="Why this score?" icon="pulse-outline" tint={COMPONENT.c3.color} onPress={() => openRisk(router, a.id)} />
+              <SecondaryButton title="Why this score?" icon="help-circle-outline" onPress={() => openRisk(router, a.id)} />
             </>
           ) : (
-            <EmptyState icon="pulse" tint={COMPONENT.c3.color} title="No risk assessment yet"
-              text="Analyse a delivery and log workload, then run the risk model." />
+            <EmptyState spot="results" title="No risk result yet"
+              text="Analyse one delivery and log this week's workload to get a risk level." />
           )}
       </Card>
 
-      <PrimaryButton title="▶  New analysis" onPress={() => { begin(a); router.push('/analyse/setup'); }} style={{ minHeight: 64 }} />
+      <PrimaryButton title="Analyse a new delivery" icon="videocam" onPress={() => { begin(a); router.push('/analyse/setup'); }} />
 
       <QuickLogCard athleteId={a.id} onLogged={reload} />
 
@@ -148,29 +148,29 @@ export default function BowlerProfile() {
       <Card>
         <Section title="Analysed deliveries" component="c2" action={<Text style={s.meta}>{c2rows.length}</Text>} />
         {!data ? <Skeleton height={60} />
-          : c2rows.length === 0 ? <Text style={s.muted}>None yet. Use New analysis and send the result to this bowler.</Text>
+          : c2rows.length === 0 ? <Text style={s.muted}>None yet. Analyse a delivery to see the action here.</Text>
           : c2rows.slice().reverse().map((r) => {
             const feats = Object.values(r.features);
             const over = feats.filter((f) => f.breach).length;
             const unreliable = feats.filter((f) => f.reliable === false).length;
             return (
               <View key={r.video_id} style={s.delivery}>
-                <Ionicons name="film-outline" size={20} color={COMPONENT.c2.color} />
+                <Ionicons name="film-outline" size={20} color={color.muted} />
                 <Text style={s.deliveryName} numberOfLines={1}>{r.video_id}</Text>
                 {over > 0 ? <Tag label={`${over} over limit`} icon="alert-circle" tint={RISK.critical.text} /> : <Tag label="Within limits" icon="checkmark-circle" tint={RISK.low.color} />}
-                {unreliable > 0 && <Tag label={`${unreliable} unreliable`} />}
+                {unreliable > 0 && <Tag label={`${unreliable} hard to see`} />}
               </View>
             );
           })}
       </Card>
 
       {/* Latest plan */}
-      <Card variant="glow" accent={COMPONENT.c4.color}>
-        <Section title="Prevention plan" component="c4" action={plan ? <Text style={s.meta}>{ago(plan.generated_at)}</Text> : null} />
+      <Card>
+        <Section title="This week's plan" component="c4" action={plan ? <Text style={s.meta}>{ago(plan.generated_at)}</Text> : null} />
         {!data ? <Skeleton height={120} />
           : !plan ? (
-            <EmptyState icon="clipboard" tint={COMPONENT.c4.color} title="No plan yet" text="Generate a plan from the latest workload and risk."
-              actionTitle={generating ? 'Generating…' : 'Generate plan'} onAction={generate} />
+            <EmptyState spot="plan" title="No plan yet" text="Build a plan from the latest workload and risk."
+              actionTitle={generating ? 'Building…' : 'Build plan'} onAction={generate} />
           ) : (
             <Pressable onPress={() => openPlan(router, a.id)} accessibilityRole="button" accessibilityLabel="Open the prevention plan" style={{ gap: sp(1.5) }}>
               {planLevel && <RiskBadge level={planLevel} />}
@@ -187,8 +187,8 @@ export default function BowlerProfile() {
                 </View>
               )}
               <View style={s.openRow}>
-                <Text style={[s.open, { color: COMPONENT.c4.color }]}>Open plan · {plan.recommendations.length} actions</Text>
-                <Ionicons name="chevron-forward" size={18} color={COMPONENT.c4.color} />
+                <Text style={s.open}>Open plan · {plan.recommendations.length} actions</Text>
+                <Ionicons name="chevron-forward" size={18} color={color.brandText} />
               </View>
             </Pressable>
           )}
@@ -215,7 +215,9 @@ export default function BowlerProfile() {
 }
 
 const s = StyleSheet.create({
-  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: sp(0.5) },
+  hero: { padding: sp(2.5), alignItems: 'stretch' },
+  drivers: { ...font.body, color: color.text, textAlign: 'center' },
   section: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
   h2: { ...font.h2, color: color.text },
   meta: { ...font.caption, color: color.muted },
@@ -226,9 +228,9 @@ const s = StyleSheet.create({
   delivery: { flexDirection: 'row', alignItems: 'center', gap: sp(1), flexWrap: 'wrap', paddingVertical: 4 },
   deliveryName: { ...font.body, color: color.text, flex: 1, minWidth: 120 },
   referral: { flexDirection: 'row', alignItems: 'center', gap: sp(1), backgroundColor: alpha(RISK.critical.color, 0.1), borderRadius: radius.button, padding: sp(1.5) },
-  referralText: { ...font.body, color: color.text, flex: 1, fontWeight: '600' },
+  referralText: { ...font.body, color: color.text, flex: 1, fontWeight: '700' },
   openRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4 },
-  open: { ...font.body, fontWeight: '800' },
+  open: { ...font.body, fontWeight: '700', color: color.brandText },
   planRow: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
   planDate: { ...font.caption, color: color.muted, width: 76 },
   planSummary: { ...font.caption, color: color.text, flex: 1 },

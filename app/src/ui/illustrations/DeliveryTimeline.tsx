@@ -53,8 +53,8 @@ export function DeliveryTimeline({ bfc, ffc, release, total, fps }: {
         {strideFrom != null && strideTo != null && strideTo > strideFrom && (
           <Rect x={x(strideFrom)} y={BAR_Y} width={x(strideTo) - x(strideFrom)} height={BAR_H} rx={BAR_H / 2} fill={c2} fillOpacity={0.6} />
         )}
-        <SvgText x={X0} y={H - 4} fill={color.muted} fontSize={10} fontWeight="600">0</SvgText>
-        <SvgText x={X1} y={H - 4} fill={color.muted} fontSize={10} fontWeight="600" textAnchor="end">{span} frames</SvgText>
+        <SvgText x={X0} y={H - 4} fill={color.muted} fontSize={10} fontWeight="700">0</SvgText>
+        <SvgText x={X1} y={H - 4} fill={color.muted} fontSize={10} fontWeight="700" textAnchor="end">{span} frames</SvgText>
 
         {EVENTS.map((e) => {
           const f = frames[e.key];
@@ -66,8 +66,8 @@ export function DeliveryTimeline({ bfc, ffc, release, total, fps }: {
               <Line x1={px} y1={e.headY + 10} x2={px} y2={BAR_Y + BAR_H} stroke={e.color} strokeWidth={2} />
               <Circle cx={px} cy={BAR_Y + BAR_H / 2} r={4} fill={e.color} stroke={color.bg} strokeWidth={1.5} />
               <Circle cx={px} cy={e.headY} r={10} fill={e.color} />
-              <SvgText x={px} y={e.headY + 4} fill={color.bg} fontSize={11} fontWeight="800" textAnchor="middle">{e.letter}</SvgText>
-              <SvgText x={right ? px + 15 : px - 15} y={e.headY + 4} fill={e.color} fontSize={11} fontWeight="800" textAnchor={right ? 'start' : 'end'}>
+              <SvgText x={px} y={e.headY + 4} fill={color.bg} fontSize={11} fontWeight="700" textAnchor="middle">{e.letter}</SvgText>
+              <SvgText x={right ? px + 15 : px - 15} y={e.headY + 4} fill={e.color} fontSize={11} fontWeight="700" textAnchor={right ? 'start' : 'end'}>
                 {e.short} · {f}
               </SvgText>
             </G>
@@ -103,7 +103,7 @@ const s = StyleSheet.create({
   legend: { gap: sp(1) },
   row: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
   dot: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  dotText: { fontSize: 11, fontWeight: '800' },
+  dotText: { fontSize: 12, fontWeight: '700' },
   swatch: { width: 22, height: 8, borderRadius: 4 },
   name: { ...font.body, color: color.text, flex: 1 },
   value: { ...font.body, color: color.text, fontWeight: '700', fontVariant: ['tabular-nums'] },

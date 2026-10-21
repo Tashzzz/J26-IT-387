@@ -1,15 +1,14 @@
-// C1 (Nethmi) - full pose result: skeleton overlay video, detection quality, keypoint reliability
-// for this camera setup, and filming advice when the bowler was often missed.
+// C1 (Nethmi) - full pose result. Hero: the skeleton replay (DeliveryPlayer, with the key-moment markers when
+// the joint-angle row is passed in). Then tracking quality, how reliable each body part is from this camera
+// setup, and filming advice when the bowler was often missed.
 import { Ionicons } from '@expo/vector-icons';
-import { useEvent } from 'expo';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { regionsFromSummary } from '../../analysis/reliability';
 import { c1 } from '../../api/c1';
+import type { FeatureRow } from '../../c2/types';
 import {
-  BodyReliabilityMap, Card, color, COMPONENT, font, IconButton, MetricTile, radius, RISK, ScoreRing, SegmentedControl, sp, useResearchMode,
+  BodyReliabilityMap, Card, color, COMPONENT, DeliveryPlayer, font, MetricTile, RISK, ScoreRing, sp, useResearchMode,
 } from '../../ui';
 import type { ProcessResult } from '../types';
 
@@ -26,30 +25,13 @@ export const QUALITY: Record<DetectionQuality, { label: string; color: string; i
   poor: { label: 'Poor', color: RISK.critical.text, icon: 'close-circle', text: 'The bowler was missed in many frames, so joint angles will have gaps.' },
 };
 
-const SPEEDS = [{ value: '1', label: '1×' }, { value: '0.5', label: '½×' }, { value: '0.25', label: '¼×' }] as const;
-
-function OverlayVideo({ url }: { url: string }) {
-  const player = useVideoPlayer(url, (p) => { p.loop = true; p.muted = true; p.play(); });
-  const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
-  const [speed, setSpeed] = useState<(typeof SPEEDS)[number]['value']>('1');
-  return (
-    <View style={{ gap: sp(1) }}>
-      <View style={s.videoBox}>
-        <VideoView player={player} nativeControls={false} contentFit="contain" style={s.video} />
-      </View>
-      <View style={s.controls}>
-        <IconButton icon={isPlaying ? 'pause' : 'play'} label={isPlaying ? 'Pause' : 'Play'} filled tint={COMPONENT.c1.color}
-          onPress={() => (isPlaying ? player.pause() : player.play())} />
-        <View style={{ flex: 1 }}>
-          <SegmentedControl options={SPEEDS} value={speed} tint={COMPONENT.c1.color}
-            onChange={(v) => { setSpeed(v); player.playbackRate = Number(v); }} />
-        </View>
-      </View>
-    </View>
-  );
-}
-
-export function PoseResultScreen({ result }: { result: ProcessResult }) {
+export function PoseResultScreen({ result, rawUri, row }: {
+  result: ProcessResult;
+  /** The original clip, for the skeleton on/off toggle. */
+  rawUri?: string | null;
+  /** Joint-angle result for this clip: its fps and back-foot / front-foot / release frames become scrubber markers. */
+  row?: FeatureRow | null;
+}) {
   const rate = result.detection_rate;
   const q = QUALITY[detectionQuality(rate)];
   const rel = result.reliability;
@@ -58,44 +40,43 @@ export function PoseResultScreen({ result }: { result: ProcessResult }) {
 
   return (
     <View style={{ gap: sp(2) }}>
-      <Card style={{ padding: sp(1.5) }}>
-        <OverlayVideo url={c1.fileUrl(result.overlay_url)} />
-        <Text style={s.caption}>{result.clip_id} · skeleton overlay</Text>
-      </Card>
+      <DeliveryPlayer overlayUri={c1.fileUrl(result.overlay_url)} rawUri={rawUri} fps={row?.fps}
+        events={row ? { bfc: row.events.bfc_frame, ffc: row.events.ffc_frame, release: row.events.release_frame } : null}
+        caption={research ? `${result.clip_id} · run ${result.run_id}` : undefined} />
 
       <Card>
         <View style={s.qualityRow}>
-          <ScoreRing value={rate * 100} tint={q.color} size={104} label="Bowler found" />
+          <ScoreRing value={rate * 100} tint={q.color} size={96} label="Frames with the bowler" />
           <View style={{ flex: 1, gap: sp(0.75) }}>
             <View style={s.qualityHead}>
               <Ionicons name={q.icon} size={20} color={q.color} />
-              <Text style={[s.qualityWord, { color: q.color }]}>{q.label} detection</Text>
+              <Text style={[s.qualityWord, { color: q.color }]}>{q.label} tracking</Text>
             </View>
             <Text style={s.body}>{q.text}</Text>
           </View>
         </View>
         <View style={s.tiles}>
           <MetricTile label="Frames" value={result.frames} icon="film-outline" />
-          <MetricTile label="Pose time" value={result.processing_seconds} unit="s" icon="time-outline" />
+          {research && <MetricTile label="Pose time" value={result.processing_seconds} unit="s" icon="time-outline" />}
           <MetricTile label="Arm" value={result.bowling_arm === 'right' ? 'Right' : 'Left'} icon="hand-left-outline" />
         </View>
       </Card>
 
       <Card>
-        <Text style={s.h2}>Keypoint reliability for this setup</Text>
+        <Text style={s.h2}>How well each body part is tracked from here</Text>
         {rel?.setup_matched ? (
-          <Text style={s.muted}>Camera setup {rel.setup_matched}: {rel.usable} of {rel.total} body points passed the reliability check{research ? ` (ICC ≥ ${rel.gate ?? 0.75})` : ''}. Points are only tagged, never removed.</Text>
+          <Text style={s.muted}>Camera position {rel.setup_matched}: {rel.usable} of {rel.total} body points tracked reliably{research ? ` (ICC ≥ ${rel.gate ?? 0.75}). Points are only tagged, never removed` : ''}.</Text>
         ) : (
           <View style={s.unverified}>
             <Ionicons name="help-circle" size={20} color={RISK.moderate.color} />
-            <Text style={[s.body, { flex: 1 }]}>Not tested yet for this camera setup – results are marked unverified.</Text>
+            <Text style={[s.body, { flex: 1 }]}>This camera position hasn't been tested yet, so results are marked unverified.</Text>
           </View>
         )}
         <BodyReliabilityMap regions={regionsFromSummary(rel)} />
       </Card>
 
       {detectionQuality(rate) !== 'good' && (
-        <Card variant="glow" accent={tint}>
+        <Card>
           <Text style={s.h2}>Filming tips for next time</Text>
           {[
             'Only the bowler in the frame – no umpire or batter crossing.',
@@ -116,10 +97,6 @@ export function PoseResultScreen({ result }: { result: ProcessResult }) {
 }
 
 const s = StyleSheet.create({
-  videoBox: { borderRadius: radius.button, overflow: 'hidden', backgroundColor: '#000' },
-  video: { width: '100%', aspectRatio: 16 / 9, maxHeight: 480 },
-  controls: { flexDirection: 'row', alignItems: 'center', gap: sp(1.5) },
-  caption: { ...font.caption, color: color.muted },
   qualityRow: { flexDirection: 'row', alignItems: 'center', gap: sp(2) },
   qualityHead: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   qualityWord: { ...font.h2 },

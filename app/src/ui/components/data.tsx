@@ -8,13 +8,14 @@ import { useResearchMode } from '../prefs';
 import { alpha, color, COMPONENT, font, gradient, radius, sp, type ComponentKey, type IconName } from '../theme';
 
 /**
- * Component chip in its colour. Research mode: "C2 · Biomechanics" (compact: "C2").
- * Coach mode: the plain name only ("Biomechanics"), no research codes.
+ * Research-component chip in its colour: "C2 · Biomechanics" (compact: "C2").
+ * Research mode only - coaches never see component codes, so it renders nothing in coach mode.
  */
 export function ComponentBadge({ component, compact }: { component: ComponentKey; compact?: boolean }) {
   const research = useResearchMode();
+  if (!research) return null;
   const c = COMPONENT[component];
-  const text = research ? (compact ? c.code : `${c.code} · ${c.label}`) : c.label;
+  const text = compact ? c.code : `${c.code} · ${c.label}`;
   return (
     <View style={[s.badge, { backgroundColor: alpha(c.color, 0.16), borderColor: alpha(c.color, 0.5) }]}
       accessibilityLabel={`${c.code} ${c.label}`}>
@@ -81,12 +82,12 @@ export function Tag({ label, tint, icon }: { label: string; tint?: string; icon?
 
 const s = StyleSheet.create({
   badge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 5, borderWidth: 1, borderRadius: radius.chip, paddingHorizontal: sp(1.25), paddingVertical: 4 },
-  badgeText: { ...font.caption, fontWeight: '800', letterSpacing: 0.3 },
-  tile: { flex: 1, minWidth: 140, backgroundColor: color.surface, borderColor: color.border, borderWidth: 1, borderRadius: radius.button + 2, padding: sp(1.75), gap: 4 },
+  badgeText: { ...font.caption, fontWeight: '700', letterSpacing: 0.3 },
+  tile: { flex: 1, minWidth: 140, backgroundColor: color.surface, borderColor: color.border, borderWidth: 1, borderRadius: radius.button + 2, padding: sp(1.5), gap: 4 },
   tileTop: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  tileLabel: { ...font.caption, color: color.muted, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, flexShrink: 1 },
-  tileValue: { fontSize: 24, fontWeight: '800', letterSpacing: -0.3 },
-  tileUnit: { ...font.body, color: color.muted, fontWeight: '600' },
+  tileLabel: { ...font.overline, color: color.muted, flexShrink: 1 },
+  tileValue: { fontSize: 24, fontWeight: '700', letterSpacing: -0.3 },
+  tileUnit: { ...font.body, color: color.muted },
   tileHint: { ...font.caption, color: color.muted },
   track: { backgroundColor: color.surface2, overflow: 'hidden' },
   tag: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 4, borderRadius: 8, borderWidth: 1, borderColor: color.border, backgroundColor: color.surface2, paddingHorizontal: 8, paddingVertical: 3 },

@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
-  alpha, Card, color, COMPONENT, DeliveryTimeline, font, MetricTile, radius, RISK, SecondaryButton, sp, Tag, useResearchMode,
+  alpha, Card, color, DeliveryTimeline, font, MetricTile, radius, RISK, SecondaryButton, sp, Tag, useResearchMode,
 } from '../../ui';
 import type { Feature, FeatureName, FeatureRow, Threshold, Thresholds } from '../types';
 import { EventsCard, FEATURE_LABEL, FEATURE_ORDER, FeatureCard, featureStatus, ruleText, TECH_LABEL } from '../ui';
@@ -65,8 +65,8 @@ function AngleCard({ name, f, info, trueValue }: { name: FeatureName; f: Feature
         {research && <Tag label={f.method.toUpperCase()} />}
       </View>
       <Pressable onPress={() => setOpen(!open)} accessibilityRole="button" accessibilityState={{ expanded: open }} style={s.more}>
-        <Text style={[s.moreText, { color: COMPONENT.c2.color }]}>{open ? 'Hide details' : 'Meaning, evidence and source'}</Text>
-        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={16} color={COMPONENT.c2.color} />
+        <Text style={s.moreText}>{open ? 'Hide details' : 'What it means and where the limit comes from'}</Text>
+        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={16} color={color.brandText} />
       </Pressable>
       {open && <FeatureCard name={name} f={f} info={info} trueValue={trueValue} />}
     </View>
@@ -84,7 +84,7 @@ export function BiomechanicsResultScreen({ row, thresholds, children }: {
   const confirmedBreaches = FEATURE_ORDER.filter((n) => row.features[n]?.breach && row.features[n]?.reliable).length;
   const uncheckedBreaches = row.n_breaches - confirmedBreaches;
   const frames = row.series ? Math.max(0, ...Object.values(row.series).map((v) => v.length)) : 0;
-  const tint = COMPONENT.c2.color;
+  const research = useResearchMode();
 
   return (
     <View style={{ gap: sp(2) }}>
@@ -94,12 +94,12 @@ export function BiomechanicsResultScreen({ row, thresholds, children }: {
           <Text style={s.muted}>A made-up delivery with known angles, used to check the app and the maths.</Text>
         </Card>
       ) : (
-        <Text style={s.h2}>{row.video_id}{row.view ? ` · ${row.view.replace('_', '-')} view` : ''} · {Math.round(row.fps)} fps</Text>
+        <Text style={s.muted}>{research ? `${row.video_id} · ` : ''}{row.view ? `${row.view.replace('_', '-')} view` : 'Camera view unknown'}{research ? ` · ${Math.round(row.fps)} fps` : ''}</Text>
       )}
 
       <View style={s.tiles}>
         <MetricTile label="Red flags" value={confirmedBreaches} icon="alert-circle" tint={confirmedBreaches ? RISK.critical.text : RISK.low.color} />
-        <MetricTile label="Reliable angles" value={`${reliable} / ${FEATURE_ORDER.length}`} icon="eye" tint={reliable ? color.text : RISK.critical.text} />
+        <MetricTile label="Clearly seen" value={`${reliable} / ${FEATURE_ORDER.length}`} icon="eye" tint={reliable ? color.text : RISK.critical.text} />
       </View>
       {uncheckedBreaches > 0 && (
         <Card style={{ borderColor: alpha(RISK.moderate.color, 0.6) }}>
@@ -109,7 +109,7 @@ export function BiomechanicsResultScreen({ row, thresholds, children }: {
       )}
 
       <Card>
-        <Text style={s.h2}>Delivery events</Text>
+        <Text style={s.h2}>Key moments</Text>
         <DeliveryTimeline bfc={row.events.bfc_frame} ffc={row.events.ffc_frame} release={row.events.release_frame} total={frames} fps={row.fps} />
         <EventsCard events={row.events} method={row.event_method} fps={row.fps} />
       </Card>
@@ -135,7 +135,7 @@ export function BiomechanicsResultScreen({ row, thresholds, children }: {
       {row.warnings.length > 0 && (
         <>
           <SecondaryButton title={showNotes ? 'Hide technical notes' : `Technical notes (${row.warnings.length})`} icon="document-text-outline"
-            tint={tint} onPress={() => setShowNotes(!showNotes)} />
+            onPress={() => setShowNotes(!showNotes)} />
           {showNotes && <Card>{row.warnings.map((w, i) => <Text key={i} style={s.muted}>• {w}</Text>)}</Card>}
         </>
       )}
@@ -153,9 +153,9 @@ const s = StyleSheet.create({
   title: { ...font.h2, color: color.text },
   small: { ...font.caption, color: color.muted },
   valueRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: sp(1) },
-  value: { fontSize: 30, fontWeight: '800' },
+  value: { fontSize: 30, fontWeight: '700' },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
-  pillText: { fontSize: 12, fontWeight: '800', letterSpacing: 0.3 },
+  pillText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.3 },
   track: { height: 12, borderRadius: 6, backgroundColor: color.surface2, overflow: 'hidden' },
   zone: { position: 'absolute', top: 0, bottom: 0 },
   limit: { position: 'absolute', top: 0, bottom: 0, width: 2, marginLeft: -1, backgroundColor: color.text },
@@ -164,5 +164,5 @@ const s = StyleSheet.create({
   tick: { ...font.caption, color: color.muted },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   more: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 40 },
-  moreText: { ...font.body, fontWeight: '700' },
+  moreText: { ...font.body, fontWeight: '700', color: color.brandText },
 });

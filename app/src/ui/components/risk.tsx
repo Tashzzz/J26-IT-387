@@ -88,10 +88,10 @@ const s = StyleSheet.create({
   badge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 6, borderWidth: 1, borderRadius: 999, paddingHorizontal: sp(1.5), paddingVertical: 6 },
   badgeSm: { paddingHorizontal: sp(1), paddingVertical: 3, gap: 4 },
   badgeLg: { paddingHorizontal: sp(2), paddingVertical: sp(1) },
-  badgeText: { fontWeight: '800' },
+  badgeText: { fontWeight: '700' },
   gaugeCenter: { position: 'absolute', alignItems: 'center' },
-  gaugeNum: { color: color.text, fontWeight: '800', letterSpacing: -1 },
+  gaugeNum: { color: color.text, fontWeight: '700', letterSpacing: -1 },
   gaugeOf: { ...font.caption, color: color.muted },
-  ringText: { color: color.text, fontWeight: '800' },
+  ringText: { color: color.text, fontWeight: '700' },
   ringLabel: { ...font.caption, color: color.muted, textAlign: 'center', maxWidth: 120 },
 });

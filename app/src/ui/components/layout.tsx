@@ -1,13 +1,13 @@
-// Page scaffolding: Screen, GradientHeader, Card.
+// Page scaffolding: Screen, GradientHeader (page title), SectionTitle, Card.
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useState } from 'react';
 import {
   RefreshControl, ScrollView, StyleSheet, Text, View, type StyleProp, type ViewStyle,
 } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 
-import { alpha, color, COMPONENT, font, glow, gradient, radius, sp, type ComponentKey, type IconName } from '../theme';
+import { useResearchMode } from '../prefs';
+import { alpha, color, COMPONENT, font, gradient, layout, radius, sp, type ComponentKey, type IconName } from '../theme';
 
 /**
  * Safe-area page. Scrolls by default; pass onRefresh for pull-to-refresh (spinner shows until the promise settles).
@@ -48,8 +48,9 @@ export function Screen({ children, scroll = true, onRefresh, safeTop, style }: {
 }
 
 /**
- * Hero header. With `component` it uses that component's colour and icon; `tint` overrides the colour
- * (e.g. a bowler's risk colour); otherwise the brand gradient.
+ * Page title block: optional small icon, title, one-line subtitle. Neutral by default: `tint` only colours the
+ * icon (e.g. a bowler's risk colour). The "C2 · BIOMECHANICS" kicker appears in Research mode only.
+ * (Named GradientHeader for older callers; it no longer draws a gradient box.)
  */
 export function GradientHeader({ title, subtitle, component, icon, tint, right, children }: {
   title: string;
@@ -60,31 +61,41 @@ export function GradientHeader({ title, subtitle, component, icon, tint, right, 
   right?: React.ReactNode;
   children?: React.ReactNode;
 }) {
+  const research = useResearchMode();
   const c = component ? COMPONENT[component] : null;
-  const hue = tint ?? c?.color;
-  const stops = hue ? ([alpha(hue, 0.35), alpha(hue, 0.04)] as const) : ([alpha(gradient.brand[0], 0.4), alpha(gradient.brand[1], 0.12)] as const);
+  const hue = tint ?? c?.color ?? gradient.brand[1];
   const ic = icon ?? c?.icon;
   return (
-    <LinearGradient colors={stops} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[s.header, { borderColor: hue ? alpha(hue, 0.4) : color.border }]}>
+    <View style={s.header}>
       <View style={s.headerRow}>
         {ic && (
-          <View style={[s.headerIcon, { backgroundColor: alpha(hue ?? gradient.brand[1], 0.18) }]}>
-            <Ionicons name={ic} size={22} color={hue ?? gradient.brand[1]} />
+          <View style={[s.headerIcon, { backgroundColor: alpha(hue, 0.14) }]}>
+            <Ionicons name={ic} size={20} color={hue} />
           </View>
         )}
-        <View style={{ flex: 1 }}>
-          {c && <Text style={[s.headerKicker, { color: c.color }]}>{c.code} · {c.label.toUpperCase()}</Text>}
+        <View style={{ flex: 1, gap: 2 }}>
+          {c && research && <Text style={[s.headerKicker, { color: c.color }]}>{c.code} · {c.label}</Text>}
           <Text style={s.headerTitle} accessibilityRole="header">{title}</Text>
         </View>
         {right}
       </View>
       {subtitle ? <Text style={s.headerSub}>{subtitle}</Text> : null}
       {children}
-    </LinearGradient>
+    </View>
   );
 }
 
-/** Surface card. variant "glow" adds an accent border + coloured shadow (accent defaults to brand). */
+/** Section heading with an optional action (e.g. "See all") on the right. */
+export function SectionTitle({ title, action, style }: { title: string; action?: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+  return (
+    <View style={[s.section, style]}>
+      <Text style={s.sectionTitle} accessibilityRole="header">{title}</Text>
+      {action}
+    </View>
+  );
+}
+
+/** Surface card. Neutral by default; variant "glow" adds a quiet accent border for things that mean something (risk, selection). */
 export function Card({ children, variant = 'plain', accent, style }: {
   children: React.ReactNode;
   variant?: 'plain' | 'glow';
@@ -93,20 +104,22 @@ export function Card({ children, variant = 'plain', accent, style }: {
 }) {
   const a = accent ?? gradient.brand[0];
   return (
-    <View style={[s.card, variant === 'glow' && [{ borderColor: alpha(a, 0.55) }, glow(a, 0.8)], style]}>{children}</View>
+    <View style={[s.card, variant === 'glow' && { borderColor: alpha(a, 0.5) }, style]}>{children}</View>
   );
 }
 
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.bg },
-  content: { padding: sp(2), paddingBottom: sp(6) },
+  content: { padding: layout.pad, paddingBottom: sp(5) },
   fill: { flex: 1 },
-  inner: { width: '100%', maxWidth: 720, alignSelf: 'center', gap: sp(2) },
-  header: { borderRadius: radius.card, borderWidth: 1, padding: sp(2.5), gap: sp(1) },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: sp(1.5) },
-  headerIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  headerKicker: { ...font.caption, fontWeight: '800', letterSpacing: 1 },
-  headerTitle: { ...font.title, color: color.text },
+  inner: { width: '100%', maxWidth: 720, alignSelf: 'center', gap: layout.gap },
+  header: { gap: sp(0.5), paddingTop: sp(0.5) },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: layout.gap },
+  headerIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  headerKicker: { ...font.overline },
+  headerTitle: { ...font.display, color: color.text },
   headerSub: { ...font.body, color: color.muted },
-  card: { backgroundColor: color.surface, borderColor: color.border, borderWidth: 1, borderRadius: radius.card, padding: sp(2), gap: sp(1) },
+  section: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: sp(1), marginTop: sp(1), minHeight: 32 },
+  sectionTitle: { ...font.h2, color: color.text, flexShrink: 1 },
+  card: { backgroundColor: color.surface, borderColor: color.border, borderWidth: 1, borderRadius: radius.card, padding: layout.pad, gap: layout.gap },
 });

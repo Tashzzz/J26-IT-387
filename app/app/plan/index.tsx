@@ -139,8 +139,8 @@ function NavPill({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMa
 
 const s = StyleSheet.create({
   code: { color: colors.text, fontSize: 16, fontWeight: '700' },
-  score: { fontSize: 34, fontWeight: '800' },
-  scoreLabel: { fontSize: 13, fontWeight: '500', color: colors.muted },
+  score: { fontSize: 34, fontWeight: '700' },
+  scoreLabel: { fontSize: 13, fontWeight: '400', color: colors.muted },
   rec: { flexDirection: 'row', gap: 12, backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 14, padding: 14 },
   recIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   recTitle: { color: colors.text, fontSize: 15, fontWeight: '700' },
@@ -148,8 +148,8 @@ const s = StyleSheet.create({
   exercise: { color: colors.muted, fontSize: 13 },
   why: { color: colors.accent, fontSize: 13, fontWeight: '700', marginTop: 2 },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, minHeight: 40 },
-  pillText: { color: colors.text, fontSize: 13, fontWeight: '600' },
-  small: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  pillText: { color: colors.text, fontSize: 13, fontWeight: '700' },
+  small: { color: colors.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1 },
   note: { color: colors.muted, fontSize: 13, lineHeight: 19 },
   footer: { color: colors.muted, fontSize: 12, textAlign: 'center' },
 });

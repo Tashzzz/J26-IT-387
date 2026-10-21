@@ -7,8 +7,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { c4 } from '../../api/c4';
 import {
-  alpha, Card, ChipGroup, color, COMPONENT, ErrorBanner, font, MetricTile, PrimaryButton, radius, RISK, SegmentedControl, sp,
-  TextField, toRiskLevel,
+  alpha, Card, ChipGroup, color, ErrorBanner, font, MetricTile, PrimaryButton, radius, RISK, SegmentedControl, sp,
+  TextField, toRiskLevel, useResearchMode,
 } from '../../ui';
 import { categoryMeta } from '../theme';
 import type { Category, FeedbackInput, PreventionPlan, Recommendation } from '../types';
@@ -51,7 +51,7 @@ function FeedbackCard({ plan, reviewer }: { plan: PreventionPlan; reviewer?: str
   const [done, setDone] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const set = (p: Partial<FeedbackInput>) => setF((x) => ({ ...x, ...p }));
-  const tint = COMPONENT.c4.color;
+  const tint = color.brandText;
 
   async function submit() {
     if (!plan.id) return;
@@ -99,16 +99,17 @@ export function PlanResultScreen({ plan, reviewer }: { plan: PreventionPlan; rev
   const level = toRiskLevel(plan.risk_tier);
   const groups = ORDER.map((c) => ({ c, recs: plan.recommendations.filter((r) => r.category === c) })).filter((g) => g.recs.length);
   const m = plan.metrics;
+  const research = useResearchMode();
 
   return (
     <View style={{ gap: sp(2) }}>
-      <Card variant="glow" accent={level ? RISK[level].color : COMPONENT.c4.color}>
+      <Card variant={level ? 'glow' : 'plain'} accent={level ? RISK[level].color : undefined}>
         <View style={s.rowBetween}>
           <Text style={s.h2}>{plan.bowler_id} · {m.age_group}</Text>
           <TierBadge tier={plan.risk_tier} />
         </View>
         <Text style={s.body}>{plan.summary}</Text>
-        <Text style={s.muted}>{plan.risk_source === 'c3' ? 'Based on the C3 risk score.' : 'C3 unavailable - guideline estimate.'}</Text>
+        <Text style={s.muted}>{plan.risk_source === 'c3' ? 'Based on the latest risk score.' : 'Risk score not available – based on workload guidelines.'}</Text>
       </Card>
 
       {plan.referral.required && (
@@ -129,7 +130,7 @@ export function PlanResultScreen({ plan, reviewer }: { plan: PreventionPlan; rev
           <MetricTile label="Bowling days" value={plan.limits.max_bowling_days_per_week} unit="/ week" icon="calendar-outline" />
         </View>
         <Text style={s.muted}>Rest: {plan.limits.rest_window}</Text>
-        <Text style={s.muted}>Last 7 days {m.acute_overs} overs · usual week {m.chronic_weekly_overs} overs · ACWR {m.acwr ?? '—'}</Text>
+        <Text style={s.muted}>Last 7 days {m.acute_overs} overs · usual week {m.chronic_weekly_overs} overs{research ? ` · ACWR ${m.acwr ?? '—'}` : ''}</Text>
       </Card>
 
       <Text style={s.h2}>Priority actions</Text>
@@ -144,7 +145,7 @@ export function PlanResultScreen({ plan, reviewer }: { plan: PreventionPlan; rev
       )}
 
       <FeedbackCard plan={plan} reviewer={reviewer} />
-      <Text style={s.footer}>Engine {plan.engine_version} · {new Date(plan.generated_at).toLocaleString()}</Text>
+      <Text style={s.footer}>{research ? `Engine ${plan.engine_version} · ` : ''}{new Date(plan.generated_at).toLocaleString()}</Text>
     </View>
   );
 }
@@ -153,14 +154,14 @@ const s = StyleSheet.create({
   h2: { ...font.h2, color: color.text },
   body: { ...font.body, color: color.text },
   muted: { ...font.body, color: color.muted },
-  label: { ...font.caption, color: color.muted, fontWeight: '800', letterSpacing: 1 },
+  label: { ...font.caption, color: color.muted, fontWeight: '700', letterSpacing: 1 },
   head: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: sp(1) },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: sp(1) },
   referral: { borderWidth: 1, borderColor: alpha(RISK.critical.color, 0.6), backgroundColor: alpha(RISK.critical.color, 0.1), borderRadius: radius.card, padding: sp(2), gap: sp(1) },
   rec: { flexDirection: 'row', gap: sp(1.5), backgroundColor: color.surface, borderWidth: 1, borderRadius: radius.card, padding: sp(2) },
   recIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  cat: { ...font.caption, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
+  cat: { ...font.caption, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
   recTitle: { ...font.h2, color: color.text },
   why: { ...font.body, fontWeight: '700', marginTop: 2 },
   footer: { ...font.caption, color: color.muted, textAlign: 'center' },

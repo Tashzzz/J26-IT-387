@@ -107,7 +107,7 @@ export default function ModelCardScreen() {
 const s = StyleSheet.create({
   h2: { ...font.h2, color: color.text },
   body: { ...font.body, color: color.text },
-  bold: { ...font.body, color: color.text, fontWeight: '800' },
+  bold: { ...font.body, color: color.text, fontWeight: '700' },
   muted: { ...font.body, color: color.muted },
   mono: { ...font.caption, color: color.muted, fontFamily: 'monospace' },
   head: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },

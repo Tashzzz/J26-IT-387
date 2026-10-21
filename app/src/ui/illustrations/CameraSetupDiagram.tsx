@@ -138,7 +138,7 @@ export function CameraSetupDiagram({ angle, distance, caption = true }: { angle?
             <G key={v} opacity={sel ? 0.4 : 0.85}>
               <CameraGlyph x={p.x} y={p.y} rot={rot} tint={color.muted} scale={0.85} />
               <SvgText x={p.x + (v === 'front' || v === 'rear' ? 22 : 0)} y={v === 'front' || v === 'rear' ? p.y + 4 : p.y + 26}
-                textAnchor={v === 'front' || v === 'rear' ? 'start' : 'middle'} fill={color.muted} fontSize={10} fontWeight="600">
+                textAnchor={v === 'front' || v === 'rear' ? 'start' : 'middle'} fill={color.muted} fontSize={10} fontWeight="700">
                 {CAMERA_VIEW[v].label}
               </SvgText>
             </G>
@@ -167,11 +167,11 @@ export function CameraSetupDiagram({ angle, distance, caption = true }: { angle?
             {distance ? (
               <G>
                 <Rect x={mid.x - 24} y={mid.y - 11} width={48} height={22} rx={11} fill={color.bg} stroke={CYAN} strokeWidth={1.5} />
-                <SvgText x={mid.x} y={mid.y + 4} fill={CYAN} fontSize={12} fontWeight="800" textAnchor="middle">~{distance} m</SvgText>
+                <SvgText x={mid.x} y={mid.y + 4} fill={CYAN} fontSize={12} fontWeight="700" textAnchor="middle">~{distance} m</SvgText>
               </G>
             ) : null}
             <SvgText x={sel === 'front' || sel === 'rear' ? cam.x + 24 : cam.x} y={sel === 'front' || sel === 'rear' ? cam.y + 4 : cam.y + 28}
-              textAnchor={sel === 'front' || sel === 'rear' ? 'start' : 'middle'} fill={CYAN} fontSize={12} fontWeight="800">
+              textAnchor={sel === 'front' || sel === 'rear' ? 'start' : 'middle'} fill={CYAN} fontSize={12} fontWeight="700">
               {CAMERA_VIEW[sel].label}
             </SvgText>
           </G>

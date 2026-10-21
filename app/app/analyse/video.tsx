@@ -9,11 +9,9 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useAnalysis, type Video } from '../../src/analysis/AnalysisContext';
 import { ANALYSIS_STEPS } from '../../src/analysis/steps';
 import {
-  CAMERA_VIEW, Card, color, COMPONENT, EmptyState, ErrorBanner, font, MetricTile, PrimaryButton, radius, Screen, SecondaryButton, sp,
+  CAMERA_VIEW, Card, color, EmptyState, ErrorBanner, font, MetricTile, PrimaryButton, radius, Screen, SecondaryButton, sp,
   StepIndicator,
 } from '../../src/ui';
-
-const C1 = COMPONENT.c1.color;
 
 function Preview({ uri }: { uri: string }) {
   const player = useVideoPlayer(uri, (p) => { p.muted = true; p.loop = true; });
@@ -35,7 +33,7 @@ export default function VideoStep() {
   const [err, setErr] = useState<string | null>(null);
 
   if (!athlete || !angle) {
-    return <Screen><EmptyState icon="videocam" title="Set up the analysis first" actionTitle="Start again" onAction={() => router.replace('/analyse')} /></Screen>;
+    return <Screen><EmptyState spot="video" title="Set up the analysis first" text="Pick the bowler and camera position, then film." actionTitle="Start again" onAction={() => router.replace('/analyse')} /></Screen>;
   }
 
   async function pick() {
@@ -60,7 +58,7 @@ export default function VideoStep() {
 
   return (
     <Screen>
-      <StepIndicator steps={ANALYSIS_STEPS} current={2} tint={C1} />
+      <StepIndicator steps={ANALYSIS_STEPS} current={2} />
       <Text style={s.title}>One delivery of {athlete.bowler_id}</Text>
       <Text style={s.muted}>{CAMERA_VIEW[angle].label} · ~{distance} m · {athlete.dominant_arm === 'left' ? 'left' : 'right'}-arm. A few seconds around the delivery is enough.</Text>
 
@@ -75,12 +73,12 @@ export default function VideoStep() {
           <Text style={s.caption} numberOfLines={1}>{video.name}</Text>
         </Card>
       ) : (
-        <EmptyState icon="film" tint={C1} title="No video yet" text="Record the delivery now, or choose one you filmed earlier." />
+        <Card><EmptyState spot="video" title="No video yet" text="Record the delivery now, or choose one you filmed earlier." /></Card>
       )}
 
       <View style={s.row}>
-        <View style={{ flex: 1 }}><SecondaryButton title={video ? 'Record again' : 'Record'} icon="videocam" tint={C1} onPress={record} /></View>
-        <View style={{ flex: 1 }}><SecondaryButton title={video ? 'Choose another' : 'Gallery'} icon="images" tint={C1} onPress={pick} /></View>
+        <View style={{ flex: 1 }}><SecondaryButton title={video ? 'Record again' : 'Record'} icon="videocam" onPress={record} /></View>
+        <View style={{ flex: 1 }}><SecondaryButton title={video ? 'Choose another' : 'Gallery'} icon="images" onPress={pick} /></View>
       </View>
       {err && <ErrorBanner title="Camera" message={err} />}
 

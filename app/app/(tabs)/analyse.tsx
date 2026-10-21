@@ -9,7 +9,8 @@ import { ANALYSIS_STEPS } from '../../src/analysis/steps';
 import { BowlerCard } from '../../src/shell/BowlerCard';
 import { useSquad } from '../../src/shell/squad';
 import {
-  color, EmptyState, ErrorBanner, font, GradientHeader, PipelineStepper, PrimaryButton, Screen, SecondaryButton, Skeleton, sp, StepIndicator,
+  Card, color, COMPONENT, COMPONENT_KEYS, EmptyState, ErrorBanner, font, GradientHeader, PrimaryButton, Screen, SecondaryButton, SectionTitle,
+  SkeletonCard, sp, StepIndicator,
 } from '../../src/ui';
 
 export default function Analyse() {
@@ -21,16 +22,18 @@ export default function Analyse() {
 
   return (
     <Screen safeTop onRefresh={refresh}>
-      <GradientHeader title="New analysis" subtitle="One delivery video → pose → joint angles → risk → plan." icon="videocam" />
-      <PipelineStepper states={{}} compact />
+      <GradientHeader title="New analysis" subtitle={COMPONENT_KEYS.map((k) => COMPONENT[k].step).join(' → ')} />
       <StepIndicator steps={ANALYSIS_STEPS} current={0} />
 
-      <Text style={s.h2}>Who is bowling?</Text>
-      <SecondaryButton title="New bowler" icon="person-add-outline" onPress={() => router.push({ pathname: '/bowler/edit', params: { then: 'analyse' } })} />
+      <SectionTitle title="Who is bowling?" />
+      {rows.length > 0 && <SecondaryButton title="New bowler" icon="person-add-outline" onPress={() => router.push({ pathname: '/bowler/edit', params: { then: 'analyse' } })} />}
       {error ? <ErrorBanner title="Can't load the squad" message={error} onRetry={refresh} />
-        : loading ? [0, 1, 2].map((i) => <Skeleton key={i} height={92} round={20} />)
+        : loading ? [0, 1, 2].map((i) => <SkeletonCard key={i} />)
         : rows.length === 0 ? (
-          <EmptyState icon="person-add" title="Add a bowler first" text="Each analysis is saved to a bowler's profile." />
+          <Card>
+            <EmptyState spot="squad" title="Add a bowler first" text="Each analysis is saved to a bowler's profile."
+              actionTitle="Add bowler" onAction={() => router.push({ pathname: '/bowler/edit', params: { then: 'analyse' } })} />
+          </Card>
         ) : rows.map((r) => (
           <BowlerCard key={r.athlete.id} row={r} selected={r.athlete.id === picked} onPress={() => setPicked(r.athlete.id)} />
         ))}
@@ -47,7 +50,6 @@ export default function Analyse() {
 }
 
 const s = StyleSheet.create({
-  h2: { ...font.h2, color: color.text, marginTop: sp(1) },
   footer: { gap: sp(1), marginTop: sp(1) },
   hint: { ...font.caption, color: color.muted, textAlign: 'center' },
 });

@@ -34,6 +34,6 @@ export function Avatar({ code, risk, size = 56 }: { code: string; risk?: RiskLev
 const s = StyleSheet.create({
   ring: { alignItems: 'center', justifyContent: 'center' },
   inner: { backgroundColor: color.surface2, alignItems: 'center', justifyContent: 'center' },
-  text: { color: color.text, fontWeight: '800', letterSpacing: 0.5 },
+  text: { color: color.text, fontWeight: '700', letterSpacing: 0.5 },
   badge: { position: 'absolute', right: -2, bottom: -2, backgroundColor: color.bg, alignItems: 'center', justifyContent: 'center' },
 });

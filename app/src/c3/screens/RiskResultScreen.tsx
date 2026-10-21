@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { alpha, Card, color, COMPONENT, font, MetricTile, RISK, RiskGauge, sp, toRiskLevel, useResearchMode } from '../../ui';
+import { alpha, Card, color, font, MetricTile, RISK, RiskGauge, sp, toRiskLevel, useResearchMode } from '../../ui';
 import type { Assessment, Factor } from '../types';
 import { FactorDetail, FactorRow, LevelBadge, ModalityBars } from '../ui';
 
@@ -33,7 +33,7 @@ export function RiskResultScreen({ result }: { result: Assessment }) {
   const [detail, setDetail] = useState<Factor | null>(null);
   const research = useResearchMode();
   const level = toRiskLevel(result.risk_tier ?? result.risk_level) ?? 'low';
-  const tint = COMPONENT.c3.color;
+  const tint = color.brandText;
 
   const factors = useMemo(() => {
     const measured = result.all_factors.filter((f) => f.measured !== false);
@@ -107,7 +107,7 @@ export function RiskResultScreen({ result }: { result: Assessment }) {
       </Card>
 
       <View style={s.tiles}>
-        <MetricTile label="Deliveries (C2)" value={result.inputs.kinematics.deliveries} icon="body-outline"
+        <MetricTile label="Analysed deliveries" value={result.inputs.kinematics.deliveries} icon="body-outline"
           tint={result.inputs.kinematics.deliveries ? color.text : RISK.critical.text} />
         <MetricTile label="Workload log" value={result.inputs.workload.history_days} unit="days" icon="calendar-outline"
           tint={result.inputs.workload.history_days >= 21 ? color.text : RISK.critical.text} />
@@ -129,20 +129,20 @@ const s = StyleSheet.create({
   h2: { ...font.h2, color: color.text },
   body: { ...font.body, color: color.text },
   muted: { ...font.body, color: color.muted },
-  small: { ...font.caption, color: color.muted, fontWeight: '800', letterSpacing: 1 },
+  small: { ...font.caption, color: color.muted, fontWeight: '700', letterSpacing: 1 },
   note: { ...font.caption, color: color.muted },
   head: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: sp(1) },
   code: { ...font.h2, color: color.text },
   prob: { ...font.body, color: color.muted, textAlign: 'center' },
-  probStrong: { color: color.text, fontWeight: '800' },
+  probStrong: { color: color.text, fontWeight: '700' },
   bulletRow: { flexDirection: 'row', gap: sp(1) },
-  bullet: { ...font.body, fontWeight: '800' },
+  bullet: { ...font.body, fontWeight: '700' },
   toggle: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingTop: sp(1.5), minHeight: 44 },
   toggleText: { ...font.body, fontWeight: '700' },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: sp(1) },
   footer: { ...font.caption, color: color.muted, textAlign: 'center' },
   plain: { flexDirection: 'row', alignItems: 'center', gap: sp(1.5), paddingVertical: sp(1), borderBottomWidth: 1, borderBottomColor: color.border },
   plainLabel: { ...font.body, color: color.text, fontWeight: '700' },
-  plainEffect: { ...font.caption, fontWeight: '800' },
+  plainEffect: { ...font.caption, fontWeight: '700' },
 });

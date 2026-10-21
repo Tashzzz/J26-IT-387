@@ -124,14 +124,14 @@ function AcwrBar({ value }: { value: number | null }) {
 }
 
 const s = StyleSheet.create({
-  head: { color: colors.text, fontSize: 18, fontWeight: '800' },
-  small: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
-  acwr: { fontSize: 26, fontWeight: '800' },
+  head: { color: colors.text, fontSize: 18, fontWeight: '700' },
+  small: { color: colors.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1 },
+  acwr: { fontSize: 26, fontWeight: '700' },
   track: { height: 12, borderRadius: 6, backgroundColor: colors.cardAlt, overflow: 'hidden', position: 'relative' },
   zone: { position: 'absolute', top: 0, bottom: 0 },
   marker: { position: 'absolute', top: -2, width: 4, height: 16, marginLeft: -2, borderRadius: 2 },
   ticks: { flexDirection: 'row', justifyContent: 'space-between' },
-  tick: { color: colors.muted, fontSize: 11 },
+  tick: { color: colors.muted, fontSize: 12 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 12, padding: 12 },
   rowTitle: { color: colors.text, fontWeight: '700', textTransform: 'capitalize' },
   rowSub: { color: colors.muted, fontSize: 13, marginTop: 2 },

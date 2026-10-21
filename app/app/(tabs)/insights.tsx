@@ -1,6 +1,6 @@
-// Insights - research hub: squad risk spread, then one card per component in its colour opening the
-// evidence behind it (C1 reliability study, C2 threshold library, C3 model card, C4 knowledge base),
-// and links to the members' standalone tools.
+// Insights: the squad's risk spread, then "Behind the numbers" (how tracking, angle limits, the risk score
+// and plan rules work). Research mode adds "Research workspaces": the members' standalone screens, with
+// component codes and owners.
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -8,24 +8,47 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { OWNER } from '../../src/analysis/owners';
 import { useSquad } from '../../src/shell/squad';
 import {
-  alpha, Card, color, COMPONENT, ComponentBadge, ErrorBanner, font, glow, GradientHeader, ProgressBar, radius, RISK, RiskBadge, Screen,
-  Skeleton, sp, useResearchMode, type ComponentKey, type IconName, type RiskLevel,
+  alpha, Card, color, COMPONENT, ComponentBadge, EmptyState, ErrorBanner, font, GradientHeader, ProgressBar, radius, RISK, RiskBadge, Screen,
+  SectionTitle, Skeleton, sp, useResearchMode, type ComponentKey, type IconName, type RiskLevel,
 } from '../../src/ui';
 
 type Href = '/reliability' | '/insights/thresholds' | '/insights/model' | '/insights/knowledge' | '/capture' | '/features' | '/risk' | '/plan';
-const RESEARCH: { c: ComponentKey; title: string; text: string; icon: IconName; href: Href }[] = [
-  { c: 'c1', title: 'Reliability study', text: 'How consistently each body point is found from every camera setup (ICC), with the 0.75 gate.', icon: 'analytics', href: '/reliability' },
-  { c: 'c2', title: 'Threshold library', text: 'Every joint-angle limit, what it means and the study it comes from.', icon: 'library', href: '/insights/thresholds' },
-  { c: 'c3', title: 'Model card', text: 'What the risk model learned from, how accurate it is and when it alerts.', icon: 'pulse', href: '/insights/model' },
-  { c: 'c4', title: 'Knowledge base', text: 'All plan rules, workload limits, referral rules and their sources.', icon: 'book', href: '/insights/knowledge' },
+type Row = { c: ComponentKey; title: string; text: string; research?: string; icon: IconName; href: Href };
+
+const EVIDENCE: Row[] = [
+  { c: 'c1', title: 'How reliable the tracking is', text: 'How well each body part is tracked from each camera position.', research: 'ICC per keypoint and camera setup, with the 0.75 gate.', icon: 'analytics-outline', href: '/reliability' },
+  { c: 'c2', title: 'Joint-angle limits', text: 'Every angle we check, what it means and where the limit comes from.', icon: 'library-outline', href: '/insights/thresholds' },
+  { c: 'c3', title: 'How the risk score works', text: 'What the score is based on, how accurate it is and when it alerts.', research: 'Model card: training data, AUC, calibration and SHAP.', icon: 'pulse-outline', href: '/insights/model' },
+  { c: 'c4', title: 'Plan rules & sources', text: 'Workload limits, exercises and when to see a physio - with sources.', research: 'Knowledge base: every rule id and its evidence.', icon: 'book-outline', href: '/insights/knowledge' },
 ];
-const TOOLS: { c: ComponentKey; title: string; href: Href }[] = [
-  { c: 'c1', title: 'Pose capture', href: '/capture' },
-  { c: 'c2', title: 'Joint angles', href: '/features' },
-  { c: 'c3', title: 'Risk assessment', href: '/risk' },
-  { c: 'c4', title: 'Prevention plans', href: '/plan' },
+const WORKSPACES: Row[] = [
+  { c: 'c1', title: 'Pose capture', text: 'Upload a clip and get the skeleton overlay and keypoints.', icon: 'videocam-outline', href: '/capture' },
+  { c: 'c2', title: 'Joint angles', text: 'Compute angles, correct event frames, send to risk and plan.', icon: 'body-outline', href: '/features' },
+  { c: 'c3', title: 'Risk assessment', text: 'Run the model for a bowler and inspect every factor.', icon: 'pulse-outline', href: '/risk' },
+  { c: 'c4', title: 'Prevention plans', text: 'Generate plans, log workload and collect feedback.', icon: 'clipboard-outline', href: '/plan' },
 ];
 const LEVELS: RiskLevel[] = ['critical', 'high', 'moderate', 'low'];
+
+function LinkRow({ row, research, onPress }: { row: Row; research: boolean; onPress: () => void }) {
+  const c = COMPONENT[row.c];
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={row.title}
+      style={({ pressed }) => [s.row, pressed && { opacity: 0.85 }]}>
+      <View style={[s.rowIcon, { backgroundColor: alpha(c.color, 0.12) }]}><Ionicons name={row.icon} size={22} color={c.color} /></View>
+      <View style={{ flex: 1, gap: 4 }}>
+        {research && (
+          <View style={s.badgeRow}>
+            <ComponentBadge component={row.c} />
+            <Text style={s.owner}>{OWNER[row.c]}</Text>
+          </View>
+        )}
+        <Text style={s.rowTitle}>{row.title}</Text>
+        <Text style={s.muted}>{research && row.research ? row.research : row.text}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color={color.muted} />
+    </Pressable>
+  );
+}
 
 export default function Insights() {
   const router = useRouter();
@@ -36,77 +59,54 @@ export default function Insights() {
 
   return (
     <Screen safeTop onRefresh={refresh}>
-      <GradientHeader title="Insights" subtitle="The squad at a glance, and the research behind every number." icon="stats-chart" />
+      <GradientHeader title="Insights" subtitle="How your squad is doing, and how the numbers are made." />
 
       <Card>
-        <Text style={s.h2}>Squad risk</Text>
+        <Text style={s.overline}>Squad risk</Text>
         {error ? <ErrorBanner message={error} onRetry={refresh} />
-          : loading ? <Skeleton height={120} />
-          : riskUnavailable ? <Text style={s.muted}>The risk model is not reachable right now.</Text>
-          : assessed.length === 0 ? <Text style={s.muted}>No bowler has a risk assessment yet.</Text>
-          : LEVELS.map((l) => {
+          : loading ? <View style={{ gap: sp(1.5) }}>{LEVELS.map((l) => <Skeleton key={l} height={24} />)}</View>
+          : riskUnavailable ? <Text style={s.muted}>Risk results are not available right now. Pull down to try again.</Text>
+          : assessed.length === 0 ? (
+            <EmptyState spot="results" title="No risk results yet" text="Analyse a delivery to see how the squad is spread across risk levels."
+              actionTitle="Analyse a delivery" onAction={() => router.push('/analyse')} />
+          ) : LEVELS.map((l) => {
             const n = assessed.filter((r) => r.level === l).length;
             return (
               <View key={l} style={s.levelRow}>
-                <View style={{ width: 128 }}><RiskBadge level={l} size="sm" suffix="" /></View>
+                <View style={{ width: 120 }}><RiskBadge level={l} size="sm" suffix="" /></View>
                 <View style={{ flex: 1 }}><ProgressBar value={n / assessed.length} tint={RISK[l].color} /></View>
                 <Text style={s.count}>{n}</Text>
               </View>
             );
           })}
-        {!loading && !error && real.length > assessed.length && (
-          <Text style={s.muted}>{real.length - assessed.length} of {real.length} bowlers not assessed yet. Demo bowlers are not counted.</Text>
+        {!loading && !error && assessed.length > 0 && real.length > assessed.length && (
+          <Text style={s.caption}>{real.length - assessed.length} of {real.length} bowlers not assessed yet. Demo bowlers are not counted.</Text>
         )}
       </Card>
 
-      <Text style={s.h2}>Research hub</Text>
-      {RESEARCH.map((d) => {
-        const c = COMPONENT[d.c];
-        return (
-          <Pressable key={d.href} onPress={() => router.push(d.href)} accessibilityRole="button" accessibilityLabel={d.title}
-            style={({ pressed }) => [s.door, { borderColor: alpha(c.color, 0.5) }, glow(c.color, 0.4), pressed && { opacity: 0.85 }]}>
-            <View style={[s.doorIcon, { backgroundColor: alpha(c.color, 0.16) }]}><Ionicons name={d.icon} size={26} color={c.color} /></View>
-            <View style={{ flex: 1, gap: 4 }}>
-              <View style={s.badgeRow}>
-                <ComponentBadge component={d.c} />
-                {research && <Text style={s.owner}>{OWNER[d.c]}</Text>}
-              </View>
-              <Text style={[s.doorTitle, { color: c.color }]}>{d.title}</Text>
-              <Text style={s.muted}>{d.text}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={c.color} />
-          </Pressable>
-        );
-      })}
+      <SectionTitle title="Behind the numbers" />
+      {EVIDENCE.map((r) => <LinkRow key={r.href} row={r} research={research} onPress={() => router.push(r.href)} />)}
 
-      <Text style={s.h2}>Component tools</Text>
-      <View style={s.tools}>
-        {TOOLS.map((t) => {
-          const c = COMPONENT[t.c];
-          return (
-            <Pressable key={t.href} onPress={() => router.push(t.href)} accessibilityRole="button"
-              style={({ pressed }) => [s.tool, { borderColor: alpha(c.color, 0.35) }, pressed && { opacity: 0.8 }]}>
-              <Ionicons name={c.icon} size={18} color={c.color} />
-              <Text style={s.toolText} numberOfLines={1}>{t.title}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      {research && (
+        <>
+          <SectionTitle title="Research workspaces" />
+          <Text style={s.caption}>The original standalone screens for each research component. Shown in Research mode only.</Text>
+          {WORKSPACES.map((r) => <LinkRow key={r.href} row={r} research={research} onPress={() => router.push(r.href)} />)}
+        </>
+      )}
     </Screen>
   );
 }
 
 const s = StyleSheet.create({
-  h2: { ...font.h2, color: color.text, marginTop: sp(0.5) },
+  overline: { ...font.overline, color: color.muted },
   muted: { ...font.body, color: color.muted },
+  caption: { ...font.caption, color: color.muted },
   levelRow: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
   count: { ...font.h2, color: color.text, width: 28, textAlign: 'right' },
-  door: { flexDirection: 'row', alignItems: 'center', gap: sp(1.5), backgroundColor: color.surface, borderWidth: 1, borderRadius: radius.card, padding: sp(2) },
-  doorIcon: { width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: sp(1.5), backgroundColor: color.surface, borderWidth: 1, borderColor: color.border, borderRadius: radius.card, padding: sp(2) },
+  rowIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
-  owner: { ...font.caption, color: color.muted, fontStyle: 'italic' },
-  doorTitle: { ...font.title, fontSize: 19 },
-  tools: { flexDirection: 'row', flexWrap: 'wrap', gap: sp(1) },
-  tool: { flexBasis: '48%', flexGrow: 1, flexDirection: 'row', alignItems: 'center', gap: sp(1), minHeight: 48, backgroundColor: color.surface, borderWidth: 1, borderRadius: radius.button, paddingHorizontal: sp(1.5) },
-  toolText: { ...font.body, color: color.text, fontWeight: '600', flexShrink: 1 },
+  owner: { ...font.caption, color: color.muted },
+  rowTitle: { ...font.h2, color: color.text },
 });

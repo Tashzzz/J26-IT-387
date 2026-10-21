@@ -37,7 +37,7 @@ function Arrow({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: num
 }
 
 function Note({ x, y, text, anchor = 'start' }: { x: number; y: number; text: string; anchor?: 'start' | 'end' | 'middle' }) {
-  return <SvgText x={x} y={y} fill={CYAN} fontSize={11} fontWeight="800" textAnchor={anchor}>{text}</SvgText>;
+  return <SvgText x={x} y={y} fill={CYAN} fontSize={11} fontWeight="700" textAnchor={anchor}>{text}</SvgText>;
 }
 
 function Stumps({ x, y, h, w }: { x: number; y: number; h: number; w: number }) {
@@ -139,7 +139,7 @@ export function CameraViewPreview({ angle, caption = true }: { angle: CameraView
           {[59, 117].map((y) => <Line key={y} x1={0} y1={y} x2={292} y2={y} stroke={color.text} strokeOpacity={0.06} />)}
           <Scene view={angle} />
           <Circle cx={18} cy={18} r={5} fill={RISK.critical.color} />
-          <SvgText x={28} y={22} fill={color.text} fontSize={11} fontWeight="800">REC</SvgText>
+          <SvgText x={28} y={22} fill={color.text} fontSize={11} fontWeight="700">REC</SvgText>
         </G>
       </SvgBox>
       {caption && (

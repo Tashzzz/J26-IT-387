@@ -5,7 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { c4 } from '../api/c4';
 import type { WorkloadInput } from '../c4/types';
-import { Card, ChipGroup, color, COMPONENT, ErrorBanner, font, PrimaryButton, SecondaryButton, sp, TextField } from '../ui';
+import { Card, ChipGroup, color, ErrorBanner, font, SecondaryButton, sp, TextField } from '../ui';
 import { isoDay } from './WorkloadCard';
 
 export function QuickLogCard({ athleteId, onLogged }: { athleteId: number; onLogged: () => void }) {
@@ -14,7 +14,7 @@ export function QuickLogCard({ athleteId, onLogged }: { athleteId: number; onLog
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
-  const tint = COMPONENT.c4.color;
+  const tint = color.brandText;
 
   async function save() {
     setBusy(true);
@@ -39,7 +39,7 @@ export function QuickLogCard({ athleteId, onLogged }: { athleteId: number; onLog
   }
 
   return (
-    <Card variant="glow" accent={tint}>
+    <Card>
       <Text style={s.title}>Log today's overs</Text>
       <ChipGroup value={form.session_type} onChange={(v) => setForm({ ...form, session_type: v })} tint={tint}
         options={[{ value: 'nets', label: 'Nets' }, { value: 'training', label: 'Training' }, { value: 'match', label: 'Match' }]} />
@@ -61,7 +61,7 @@ export function QuickLogCard({ athleteId, onLogged }: { athleteId: number; onLog
       <SecondaryButton title={more ? 'Fewer details' : 'More details (date, spells, RPE)'} icon={more ? 'chevron-up' : 'chevron-down'} onPress={() => setMore(!more)} />
       {err && <ErrorBanner title="Check the entry" message={err} />}
       {done && <Text style={[s.done, { color: tint }]}>{done}</Text>}
-      <PrimaryButton title="Save session" icon="add-circle" onPress={save} loading={busy} disabled={!form.overs} tint={tint} />
+      <SecondaryButton title="Save session" icon="add-circle-outline" onPress={save} loading={busy} disabled={!form.overs} />
     </Card>
   );
 }

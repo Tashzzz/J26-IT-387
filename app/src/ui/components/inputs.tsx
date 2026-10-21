@@ -93,11 +93,11 @@ const s = StyleSheet.create({
   label: { ...font.caption, color: color.muted, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: sp(1) },
   chip: { minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: sp(1.75), borderRadius: radius.chip, borderWidth: 1, borderColor: color.border, backgroundColor: color.surface2 },
-  chipText: { ...font.body, fontSize: 14, fontWeight: '600', color: color.text },
+  chipText: { ...font.body, fontSize: 14, fontWeight: '700', color: color.text },
   field: { minHeight: HIT, flexDirection: 'row', alignItems: 'center', gap: sp(1), borderWidth: 1, borderRadius: radius.button, backgroundColor: color.surface2, paddingHorizontal: sp(1.75) },
   input: { flex: 1, ...font.body, color: color.text, paddingVertical: sp(1.25) },
   hint: { ...font.caption, color: color.muted },
   seg: { flexDirection: 'row', backgroundColor: color.surface2, borderRadius: radius.button, borderWidth: 1, borderColor: color.border, padding: 4, gap: 4 },
-  segItem: { flex: 1, minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: radius.sm, borderWidth: 1, borderColor: 'transparent', paddingHorizontal: sp(1) },
+  segItem: { flex: 1, minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: radius.sm, borderWidth: 1, borderColor: 'transparent', paddingHorizontal: 4 },
   segText: { ...font.body, fontSize: 14, fontWeight: '700', color: color.muted },
 });

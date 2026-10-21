@@ -8,7 +8,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BowlerCard } from '../../src/shell/BowlerCard';
 import { isHighRisk, needsAnalysis, useSquad } from '../../src/shell/squad';
 import {
-  ChipGroup, color, EmptyState, ErrorBanner, font, GradientHeader, glow, gradient, Screen, Skeleton, sp, TextField,
+  Card, ChipGroup, color, EmptyState, ErrorBanner, font, GradientHeader, glow, gradient, Screen, SkeletonCard, sp, TextField,
 } from '../../src/ui';
 
 type Filter = 'all' | 'high' | 'analyse';
@@ -36,7 +36,7 @@ export default function Squad() {
   return (
     <View style={{ flex: 1 }}>
       <Screen safeTop onRefresh={refresh} style={{ paddingBottom: 120 }}>
-        <GradientHeader title="Squad" subtitle="Every bowler you track. Tap one for risk, workload and plans." icon="people" />
+        <GradientHeader title="Squad" subtitle="Tap a bowler for their risk, workload and plan." />
         <TextField label="Search" value={q} onChangeText={setQ} placeholder="Bowler code, e.g. B03" icon="search" autoCapitalize="characters" />
         <ChipGroup value={filter} onChange={setFilter} options={[
           { value: 'all', label: `All · ${counts.all}` },
@@ -45,12 +45,15 @@ export default function Squad() {
         ]} />
 
         {error ? <ErrorBanner title="Can't load the squad" message={error} onRetry={refresh} />
-          : loading ? [0, 1, 2, 3].map((i) => <Skeleton key={i} height={92} round={20} />)
+          : loading ? [0, 1, 2, 3].map((i) => <SkeletonCard key={i} />)
           : rows.length === 0 ? (
-            <EmptyState icon="person-add" title="No bowlers yet" text="Add a bowler with an anonymous code to start analysing deliveries."
-              actionTitle="Add bowler" onAction={() => router.push('/bowler/edit')} />
+            <Card>
+              <EmptyState spot="squad" title="No bowlers yet" text="Add a bowler with an anonymous code to start analysing deliveries."
+                actionTitle="Add bowler" onAction={() => router.push('/bowler/edit')} />
+            </Card>
           ) : shown.length === 0 ? (
-            <EmptyState icon="search" title="No match" text={filter === 'high' ? 'No bowler is at high risk.' : filter === 'analyse' ? 'Every bowler has at least one analysed delivery.' : `No bowler code contains "${q}".`} />
+            <EmptyState spot="search" title="No match" text={filter === 'high' ? 'No bowler is at high risk.' : filter === 'analyse' ? 'Every bowler has at least one analysed delivery.' : `No bowler code contains "${q}".`}
+              actionTitle={q || filter !== 'all' ? 'Show all bowlers' : undefined} onAction={() => { setQ(''); setFilter('all'); }} />
           ) : shown.map((r, i) => (
             <View key={r.athlete.id} style={{ gap: sp(1) }}>
               {i === firstDemo && <Text style={s.section}>Demo bowlers</Text>}
@@ -60,7 +63,7 @@ export default function Squad() {
       </Screen>
 
       <Pressable onPress={() => router.push('/bowler/edit')} accessibilityRole="button" accessibilityLabel="Add bowler"
-        style={({ pressed }) => [s.fab, glow(gradient.brand[0], 1), pressed && { transform: [{ scale: 0.97 }] }]}>
+        style={({ pressed }) => [s.fab, glow(gradient.brand[0], 0.5), pressed && { transform: [{ scale: 0.97 }] }]}>
         <LinearGradient colors={gradient.brand} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={s.fabInner}>
           <Ionicons name="add" size={22} color={color.onBrand} />
           <Text style={s.fabText}>Add bowler</Text>
@@ -71,8 +74,8 @@ export default function Squad() {
 }
 
 const s = StyleSheet.create({
-  section: { ...font.caption, color: color.muted, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', marginTop: sp(1) },
+  section: { ...font.overline, color: color.muted, marginTop: sp(1) },
   fab: { position: 'absolute', right: sp(2), bottom: sp(2), borderRadius: 28 },
   fabInner: { flexDirection: 'row', alignItems: 'center', gap: sp(1), height: 56, paddingHorizontal: sp(2.5), borderRadius: 28 },
-  fabText: { ...font.h2, color: color.onBrand, fontWeight: '800' },
+  fabText: { ...font.h2, color: color.onBrand },
 });

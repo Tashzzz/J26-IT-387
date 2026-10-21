@@ -6,6 +6,7 @@ import {
   type StyleProp, type TextInputProps, type ViewStyle,
 } from 'react-native';
 
+import { Skeleton } from '../ui/components/feedback';
 import { colors, tierColor } from './theme';
 import type { Tier } from './types';
 
@@ -130,10 +131,13 @@ export function Row({ children, style }: { children: React.ReactNode; style?: St
   return <View style={[s.row, style]}>{children}</View>;
 }
 
+/** Skeleton placeholder (shape of a card and two rows) with the status text underneath. */
 export function Loading({ text = 'Loading…' }: { text?: string }) {
   return (
-    <View style={{ padding: 32, alignItems: 'center', gap: 12 }}>
-      <ActivityIndicator color={colors.accent} />
+    <View style={{ gap: 12 }} accessibilityLabel={text}>
+      <Skeleton height={140} round={20} />
+      <Skeleton height={64} round={16} />
+      <Skeleton height={64} round={16} />
       <Body muted>{text}</Body>
     </View>
   );
@@ -145,21 +149,21 @@ const s = StyleSheet.create({
   inner: { width: '100%', maxWidth: 720, alignSelf: 'center', gap: 14 },
   card: { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 14, padding: 16, gap: 8 },
   h: { color: colors.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', marginTop: 6 },
-  label: { color: colors.muted, fontSize: 12, fontWeight: '600', marginBottom: 6 },
+  label: { color: colors.muted, fontSize: 12, fontWeight: '700', marginBottom: 6 },
   body: { color: colors.text, fontSize: 15, lineHeight: 22 },
   badge: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3, alignSelf: 'flex-start' },
-  badgeText: { fontSize: 12, fontWeight: '800', letterSpacing: 1 },
+  badgeText: { fontSize: 12, fontWeight: '700', letterSpacing: 1 },
   tile: { flexGrow: 1, flexBasis: '45%', borderWidth: 1, borderRadius: 12, paddingVertical: 14, paddingHorizontal: 12, alignItems: 'center' },
-  tileLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', opacity: 0.9 },
-  tileValue: { fontSize: 22, fontWeight: '800', marginTop: 4, textAlign: 'center' },
+  tileLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', opacity: 0.9 },
+  tileValue: { fontSize: 22, fontWeight: '700', marginTop: 4, textAlign: 'center' },
   banner: { flexDirection: 'row', gap: 10, borderWidth: 1, borderRadius: 12, padding: 12 },
-  bannerTitle: { fontWeight: '800', fontSize: 14, marginBottom: 2 },
+  bannerTitle: { fontWeight: '700', fontSize: 14, marginBottom: 2 },
   btn: { flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', borderRadius: 12, paddingVertical: 13, paddingHorizontal: 16, minHeight: 48 },
   btnText: { fontSize: 15, fontWeight: '700' },
   input: { backgroundColor: colors.cardAlt, borderColor: colors.border, borderWidth: 1, borderRadius: 10, color: colors.text, paddingHorizontal: 12, paddingVertical: 11, fontSize: 15 },
   hint: { color: colors.muted, fontSize: 12, marginTop: 4 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { borderWidth: 1, borderColor: colors.border, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7, minHeight: 36, justifyContent: 'center' },
-  chipText: { color: colors.text, fontSize: 13, fontWeight: '600' },
+  chipText: { color: colors.text, fontSize: 13, fontWeight: '700' },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
 });

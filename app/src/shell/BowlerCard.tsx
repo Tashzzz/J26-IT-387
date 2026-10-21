@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Avatar, color, font, glow, radius, RiskBadge, sp, Tag } from '../ui';
+import { alpha, Avatar, color, font, radius, RiskBadge, sp, Tag } from '../ui';
 import { useApp } from './AppContext';
 import { ageOf, ago, type SquadRow } from './squad';
 
@@ -23,7 +23,7 @@ export function BowlerCard({ row, onPress, selected, right }: {
   return (
     <Pressable onPress={onPress} accessibilityRole="button"
       accessibilityLabel={`Bowler ${a.bowler_id}${row.demo ? ', demo' : ''}. ${row.level ? `${row.level} risk.` : 'Risk not assessed.'} ${deliveries ?? ''}`}
-      style={({ pressed }) => [s.card, selected && [s.selected, glow(color.brandText, 0.6)], pressed && { opacity: 0.8 }]}>
+      style={({ pressed }) => [s.card, selected && s.selected, pressed && { opacity: 0.8 }]}>
       <Avatar code={a.bowler_id} risk={row.level} size={52} />
       <View style={{ flex: 1, gap: 6 }}>
         <View style={s.top}>
@@ -47,7 +47,7 @@ export function BowlerCard({ row, onPress, selected, right }: {
 
 const s = StyleSheet.create({
   card: { flexDirection: 'row', alignItems: 'center', gap: sp(1.5), backgroundColor: color.surface, borderColor: color.border, borderWidth: 1, borderRadius: radius.card, padding: sp(1.5) },
-  selected: { borderColor: color.brandText },
+  selected: { borderColor: color.brandText, backgroundColor: alpha(color.brandText, 0.08) },
   top: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
   code: { ...font.h2, color: color.text, letterSpacing: 0.5 },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },

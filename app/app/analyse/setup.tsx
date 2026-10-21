@@ -1,5 +1,5 @@
-// Analysis step 2 - camera setup: four view cards (diagram + what you will see), distance, what the
-// C1 reliability study says for this setup, and a filming checklist.
+// Analysis step 2 - camera setup: four view cards (diagram + what you will see), distance, how well that
+// position tracks the body (C1 reliability study), and a filming checklist.
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -11,7 +11,7 @@ import { c1 } from '../../src/api/c1';
 import type { CameraDistance, Reliability } from '../../src/c1/types';
 import {
   alpha, BodyReliabilityMap, CAMERA_VIEW, CameraSetupDiagram, CameraViewPreview, Card, ChipGroup, color, COMPONENT, EmptyState, font,
-  glow, PrimaryButton, radius, RISK, Screen, Skeleton, sp, StepIndicator, type CameraView,
+  PrimaryButton, radius, RISK, Screen, Skeleton, sp, StepIndicator, useResearchMode, type CameraView,
 } from '../../src/ui';
 import { ANALYSIS_STEPS } from '../../src/analysis/steps';
 
@@ -31,18 +31,19 @@ export default function CameraSetup() {
   const { athlete, angle, distance, setSetup } = useAnalysis();
   const [rel, setRel] = useState<Reliability | null | 'error'>(null);
   const [ticks, setTicks] = useState<boolean[]>(CHECKLIST.map(() => false));
+  const research = useResearchMode();
 
   useEffect(() => { c1.reliability().then(setRel, () => setRel('error')); }, []);
 
   if (!athlete) {
-    return <Screen><EmptyState icon="person" title="Pick a bowler first" actionTitle="Choose bowler" onAction={() => router.replace('/analyse')} /></Screen>;
+    return <Screen><EmptyState spot="squad" title="Pick a bowler first" text="Every analysis is saved to one bowler." actionTitle="Choose bowler" onAction={() => router.replace('/analyse')} /></Screen>;
   }
 
   const study = angle && rel && rel !== 'error' ? studyForSetup(rel, angle, distance) : null;
 
   return (
     <Screen>
-      <StepIndicator steps={ANALYSIS_STEPS} current={1} tint={C1} />
+      <StepIndicator steps={ANALYSIS_STEPS} current={1} />
       <Text style={s.title}>Where will you film {athlete.bowler_id}?</Text>
 
       <ChipGroup label="Distance from the bowler" value={distance} tint={C1}
@@ -53,7 +54,7 @@ export default function CameraSetup() {
         return (
           <Pressable key={v} onPress={() => setSetup(v, distance)} accessibilityRole="radio" accessibilityState={{ selected: on }}
             accessibilityLabel={`${CAMERA_VIEW[v].label}. ${CAMERA_VIEW[v].hint}`}
-            style={[s.option, on && [{ borderColor: C1, backgroundColor: alpha(C1, 0.06) }, glow(C1, 0.6)]]}>
+            style={[s.option, on && { borderColor: C1, backgroundColor: alpha(C1, 0.06) }]}>
             <View style={s.optionHead}>
               <Ionicons name={on ? 'radio-button-on' : 'radio-button-off'} size={22} color={on ? C1 : color.muted} />
               <Text style={[s.optionTitle, on && { color: C1 }]}>{CAMERA_VIEW[v].label}</Text>
@@ -69,19 +70,19 @@ export default function CameraSetup() {
       })}
 
       <Card>
-        <Text style={s.h2}>What our reliability study says for this setup</Text>
-        {!angle ? <Text style={s.muted}>Choose a camera view to see how reliably the body points are found.</Text>
+        <Text style={s.h2}>How well this position tracks the body</Text>
+        {!angle ? <Text style={s.muted}>Choose a camera view to see which body parts are tracked reliably from there.</Text>
           : rel === null ? <Skeleton height={200} />
-          : rel === 'error' ? <Text style={s.muted}>The reliability study could not be loaded from the team computer.</Text>
+          : rel === 'error' ? <Text style={s.muted}>This could not be loaded from the team computer. You can still continue.</Text>
           : study ? (
             <>
-              <Text style={s.muted}>Closest studied setup: {study.label} · {study.usable} of {study.total} keypoints passed (ICC ≥ {rel.gate}).</Text>
+              <Text style={s.muted}>Closest tested position: {study.label} · {study.usable} of {study.total} body points tracked reliably{research ? ` (ICC ≥ ${rel.gate})` : ''}.</Text>
               <BodyReliabilityMap regions={study.regions} />
             </>
           ) : (
             <View style={s.untested}>
               <Ionicons name="help-circle" size={22} color={RISK.moderate.color} />
-              <Text style={[s.body, { flex: 1 }]}>Not tested yet – results will be marked unverified.</Text>
+              <Text style={[s.body, { flex: 1 }]}>This position hasn't been tested yet, so results will be marked unverified.</Text>
             </View>
           )}
       </Card>
@@ -110,7 +111,7 @@ const s = StyleSheet.create({
   muted: { ...font.body, color: color.muted },
   option: { backgroundColor: color.surface, borderWidth: 1, borderColor: color.border, borderRadius: radius.card, padding: sp(2), gap: sp(1) },
   optionHead: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
-  optionTitle: { ...font.title, fontSize: 20, color: color.text },
+  optionTitle: { ...font.h2, color: color.text },
   pics: { flexDirection: 'row', gap: sp(1.5), alignItems: 'center' },
   untested: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
   check: { flexDirection: 'row', alignItems: 'center', gap: sp(1.5), minHeight: 44 },

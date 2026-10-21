@@ -44,7 +44,7 @@ const METHOD_LABEL: Record<EventMethod, string> = {
   auto: 'found automatically',
   estimated: 'found automatically · check on video',
   manual: 'corrected by hand',
-  c1_window: 'from C1',
+  c1_window: 'from the video tracking',
   not_detected: 'not found',
 };
 
@@ -104,7 +104,7 @@ export function FeatureCard({ name, f, info, trueValue }: {
 
       {f.note && f.value !== null ? <Text style={[s.note, { color: st.color === colors.muted ? colors.text : st.color }]}>{f.note}</Text> : null}
       <Text style={s.small}>{ruleText(f, name)} · measured at {f.event.replace(/_/g, ' ').replace('bfc', 'BFC').replace('ffc', 'FFC')} · {f.method.toUpperCase()}</Text>
-      {trueValue !== undefined ? <Text style={s.small}>Demo built with {fmt(trueValue)} (check: C2 should be close)</Text> : null}
+      {trueValue !== undefined ? <Text style={s.small}>Demo built with {fmt(trueValue)} (the measured value should be close)</Text> : null}
 
       {!f.reliable && f.value !== null ? (
         <View style={s.warn}>
@@ -113,7 +113,7 @@ export function FeatureCard({ name, f, info, trueValue }: {
             Low visibility · check camera setup.
             {f.view_suitability === 'poor'
               ? ` This camera view cannot see this angle well: film ${name.startsWith('front_knee') ? 'side-on' : 'from behind or in front of'} the bowler.`
-              : ' The pose tracker is not reliable for these joints from this view (C1 ICC).'}
+              : ' The tracking is not reliable for these joints from this camera position.'}
             {f.unusable_keypoints?.length ? ` (${f.unusable_keypoints.join(', ').replace(/_/g, ' ')})` : ''}
           </Text>
         </View>
@@ -146,14 +146,14 @@ export function EventsCard({ events, method, fps }: { events: Events; method: Re
 }
 
 const s = StyleSheet.create({
-  title: { color: colors.text, fontSize: 16, fontWeight: '800' },
+  title: { color: colors.text, fontSize: 16, fontWeight: '700' },
   valueRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginTop: 4 },
-  value: { fontSize: 30, fontWeight: '800' },
+  value: { fontSize: 30, fontWeight: '700' },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
-  pillText: { fontSize: 12, fontWeight: '800', letterSpacing: 0.5 },
+  pillText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
   small: { color: colors.muted, fontSize: 12 },
   note: { fontSize: 14, fontWeight: '700' },
-  source: { color: colors.muted, fontSize: 11, fontStyle: 'italic', marginTop: 2 },
+  source: { color: colors.muted, fontSize: 12, fontStyle: 'italic', marginTop: 2 },
   warn: { flexDirection: 'row', gap: 6, alignItems: 'flex-start', borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 8, marginTop: 2 },
   warnText: { color: colors.warn, fontSize: 13, flex: 1 },
   eventRow: { paddingVertical: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },

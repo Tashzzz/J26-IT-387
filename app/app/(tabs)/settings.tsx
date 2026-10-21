@@ -13,11 +13,13 @@ import { useSquad } from '../../src/shell/squad';
 import { StatusPill, useBackendStatus } from '../../src/shell/status';
 import {
   Card, color, COMPONENT, COMPONENT_KEYS, font, GradientHeader, gradient, PrimaryButton, RISK, Screen, SecondaryButton, sp, TextField,
-  type ComponentKey,
+  Wordmark, type ComponentKey,
 } from '../../src/ui';
 
 type Ping = { ok: boolean; text: string } | null;
 const PINGS: Record<ComponentKey, () => Promise<unknown>> = { c1: c1.ping, c2: c2.ping, c3: c3.ping, c4: c4.ping };
+/** What each backend part does, in coach words (Research mode shows the component code instead). */
+const SERVICE: Record<ComponentKey, string> = { c1: 'Video tracking', c2: 'Joint angles', c3: 'Risk score', c4: 'Plan builder' };
 
 export default function Settings() {
   const router = useRouter();
@@ -55,7 +57,7 @@ export default function Settings() {
 
   return (
     <Screen safeTop>
-      <GradientHeader title="Settings" icon="settings" />
+      <GradientHeader title="Settings" />
 
       <Card>
         <Text style={s.h2}>Coach</Text>
@@ -79,7 +81,7 @@ export default function Settings() {
           return (
             <View key={k} style={s.ping}>
               <Ionicons name={p.ok ? 'checkmark-circle' : 'close-circle'} size={18} color={p.ok ? RISK.low.color : RISK.critical.text} />
-              <Text style={[s.pingName, { color: c.color }]}>{c.code} {c.label}</Text>
+              <Text style={s.pingName}>{researchMode ? `${c.code} ${c.label}` : SERVICE[k]}</Text>
               <Text style={s.pingText} numberOfLines={2}>{p.text}</Text>
             </View>
           );
@@ -90,7 +92,7 @@ export default function Settings() {
         <View style={s.switchRow}>
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={s.h2}>Research mode</Text>
-            <Text style={s.muted}>Shows the C1–C4 component badges, who owns each part (Nethmi · Tashini · Rizma · Rashmi) and technical values such as ICC, SHAP points and rule ids. Off: plain coaching language.</Text>
+            <Text style={s.muted}>For the project team. Shows component codes, who built each part, technical values (ICC, SHAP, rule ids) and the research workspaces in Insights. Off: plain coaching language.</Text>
           </View>
           <Switch value={researchMode} onValueChange={setResearchMode} accessibilityLabel="Research mode"
             trackColor={{ true: gradient.brand[1], false: color.surface2 }} thumbColor={color.text} />
@@ -106,7 +108,7 @@ export default function Settings() {
       </Card>
 
       <Card>
-        <Text style={s.h2}>About</Text>
+        <Wordmark size={28} />
         <Text style={s.muted}>CricShield · SLIIT research project J26-IT-387. Injury-risk support for fast bowlers; it does not replace a physiotherapist's assessment.</Text>
       </Card>
     </Screen>
@@ -118,6 +120,6 @@ const s = StyleSheet.create({
   muted: { ...font.body, color: color.muted },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: sp(2) },
   ping: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
-  pingName: { ...font.body, fontWeight: '700', width: 140 },
+  pingName: { ...font.body, fontWeight: '700', color: color.text, width: 140 },
   pingText: { ...font.caption, color: color.muted, flex: 1 },
 });
