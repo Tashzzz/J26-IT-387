@@ -59,8 +59,7 @@ function AngleCard({ name, f, info, trueValue }: { name: FeatureName; f: Feature
       <LimitBar f={f} info={info} markerColor={muted ? color.text : st.color} />
       <Text style={s.small}>{ruleText(f, name)}</Text>
       <View style={s.tags}>
-        {!f.reliable && f.value !== null && <Tag label="Low visibility" icon="eye-off-outline" tint={RISK.moderate.color} />}
-        {f.view_suitability !== 'good' && <Tag label={`View: ${f.view_suitability}`} />}
+        {research && f.view_suitability !== 'good' && <Tag label={`View: ${f.view_suitability}`} />}
         {research && f.unusable_keypoints?.length ? <Tag label={`${f.unusable_keypoints.length} keypoint${f.unusable_keypoints.length === 1 ? '' : 's'} below ICC gate`} /> : null}
         {research && <Tag label={f.method.toUpperCase()} />}
       </View>
@@ -80,9 +79,8 @@ export function BiomechanicsResultScreen({ row, thresholds, children }: {
   children?: React.ReactNode;
 }) {
   const [showNotes, setShowNotes] = useState(false);
-  const reliable = FEATURE_ORDER.filter((n) => row.features[n]?.reliable).length;
-  const confirmedBreaches = FEATURE_ORDER.filter((n) => row.features[n]?.breach && row.features[n]?.reliable).length;
-  const uncheckedBreaches = row.n_breaches - confirmedBreaches;
+  const measured = FEATURE_ORDER.filter((n) => row.features[n]?.value !== null && row.features[n]?.value !== undefined).length;
+  const confirmedBreaches = FEATURE_ORDER.filter((n) => row.features[n]?.breach).length;
   const frames = row.series ? Math.max(0, ...Object.values(row.series).map((v) => v.length)) : 0;
   const research = useResearchMode();
 
@@ -99,14 +97,8 @@ export function BiomechanicsResultScreen({ row, thresholds, children }: {
 
       <View style={s.tiles}>
         <MetricTile label="Red flags" value={confirmedBreaches} icon="alert-circle" tint={confirmedBreaches ? RISK.critical.text : RISK.low.color} />
-        <MetricTile label="Clearly seen" value={`${reliable} / ${FEATURE_ORDER.length}`} icon="eye" tint={reliable ? color.text : RISK.critical.text} />
+        <MetricTile label="Angles measured" value={`${measured} / ${FEATURE_ORDER.length}`} icon="analytics-outline" tint={color.text} />
       </View>
-      {uncheckedBreaches > 0 && (
-        <Card style={{ borderColor: alpha(RISK.moderate.color, 0.6) }}>
-          <Text style={[s.h2, { color: RISK.moderate.color }]}>{uncheckedBreaches} more over the limit · low visibility</Text>
-          <Text style={s.muted}>Measured from a camera view that cannot see that angle reliably. Check the camera setup and the video before acting.</Text>
-        </Card>
-      )}
 
       <Card>
         <Text style={s.h2}>Key moments</Text>
