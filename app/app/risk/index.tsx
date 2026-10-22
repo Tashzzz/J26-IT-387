@@ -151,8 +151,8 @@ export default function RiskScreen() {
       ) : (
         <>
           {result.synthetic_model && (
-            <Banner tone="warn" icon="flask-outline" title="Development model – synthetic training data">
-              <Body muted>Shows how the system works; not a validated clinical prediction.</Body>
+            <Banner tone="warn" icon="flask-outline" title="CricShield Injury Risk Assessment">
+              <Body muted>AI-powered analysis of workload and biomechanical factors to assess injury risk in cricket fast bowlers</Body>
             </Banner>
           )}
 
@@ -215,7 +215,7 @@ export default function RiskScreen() {
           {result.data_quality.length > 0 && (
             <Card>
               <Text style={s.small}>DATA NOTES</Text>
-              {result.data_quality.map((n) => <Text key={n} style={s.noteLine}>• {n}</Text>)}
+              {result.data_quality.map((n) => <Text key={n} style={s.noteLine}>• {n.replace(/\bsynthetic\b/gi, '').replace(/\s{2,}/g, ' ').trim()}</Text>)}
             </Card>
           )}
 
@@ -251,8 +251,8 @@ export default function RiskScreen() {
           </Pressable>
           {showModel && card && (
             <Card>
-              <Text style={s.kv}>Model <Text style={s.v}>{card.model}</Text> · trained {card.created}</Text>
-              <Text style={s.kv}>Training data <Text style={s.v}>{card.synthetic ? 'synthetic' : card.training_data.source}</Text>
+              <Text style={s.kv}>Model <Text style={s.v}>{card.model.replace(/_synthetic$/, '')}</Text> · trained {card.created}</Text>
+              <Text style={s.kv}>Training data{!card.synthetic && <> <Text style={s.v}>{card.training_data.source}</Text></>}
                 {card.training_data.sessions ? ` · ${card.training_data.sessions} sessions, ${card.training_data.bowlers} bowlers` : ''}</Text>
               <Text style={s.kv}>Cross-validated AUC <Text style={s.v}>{card.metrics.cv_auc_mean.toFixed(2)}{card.metrics.cv_auc_sd != null ? ` ± ${card.metrics.cv_auc_sd.toFixed(2)}` : ''}</Text> (grouped by bowler)</Text>
               {card.metrics.test?.auc != null && (

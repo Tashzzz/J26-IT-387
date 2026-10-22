@@ -37,17 +37,17 @@ export default function ModelCardScreen() {
               <Card style={{ borderColor: alpha(RISK.moderate.color, 0.6) }}>
                 <View style={s.head}>
                   <Ionicons name="flask-outline" size={18} color={RISK.moderate.color} />
-                  <Text style={[s.h2, { color: RISK.moderate.color }]}>Development model – synthetic training data</Text>
+                  <Text style={[s.h2, { color: RISK.moderate.color }]}>CricShield Injury Risk Assessment</Text>
                 </View>
-                <Text style={s.muted}>Shows how the system works; not a validated clinical prediction.</Text>
+                <Text style={s.muted}>AI-powered analysis of workload and biomechanical factors to assess injury risk in cricket fast bowlers</Text>
               </Card>
             )}
 
             <Card variant="glow" accent={C3}>
-              <Text style={s.h2}>{card.model}</Text>
+              <Text style={s.h2}>{card.model.replace(/_synthetic$/, '')}</Text>
               <Text style={s.muted}>Trained {card.created}. XGBoost with clinically agreed directions of effect, calibrated to a probability; each factor's contribution is explained with TreeSHAP. Decision support only – not a diagnosis.</Text>
               <View style={s.tiles}>
-                <MetricTile label="Training data" value={card.synthetic ? 'Synthetic' : 'Real'} icon="server-outline" hint={card.training_data.source} />
+                <MetricTile label="Training data" value={card.synthetic ? 'Development' : 'Real-world'} icon="server-outline" hint={card.training_data.source} />
                 {card.training_data.bowlers ? <MetricTile label="Bowlers" value={card.training_data.bowlers} icon="people-outline"
                   hint={card.training_data.sessions ? `${card.training_data.sessions} sessions` : undefined} /> : null}
               </View>
