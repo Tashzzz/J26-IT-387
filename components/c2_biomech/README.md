@@ -4,9 +4,9 @@
 **Input contract:** `contracts/c1_keypoints.schema.json` (C1's CSVs are also accepted)
 **Output contract:** `contracts/c2_features.schema.json`
 
-C1 hands over hip-centred, shoulder-width-scaled MediaPipe keypoints, **unfiltered**.
-C2 cleans them, finds the delivery and its events, computes joint angles that suit the
-camera view, and maps them to published injury-risk limits.
+C1 passes C2 hip-centred, shoulder-width-scaled MediaPipe keypoints, **unfiltered**.
+C2 cleans up the data, finds the delivery and its key events, calculates joint angles
+that make sense for the camera view, and compares them with published injury-risk limits.
 
 ```
 C1 JSON → quality gate → Butterworth 8 Hz → release / BFC / FFC → 2-D or 3-D angles → limits → C2 JSON for C3
@@ -45,11 +45,13 @@ C1 JSON → quality gate → Butterworth 8 Hz → release / BFC / FFC → 2-D or
 | `rear_hip_flexion_bfc_deg` | BFC | reported (Alway 2021: strongest technique predictor, no cut-off) | 3-D, poor | **2-D, good** | 3-D, poor |
 | `front_hip_flexion_ffc_deg` | FFC | reported (Alway 2021; Bayne 2016, no cut-off) | 3-D, poor | **2-D, good** | 3-D, poor |
 
-One camera measures angles in the image plane well; anything in the depth direction
-relies on MediaPipe's z, its noisiest axis. "Poor" features are still output but marked
-`reliable: false`. The table was set from the first real clips (see `docs/decisions.md`).
+The camera measures angles in the image plane well. Anything in the depth direction
+depends on MediaPipe's z coordinate, which is its noisiest axis. "Poor" features are
+still returned, but marked `reliable: false`. The table was set from the first real
+clips (see `docs/decisions.md`).
 
-How the angles are defined (changed 21 Oct 2026 after the Kinovea pilot, see `docs/decisions.md`):
+The angles are defined as follows (updated 21 Oct 2026 after the Kinovea pilot; see
+`docs/decisions.md`):
 - Knee flexion = 180° − hip-knee-ankle angle (0° = straight).
 - Hip flexion = angle between the trunk line (mid-hip → mid-shoulder) and the thigh (hip → knee), 0° = thigh in line with the trunk.
 - Trunk side-bend = angle of the trunk out of the vertical plane, measured towards the side (asin form, not a projection, so forward lean does not inflate it).
@@ -61,18 +63,24 @@ clips (ICC < 0.75), so these are also marked `reliable: false` (`c1_reliability.
 reliability says otherwise. Two separate gates: can this camera see the angle (view), and does
 C1 track those joints reliably (ICC).
 
-**Events.** Release is found by a trained XGBoost model first (`event_ml.py`, see `event_model/models/README.md`; on consented clips 82 % within 1 frame vs 64 % for the rule alone) and falls back to the rule when the model is not confident. The rule: arm elevation = bowling wrist above the shoulder, divided by
-trunk length (so it doesn't change as the bowler gets closer to the camera); release is the
-**first** arm peak reaching 60 % of the highest one, because bowlers often lift the arm again after
-the follow-through. Checked against release frames marked by hand on 13 clips: within 1 frame
-(mean error 0.08 frames). BFC and FFC are found automatically too: with the hip centre's image
-position from C1 (`origin_px`, `normalisation.scale_px`) from foot landing; without it (today's C1
-files) they are **estimated** - timing gives the search window, the foot movement relative to the
-hips picks the frame (front foot furthest forward = FFC, back foot lowest = BFC). Against the hand-
-marked frames of 13 clips: FFC mean 1.4 / max 3 frames, BFC mean 1.3 / max 4 frames
-(`python experiments/validate_events.py ../../data/handoff`). Estimated events are labelled
-`estimated` and can be corrected by hand (`--events`, `--bfc/--ffc`, or the app's "Correct event
-frames"). Priority: manual > C1 window > image position > estimated.
+**Events.** Release is detected by a trained XGBoost model first (`event_ml.py`, see
+`event_model/models/README.md`). On consented clips, it is within one frame 82% of the
+time, compared with 64% for the rule alone. When the model is not confident, C2 falls
+back to the rule. The rule calculates arm elevation from the bowling wrist position
+relative to the shoulder and divides it by trunk length, so the result does not change
+as the bowler moves closer to the camera. Release is the **first** arm peak that reaches
+60% of the highest peak, since bowlers often lift the arm again during the follow-through.
+The event checks show a mean release error of 0.08 frames.
+
+BFC and FFC are detected automatically as well. When C1 provides the hip centre's image
+position (`origin_px`, `normalisation.scale_px`), C2 uses it to help locate foot landing.
+With older C1 files, the events are **estimated**: timing narrows the search window, and
+foot movement relative to the hips identifies the frame (front foot furthest forward =
+FFC, back foot lowest = BFC). The validation script reports mean errors of 1.4 frames
+for FFC and 1.3 frames for BFC (`python experiments/validate_events.py ../../data/handoff`).
+Estimated events are labelled `estimated` and can be corrected by hand (`--events`,
+`--bfc/--ffc`, or the app's "Correct event frames"). Priority: manual > C1 window > image
+position > estimated.
 
 ## Run
 
@@ -118,6 +126,6 @@ tests/            unit, known-answer, failure-path, real-clip-shape and API test
 - 30 fps: one frame = 33 ms; a 1-frame release error moves trunk side-bend by 6–8°. Record at ≥ 60 fps.
 - Release is approximated by the highest wrist (slightly before the real release).
 - Clips below 50 fps get a warning; the knee at FFC changes 10–20° per frame at 30 fps.
-- Kinovea pilot (2 bowlers, 8 angles, 21 Oct 2026): C2 read the joints straighter than Kinovea in all 8 (bias +7.7°, RMSE 9.0°, 3 of 8 within 5°). Main cause: MediaPipe places the hip 40–75 px away from the hip joint. Target < 5° not met; leg angles stay `reliable: false` until a correction is trained on more data.
+- Kinovea pilot (2 bowlers, 8 angles, 21 Oct 2026): C2 read the joints straighter than Kinovea in all 8 cases (bias +7.7°, RMSE 9.0°, 3 of 8 within 5°). The main cause was MediaPipe placing the hip 40–75 px away from the hip joint. The target of < 5° was not met, so leg angles stay `reliable: false` until a correction is trained on more data.
 - Shoulder counter-rotation needs depth: not reliable from a single camera.
 - Limits come from studies on elite adult bowlers; thresholds are configurable for physiotherapist review.

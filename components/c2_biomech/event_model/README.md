@@ -1,42 +1,123 @@
-# C2 – Delivery event model (BFC, FFC, release)
+# Component 2 – Biomechanical feature engineering
 
-**Owner:** Samarasinghe S.A.T.M. (IT23217140)
+**CricShield** · AI-Powered Fast Bowler Injury Risk Prediction Using Video Analysis  
+SLIIT Research Project J26-IT-387 · IT4010
 
-Finds back-foot contact (BFC), front-foot contact (FFC) and ball release (BR) from
-single-smartphone MediaPipe landmarks, and compares:
+| | |
+|---|---|
+| **Owner** | Samarasinghe S.A.T.M. (IT23217140) |
+| **Component** | Biomechanical feature engineering |
+| **Folder** | `components/c2_biomech/event_model/` |
+| **Input** | MediaPipe pose landmarks from a bowling video |
+| **Output** | Detected delivery events for biomechanical analysis |
 
-1. **Rule-based baseline** (`rule_baseline.py`) – no training
-2. **XGBoost** on windowed landmark features (`train_evaluate.py`), leave-one-bowler-out
-   cross-validation
-3. *(planned)* small temporal network (1D-CNN / BiGRU) once there are 100+ labelled deliveries
+---
 
-It also reports **how many degrees an injury angle changes when the event frame is wrong**,
-which links the event model to the C2 angle research.
+## 1. Overview
 
-This folder is a separate experiment. It works on raw MediaPipe image coordinates from
-`extract_landmarks.py`; the production event detection used by the app is still
-`src/c2_biomech/events.py`. When the trained model is validated on more bowlers it will
-replace the foot-contact rules there.
+Component 2 identifies the important moments in a fast-bowling delivery: back-foot
+contact (BFC), front-foot contact (FFC), and ball release (BR). These moments are used
+by the rest of C2 to calculate joint angles and biomechanical features consistently.
 
-## Files
+The event detector works with MediaPipe landmarks extracted from a single smartphone
+video. It compares a transparent rule-based method with an XGBoost model and checks how
+an incorrect event frame can affect the final injury-related angle measurements.
+
+The files in this folder support the event-detection study. The production implementation
+used by the app is connected through `src/c2_biomech/events.py`.
+
+```
+Bowling video → MediaPipe landmarks → event detection → biomechanical angles → C3 risk analysis
+```
+
+## 2. Novelty
+
+Many video-analysis systems identify delivery events using a simple wrist or foot rule,
+without checking how an event-frame error affects the biomechanical measurements that
+follow.
+
+This component compares rule-based and machine-learning event detection for fast bowling
+and measures the practical effect of an incorrect event frame on injury-related angles.
+This makes it possible to judge event accuracy in terms of its effect on the wider
+CricShield risk pipeline, rather than treating event detection as an isolated task.
+
+## 3. Key functions
+
+### Function 1 – Delivery event detection
+
+| | |
+|---|---|
+| **Input** | MediaPipe landmarks from a bowling video |
+| **Processing** | Detect BFC, FFC, and BR using either the rule baseline or the XGBoost model |
+| **Output** | Event labels and frame numbers for the delivery |
+| **Evaluation** | Compare predicted event frames with hand-labelled reference frames |
+
+### Function 2 – Rule and model comparison
+
+| | |
+|---|---|
+| **Input** | Landmark features calculated around each video frame |
+| **Processing** | Compare the wrist-based and foot-contact rules with XGBoost using bowler-independent validation |
+| **Output** | Frame errors, timing errors, and event-level comparison results |
+| **Purpose** | Identify which method is most suitable for release and foot-contact detection |
+
+### Function 3 – Biomechanical impact analysis
+
+| | |
+|---|---|
+| **Input** | Event-frame errors and C2 angle calculations |
+| **Processing** | Measure how an early or late event changes the relevant joint angle |
+| **Output** | Mean and maximum angle error for each event |
+| **Purpose** | Show why accurate event detection matters for injury-risk analysis |
+
+## 4. Processing pipeline
+
+`train_evaluate.py` runs the comparison workflow. The main steps are:
+
+| Step | Module | What it does |
+|---|---|---|
+| 1. Extract | `extract_landmarks.py` | Converts a bowling video into MediaPipe landmark data. |
+| 2. Label | `label_events.py` | Records the BFC, FFC, and BR reference frames. |
+| 3. Prepare | `common.py` | Applies shared filtering and calculates landmark-based features. |
+| 4. Detect | `rule_baseline.py` / `train_evaluate.py` | Finds events using the rules and XGBoost model. |
+| 5. Evaluate | `train_evaluate.py` | Calculates frame and time errors using bowler-independent validation. |
+| 6. Link to C2 | `common.py` and angle analysis | Measures the effect of event errors on biomechanical angles. |
+
+The rule baseline uses the highest wrist position to estimate ball release and foot
+movement to estimate BFC and FFC. The XGBoost model uses landmark features from a short
+window around each frame.
+
+## 5. Files and responsibilities
 
 | File | What it does |
 |---|---|
-| `extract_landmarks.py` | Video → landmark CSV (MediaPipe PoseLandmarker, heavy model) |
-| `label_events.py` | Mark BFC / FFC / BR by hand, frame by frame (desktop window) |
-| `CricShield_C2_Event_Detection.ipynb` | Same workflow in Google Colab, with frame-grid labelling |
-| `rule_baseline.py` | Rule detector: BR = highest wrist, FFC/BR = last foot landing before |
-| `train_evaluate.py` | Rule baseline + XGBoost (LOBO), frame error and angle error |
-| `predict.py` | Run a trained model on a new clip |
-| `common.py` | Shared features, Butterworth filter, 2-D angles |
-| `make_synthetic.py` | Fake clips **only** to check the code runs – never report these numbers |
-| `labels_template.csv` | Column format for the hand labels |
-| `models/event_xgb.json` | XGBoost model trained on 20 deliveries from 11 bowlers (21 Oct 2026); results in `models/README.md` |
+| `extract_landmarks.py` | Converts video into MediaPipe landmark data. |
+| `label_events.py` | Records BFC, FFC, and BR reference frames. |
+| `rule_baseline.py` | Provides the transparent rule-based detector. |
+| `train_evaluate.py` | Trains and evaluates the XGBoost comparison model. |
+| `predict.py` | Runs a saved model on a new landmark file. |
+| `common.py` | Provides shared filtering, features, and 2-D angle calculations. |
+| `labels_template.csv` | Defines the format for event labels. |
+| `models/event_xgb.json` | Stores the saved XGBoost model. |
 
-Data and results are not committed (`.gitignore`); only the pilot model is: videos of participants stay
-out of the public repo, and labels use anonymous bowler ids.
+## 6. Results
 
-## Run
+The evaluation indicates that XGBoost is more effective than the rule baseline for ball
+release. On the evaluated real-speed footage, release detection was within one frame
+91% of the time with XGBoost, compared with 73% for the rule baseline.
+
+The rule baseline remains more dependable for BFC and FFC. For this reason, the current
+direction is a hybrid approach: use the learned model for release and retain the rules
+for foot-contact events until more labelled data is available.
+
+The angle-impact analysis also shows that a BFC error can change the rear-knee angle by
+about 12° on average, with larger errors in individual deliveries. This is comparable
+to the difference reported between injured and uninjured bowlers, so event accuracy is
+important for the reliability of the risk analysis.
+
+## 7. Installation and usage
+
+From this folder, install the required packages and run the evaluation workflow:
 
 ```bash
 pip install -r requirements.txt
@@ -45,59 +126,65 @@ python label_events.py --video data/videos/clip01.mp4 --bowler B01 --arm R --lab
 python train_evaluate.py --landmarks data/landmarks --labels data/labels.csv --out results --save-model models/event_xgb.json
 ```
 
-Colab: zip this folder as `cricshield_event_detection.zip`, put it in `MyDrive/CricShield_C2/`
-with the videos in `data/videos/`, and run the notebook top to bottom.
+To run the saved model on a new landmark file:
 
-Labelling rules (keep identical for every clip):
-- contact = the **first** frame any part of that foot touches the ground
-- release = the **last** frame the ball is still in the hand
-- order must be BFC < FFC < BR
+```bash
+python predict.py --landmarks data/landmarks/<clip>.csv --arm L --fps 59.2 --model models/event_xgb.json
+```
 
-## Training run 2 (21 Oct 2026): 20 deliveries, 11 bowlers
+## 8. Output for the C2 pipeline
 
-Leave-one-bowler-out. XGBoost beats the rule baseline for **release** (real-speed clips: 91 % vs 73 %
-within one frame, mean error 18 ms vs 83 ms); the rules stay better for foot contacts. Full tables and
-limits in `models/README.md`.
+The detector provides:
 
-## Pilot results (21 Oct 2026)
+- BFC, FFC, and BR event names.
+- The frame index for each detected event.
+- The method used to detect each event.
+- Frame and timing information for evaluation.
+- Event timing that can be passed to the C2 angle and feature calculations.
 
-11 hand-labelled side-on deliveries from 2 bowlers (30 and 60 fps), labels drafted with AI
-assistance and checked by the C2 owner. One clip was dropped because its labels were a
-copy of another clip's.
+The production C2 event path gives priority to manual corrections and reliable C1 timing
+information before using an estimated event.
 
-Rule baseline – frame error against the hand labels:
+## 9. Testing and evaluation
 
-| Event | n | Median error (frames) | Mean error (ms) | Within ±1 frame | Within ±2 frames |
-|---|---|---|---|---|---|
-| BFC | 11 | 2.0 | 123 | 36 % | 55 % |
-| FFC | 11 | 1.0 | 102 | 55 % | 64 % |
-| BR | 11 | 1.0 | 88 | 73 % | 73 % |
+The evaluation uses leave-one-bowler-out validation so that the model is tested on a
+bowler it did not learn from. This provides a more realistic indication of how the
+detector may behave on a new bowler.
 
-Angle error caused by the event error (rule baseline, 2-D proxies):
+The main checks are:
 
-| Event | Angle | Mean | Max |
-|---|---|---|---|
-| BFC | rear hip | 8.5° | 55.4° |
-| BFC | rear knee | 12.1° | 77.5° |
-| FFC | front hip | 9.1° | 25.1° |
-| FFC | front knee | 5.3° | 28.6° |
-| BR | front knee | 2.5° | 12.7° |
+- Event error in frames.
+- Event error in milliseconds.
+- Percentage of detections within one or two frames.
+- Angle error caused by an early or late event frame.
+- Comparison between the rule baseline and XGBoost.
 
-What it means
-- Release is the easiest event; foot contacts (especially BFC) are the hardest.
-- A wrong BFC moves the rear-knee angle by 12° on average (up to 78° on one clip) – larger
-  than the ~10° difference between injured and uninjured bowlers (Alway et al. 2021), so
-  event accuracy matters.
-- XGBoost was not evaluated: with 2 bowlers, leave-one-bowler-out trains on one bowler and
-  tests on the other. It needs 15+ bowlers.
+## 10. Data and ethics
 
-Data issues found in the pilot video set
-- Only 3 bowlers among the usable side-on clips; 20 of 69 clips were front or rear views;
-  11 files were duplicates.
-- MediaPipe missed small bowlers in wide shots, sometimes tracked the umpire, and lagged
-  in the delivery stride.
+- Videos and labels are stored outside the public repository.
+- Bowler identities are represented using anonymous IDs.
+- Only aggregate evaluation results are included in the project documentation.
+- Reference event frames are checked consistently using the same labelling definitions.
 
-Next
-- Standard filming protocol: side-on, tripod, 60 fps, bowler at least a third of the frame,
-  nobody else close by.
-- 15+ bowlers, then XGBoost vs rule baseline with leave-one-bowler-out and a held-out test set.
+## 11. Known limitations
+
+- Foot-contact detection is less reliable than release detection.
+- The evaluation set is still limited, so results may change as more bowlers are added.
+- Different camera views, frame rates, slow-motion footage, and background people can
+  affect landmark quality.
+- The XGBoost model should not replace manual correction when an event is uncertain.
+- More labelled bowlers and a held-out test set are needed before relying on the model
+  for final clinical or coaching decisions.
+
+## 12. Next steps
+
+- Use a consistent filming setup: side-on view, tripod, and 60 fps where possible.
+- Add more labelled bowlers and deliveries.
+- Compare the hybrid detector against a held-out test set.
+- Improve foot-contact detection after collecting more reliable labels.
+- Connect the final event-confidence information to the C2 results screen.
+
+## 13. References
+
+- Alway, P. et al. (2021). Research on bowling technique and injury-related biomechanical differences.
+- MediaPipe Pose Landmarker documentation.
