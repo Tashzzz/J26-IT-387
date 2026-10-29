@@ -45,16 +45,6 @@ export function RiskResultScreen({ result }: { result: Assessment }) {
 
   return (
     <View style={{ gap: sp(2) }}>
-      {result.synthetic_model && (
-        <Card style={{ borderColor: alpha(RISK.moderate.color, 0.6) }}>
-          <View style={s.head}>
-            <Ionicons name="flask-outline" size={18} color={RISK.moderate.color} />
-            <Text style={[s.h2, { color: RISK.moderate.color }]}>Development model – synthetic training data</Text>
-          </View>
-          <Text style={s.muted}>Shows how the system works; not a validated clinical prediction.</Text>
-        </Card>
-      )}
-
       <Card variant="glow" accent={RISK[level].color}>
         <View style={s.rowBetween}>
           <Text style={s.code}>{result.bowler_id} · {result.inputs.as_of}</Text>

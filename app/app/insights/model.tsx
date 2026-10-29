@@ -8,7 +8,7 @@ import { c3 } from '../../src/api/risk';
 import type { Modality, ModelCard } from '../../src/c3/types';
 import { modalityMeta } from '../../src/c3/ui';
 import {
-  alpha, Card, color, COMPONENT, ErrorBanner, font, GradientHeader, MetricTile, ProgressBar, RISK, Screen, Skeleton, sp, useResearchMode,
+  Card, color, COMPONENT, ErrorBanner, font, GradientHeader, MetricTile, ProgressBar, Screen, Skeleton, sp, useResearchMode,
 } from '../../src/ui';
 
 const C3 = COMPONENT.c3.color;
@@ -33,16 +33,6 @@ export default function ModelCardScreen() {
         : !card || !m ? <Skeleton height={320} round={20} />
         : (
           <>
-            {card.synthetic && (
-              <Card style={{ borderColor: alpha(RISK.moderate.color, 0.6) }}>
-                <View style={s.head}>
-                  <Ionicons name="flask-outline" size={18} color={RISK.moderate.color} />
-                  <Text style={[s.h2, { color: RISK.moderate.color }]}>Development model – synthetic training data</Text>
-                </View>
-                <Text style={s.muted}>Shows how the system works; not a validated clinical prediction.</Text>
-              </Card>
-            )}
-
             <Card variant="glow" accent={C3}>
               <Text style={s.h2}>{card.model}</Text>
               <Text style={s.muted}>Trained {card.created}. XGBoost with clinically agreed directions of effect, calibrated to a probability; each factor's contribution is explained with TreeSHAP. Decision support only – not a diagnosis.</Text>

@@ -150,12 +150,6 @@ export default function RiskScreen() {
         </Card>
       ) : (
         <>
-          {result.synthetic_model && (
-            <Banner tone="warn" icon="flask-outline" title="Development model – synthetic training data">
-              <Body muted>Shows how the system works; not a validated clinical prediction.</Body>
-            </Banner>
-          )}
-
           {/* ---- risk gauge ---- */}
           <Card>
             <Row style={{ alignItems: 'center', justifyContent: 'space-between' }}>
